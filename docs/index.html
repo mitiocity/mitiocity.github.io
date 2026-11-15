@@ -1,15 +1,20 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <title>みちを市ポータルサイト</title>
+
   <meta name="description" content="アリウスゲートからつながる、みちを市のポータルサイト。">
   <meta name="theme-color" content="#101a38">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="みちを市">
 
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="assets/images/icons/icon-192.png" type="image/png">
+  <link rel="icon" href="assets/images/icons/icon-192.png">
   <link rel="apple-touch-icon" href="assets/images/icons/apple-touch-icon.png">
 
   <link rel="stylesheet" href="assets/css/style.css">
@@ -17,40 +22,38 @@
 </head>
 
 <body>
+
   <a class="skip-link" href="#main-content">本文へ移動</a>
 
-  <header class="site-header" id="site-header">
-    <div class="header-main-row">
+  <header class="site-header">
+
+    <div class="site-header__main">
+
       <button
         class="menu-toggle"
-        id="menu-toggle"
         type="button"
         aria-label="メニューを開く"
-        aria-controls="portal-drawer"
         aria-expanded="false"
+        aria-controls="portal-drawer"
       >
         <span></span>
         <span></span>
         <span></span>
       </button>
 
-      <a
-        class="site-brand"
-        href="#home"
-        aria-label="みちを市ポータルサイト・トップへ"
-      >
+      <a class="site-brand" href="#page/notes" aria-label="みちを市ポータルサイト ホーム">
         みちを市ポータルサイト
       </a>
 
       <button
         class="bgm-toggle"
-        id="bgm-toggle"
         type="button"
         aria-label="BGMの操作を開く"
         aria-pressed="false"
       >
         ♪
       </button>
+
     </div>
 
     <nav class="quick-menu" aria-label="クイックメニュー">
@@ -65,35 +68,37 @@
     <section class="header-news" aria-label="最新ニュース">
       <span class="header-news__label">LATEST NEWS</span>
 
-      <a class="header-news__ticker" id="news-ticker" href="#news">
-        <span id="news-ticker-text">現在、お知らせはありません</span>
-      </a>
+      <div class="header-news__viewport">
+        <a class="header-news__ticker" href="#news">
+          ニュースを読み込み中…
+        </a>
+      </div>
     </section>
+
   </header>
 
-  <div class="drawer-backdrop" id="drawer-backdrop" aria-hidden="true"></div>
+  <div class="drawer-backdrop" aria-hidden="true"></div>
 
   <aside
-    class="portal-drawer"
     id="portal-drawer"
-    aria-label="サイトメニュー"
+    class="portal-drawer"
+    aria-label="アリウスゲートメニュー"
     aria-hidden="true"
   >
-    <div class="drawer-header">
-      <p class="drawer-title">ARYUS GATE MENU</p>
 
-      <button
-        class="drawer-close"
-        id="drawer-close"
-        type="button"
-        aria-label="メニューを閉じる"
-      >
+    <div class="portal-drawer__header">
+      <p>ARYUS GATE MENU</p>
+
+      <button class="drawer-close" type="button" aria-label="メニューを閉じる">
         ×
       </button>
     </div>
 
-    <nav class="drawer-nav" aria-label="全体メニュー">
-      <a class="drawer-nav__news" href="#news">✦ ニュース一覧</a>
+    <nav class="drawer-menu" aria-label="メインメニュー">
+
+      <a class="drawer-menu__news" href="#news">
+        ✦ ニュース一覧
+      </a>
 
       <section class="drawer-section">
         <h2>みちを市ポータルサイトについて</h2>
@@ -119,52 +124,65 @@
         <a href="#page/dochok9m">Dochok9m</a>
         <a href="#page/mythtik">mythtik</a>
       </section>
+
     </nav>
+
   </aside>
 
-  <section class="bgm-controls" id="bgm-controls" aria-label="BGM操作" hidden>
-    <p>BGM CONTROL</p>
+  <section class="bgm-controls" aria-label="BGM操作" hidden>
+    <p class="bgm-controls__title">BGM CONTROL</p>
 
     <div class="bgm-controls__buttons">
-      <button class="bgm-control__primary" id="bgm-play-stop" type="button">
-        再生
-      </button>
-
-      <button class="bgm-control__next" id="bgm-next" type="button">
-        次の曲
-      </button>
+      <button class="bgm-control__primary" type="button">再生</button>
+      <button class="bgm-control__next" type="button">次の曲</button>
     </div>
   </section>
 
-  <main id="main-content" tabindex="-1" aria-live="polite">
-    <section class="loading-screen" aria-label="読み込み中">
+  <main id="main-content">
+    <section class="loading-screen" aria-live="polite">
       <p>ARYUS GATE CONNECTING...</p>
     </section>
   </main>
 
   <div class="ofuse-area">
-    <a data-ofuse-widget-button href="https://ofuse.me/o?uid=227673" data-ofuse-id="227673" data-ofuse-text="推せたら推して!">推せたら推して!</a>
-    <script async src="https://ofuse.me/assets/platform/widget.js" charset="utf-8"></script>
+    <a
+      data-ofuse-widget-button
+      href="https://ofuse.me/o?uid=227673"
+      data-ofuse-id="227673"
+      data-ofuse-text="推せたら推して!"
+    >
+      推せたら推して!
+    </a>
   </div>
 
   <footer class="site-footer">
     <p>© Studio MiCchiCchi</p>
   </footer>
 
+  <script
+    async
+    src="https://ofuse.me/assets/platform/widget.js"
+    charset="utf-8"
+  ></script>
+
   <script src="assets/js/entrance.js" defer></script>
   <script src="assets/js/site.js" defer></script>
   <script src="assets/js/gate.js" defer></script>
+  <script src="assets/js/install.js" defer></script>
 
   <script>
+    "use strict";
+
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js", {
-          scope: "./"
-        }).catch(() => {
-          /* PWA未対応でも通常のサイトとして動作する */
-        });
+        navigator.serviceWorker
+          .register("./service-worker.js", { scope: "./" })
+          .catch((error) => {
+            console.warn("Service Workerの登録に失敗しました。", error);
+          });
       });
     }
   </script>
+
 </body>
 </html>
