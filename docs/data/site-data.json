@@ -1,0 +1,329 @@
+{
+  "schemaVersion": 1,
+  "exportedAt": "2026-11-15T12:28:37.433Z",
+  "site": {
+    "title": "みちを市ポータルサイト"
+  },
+  "pages": [
+    {
+      "id": 8,
+      "title": "音楽 - music -",
+      "slug": "music",
+      "date": "2026-11-14 22:20:05",
+      "content": "<!-- wp:html -->\n<p>みちを市から、さまざまな音楽世界へつながる入口です。</p>\n\n<div class=\"portal-menu__children\">\n\n  <a\n    class=\"portal-link\"\n    href=\"https://www.tunecore.co.jp/artists?id=1180215\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    TuneCore Japan\n  </a>\n\n  <a\n    class=\"portal-link\"\n    href=\"https://music.apple.com/jp/artist/xxxmitio/1665529769\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    Apple Music\n  </a>\n\n  <a\n    class=\"portal-link\"\n    href=\"https://open.spotify.com/artist/4g621CTztWc8fi4khCRppx?si=V4jsP0kTSb-VaQ38MxjZ6A&utm_source=copy-link\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    Spotify\n  </a>\n\n  <a\n    class=\"portal-link\"\n    href=\"https://music.amazon.co.jp/artists/B0BS973D74/xxxmitio?marketplaceId=A1VC38T7YXB528&musicTerritory=JP&ref=dm_sh_SLvlhir0wgbo0fBKwwhLGig0k\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    Amazon Music\n  </a>\n\n  <a\n    class=\"portal-link\"\n    href=\"https://music.youtube.com/playlist?list=OLAK5uy_lqYVH2oZuFbIQQA1NntWka-VOXQ0RyHvc\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    YouTube Music\n  </a>\n\n</div>\n<!-- /wp:html -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:html -->\n<br><br><a data-ofuse-widget-button=\"\" href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async=\"\" src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "",
+      "sourceUrl": "http://mitiocity.local/music/"
+    },
+    {
+      "id": 11,
+      "title": "オリジナルゲーム - Original game -",
+      "slug": "games",
+      "date": "2026-11-14 22:40:50",
+      "content": "<!-- wp:html -->\n<p>みちを市から生まれた、オリジナルゲームの入口です。</p>\n\n<div class=\"portal-menu__children\">\n\n  <span class=\"portal-link portal-link--locked\">\n    Budget Travelers\n    <small>準備中</small>\n  </span>\n\n  <span class=\"portal-link portal-link--locked\">\n    あるなしクイズ\n    <small>開発中</small>\n  </span>\n\n</div>\n<!-- /wp:html -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:html -->\n<br><br><a data-ofuse-widget-button href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+      "excerpt": "",
+      "thumbnail": "",
+      "sourceUrl": "http://mitiocity.local/games/"
+    },
+    {
+      "id": 14,
+      "title": "Webアプリ - Web App -",
+      "slug": "apps",
+      "date": "2026-11-14 22:43:12",
+      "content": "<!-- wp:html -->\n<p>みちを市から生まれた、Webアプリの入口です。</p>\n\n<div class=\"portal-menu__children\">\n\n  <a\n    class=\"portal-link\"\n    href=\"https://xxxmitio.github.io/michimemo/\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    みちメモ\n  </a>\n\n  <span class=\"portal-link portal-link--locked\">\n    激しいタイマー\n    <small>開発中</small>\n  </span>\n\n</div>\n<!-- /wp:html -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:html -->\n<br><br><a data-ofuse-widget-button=\"\" href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async=\"\" src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "",
+      "sourceUrl": "http://mitiocity.local/apps/"
+    },
+    {
+      "id": 16,
+      "title": "動画系SNS - Social media -",
+      "slug": "video",
+      "date": "2026-11-14 22:45:08",
+      "content": "<!-- wp:html -->\n<p>みちを市から、動画の世界へつながる入口です。</p>\n\n<div class=\"portal-menu__children\">\n\n  <a\n    class=\"portal-link\"\n    href=\"https://www.tiktok.com/@xxxmitio\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    TikTok\n  </a>\n\n  <a\n    class=\"portal-link\"\n    href=\"https://youtube.com/@xxxmitio\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    YouTube\n  </a>\n\n</div>\n<!-- /wp:html -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:html -->\n<br><br><a data-ofuse-widget-button href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "",
+      "sourceUrl": "http://mitiocity.local/video/"
+    },
+    {
+      "id": 18,
+      "title": "ブログ・その他コンテンツ - Blog &amp; Others -",
+      "slug": "blog",
+      "date": "2026-11-14 22:46:44",
+      "content": "<!-- wp:html -->\n<p>みちを市から、さまざまな発信や活動記録へつながる入口です。</p>\n\n<div class=\"portal-menu__children\">\n\n  <a\n    class=\"portal-link\"\n    href=\"https://ofuse.me/377327\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    OFUSE\n  </a>\n\n  <a\n    class=\"portal-link\"\n    href=\"https://x.com/xxxmitio\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    X\n  </a>\n\n  <a\n    class=\"portal-link\"\n    href=\"https://note.com/xxxmitio\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n  >\n    note\n  </a>\n\n</div>\n<!-- /wp:html -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:html -->\n<br><br><a data-ofuse-widget-button href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "",
+      "sourceUrl": "http://mitiocity.local/blog/"
+    },
+    {
+      "id": 20,
+      "title": "Ex Black Box",
+      "slug": "ex-black-box",
+      "date": "2026-11-14 22:50:51",
+      "content": "<!-- wp:html -->\n<style>\n  .blackbox-terminal {\n    position: relative;\n    overflow: hidden;\n    min-height: 360px;\n    padding: 24px 18px;\n    color: #ffd7dc;\n    border: 1px solid rgba(255, 120, 139, .58);\n    border-radius: 18px;\n    background:\n      radial-gradient(circle at 50% 45%, rgba(143, 14, 33, .28), transparent 50%),\n      linear-gradient(145deg, #13060b 0%, #060507 62%, #0c0306 100%);\n    box-shadow:\n      inset 0 0 38px rgba(196, 20, 46, .14),\n      0 0 28px rgba(158, 17, 41, .15);\n  }\n\n  .blackbox-terminal::before {\n    position: absolute;\n    z-index: 1;\n    inset: 0;\n    content: \"\";\n    pointer-events: none;\n    opacity: .34;\n    background:\n      repeating-linear-gradient(\n        0deg,\n        transparent 0,\n        transparent 3px,\n        rgba(255, 185, 194, .08) 4px\n      );\n  }\n\n  .blackbox-terminal__codes {\n    position: absolute;\n    z-index: 0;\n    inset: 0;\n    overflow: hidden;\n    opacity: .5;\n  }\n\n  .blackbox-terminal__code {\n    position: absolute;\n    left: 0;\n    width: 180%;\n    margin: 0;\n    color: #ff7688;\n    font-family: \"Consolas\", \"Courier New\", monospace;\n    font-size: .62rem;\n    letter-spacing: .12em;\n    white-space: nowrap;\n    text-shadow: 0 0 7px rgba(255, 88, 111, .92);\n    animation: blackbox-code-flow 8s linear infinite;\n  }\n\n  .blackbox-terminal__code--1 {\n    top: 15%;\n    animation-delay: -1s;\n  }\n\n  .blackbox-terminal__code--2 {\n    top: 30%;\n    color: #ffb0ba;\n    animation-delay: -4s;\n    animation-duration: 11s;\n  }\n\n  .blackbox-terminal__code--3 {\n    top: 49%;\n    animation-delay: -6s;\n    animation-duration: 7s;\n  }\n\n  .blackbox-terminal__code--4 {\n    top: 67%;\n    color: #e95d70;\n    animation-delay: -3s;\n    animation-duration: 13s;\n  }\n\n  .blackbox-terminal__code--5 {\n    top: 83%;\n    animation-delay: -8s;\n    animation-duration: 9s;\n  }\n\n  .blackbox-terminal__content {\n    position: relative;\n    z-index: 2;\n    display: grid;\n    min-height: 310px;\n    align-content: center;\n    justify-items: center;\n    text-align: center;\n  }\n\n  .blackbox-terminal__eyebrow {\n    margin: 0 0 12px;\n    color: #ff9dab;\n    font-family: \"Consolas\", \"Courier New\", monospace;\n    font-size: .65rem;\n    font-weight: 800;\n    letter-spacing: .18em;\n    text-shadow: 0 0 10px rgba(255, 92, 113, .8);\n  }\n\n  .blackbox-terminal h2 {\n    margin: 0;\n    color: #fff0f2;\n    font-size: clamp(1.25rem, 6vw, 1.8rem);\n    line-height: 1.55;\n    text-shadow: 0 0 16px rgba(255, 97, 120, .52);\n  }\n\n  .blackbox-terminal__message {\n    max-width: 28em;\n    margin: 16px 0 0;\n    color: rgba(255, 225, 229, .88);\n    font-size: .84rem;\n    line-height: 2;\n  }\n\n  .blackbox-terminal__status {\n    display: inline-flex;\n    align-items: center;\n    gap: 8px;\n    margin-top: 22px;\n    padding: 6px 12px;\n    color: #ffb8c2;\n    font-family: \"Consolas\", \"Courier New\", monospace;\n    font-size: .68rem;\n    letter-spacing: .08em;\n    border: 1px solid rgba(255, 145, 160, .45);\n    border-radius: 999px;\n    background: rgba(70, 0, 12, .55);\n  }\n\n  .blackbox-terminal__status::before {\n    width: 8px;\n    height: 8px;\n    content: \"\";\n    border-radius: 50%;\n    background: #ff445e;\n    box-shadow: 0 0 10px #ff445e;\n    animation: blackbox-signal 1.1s steps(2, start) infinite;\n  }\n\n  .blackbox-terminal__warning {\n    margin: 18px 0 0;\n    color: #ff788b;\n    font-family: \"Consolas\", \"Courier New\", monospace;\n    font-size: .64rem;\n    letter-spacing: .08em;\n    animation: blackbox-glitch 2.8s steps(2, end) infinite;\n  }\n\n  @keyframes blackbox-code-flow {\n    from {\n      transform: translateX(10%);\n    }\n\n    to {\n      transform: translateX(-48%);\n    }\n  }\n\n  @keyframes blackbox-signal {\n    50% {\n      opacity: .18;\n      transform: scale(.72);\n    }\n  }\n\n  @keyframes blackbox-glitch {\n    0%,\n    88%,\n    100% {\n      transform: translateX(0);\n      opacity: 1;\n    }\n\n    90% {\n      transform: translateX(-3px);\n      opacity: .45;\n    }\n\n    93% {\n      transform: translateX(4px);\n      opacity: 1;\n    }\n  }\n\n  @media (prefers-reduced-motion: reduce) {\n    .blackbox-terminal__code,\n    .blackbox-terminal__status::before,\n    .blackbox-terminal__warning {\n      animation: none;\n    }\n  }\n</style>\n\n<section class=\"blackbox-terminal\">\n\n  <div class=\"blackbox-terminal__codes\" aria-hidden=\"true\">\n    <p class=\"blackbox-terminal__code blackbox-terminal__code--1\">\n      01001000 01000001 01010010 01010101 01010011 01010000 01010010 01001111 01010100 01001111 01000011 01001111 01001100\n    </p>\n\n    <p class=\"blackbox-terminal__code blackbox-terminal__code--2\">\n      ACCESS: UNKNOWN // GATE_ID: ARIUS-███ // SIGNAL: DETECTED // WORLD_CONNECTION: UNSTABLE\n    </p>\n\n    <p class=\"blackbox-terminal__code blackbox-terminal__code--3\">\n      6D 69 63 68 69 6F 63 69 74 79 20 2F 2F 20 4E 4F 20 45 58 49 54 20 52 45 43 4F 52 44\n    </p>\n\n    <p class=\"blackbox-terminal__code blackbox-terminal__code--4\">\n      [ERROR] UNKNOWN KEY REQUIRED ... [ERROR] ACCESS DENIED ... [ERROR] GATE STILL OPEN ...\n    </p>\n\n    <p class=\"blackbox-terminal__code blackbox-terminal__code--5\">\n      CODE_FRAGMENT: 7A-██-09 / USER_STATUS: OBSERVED / NEXT_SIGNAL: ██████████\n    </p>\n  </div>\n\n  <div class=\"blackbox-terminal__content\">\n    <p class=\"blackbox-terminal__eyebrow\">EX BLACK BOX / SIGNAL MONITOR</p>\n\n    <h2>BLACK BOXは<br>まだ沈黙している。</h2>\n\n    <p class=\"blackbox-terminal__message\">\n      解析不能な信号が、アリウスゲートの奥から届いている。<br>\n      鍵を持つ者だけが、その先へ進める。\n    </p>\n\n    <p class=\"blackbox-terminal__status\">\n      SEARCHING FOR UNKNOWN CODE...\n    </p>\n\n    <p class=\"blackbox-terminal__warning\">\n      DO NOT ATTEMPT UNAUTHORIZED ACCESS\n    </p>\n  </div>\n\n</section>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "",
+      "sourceUrl": "http://mitiocity.local/ex-black-box/"
+    },
+    {
+      "id": 22,
+      "title": "はじめに",
+      "slug": "about",
+      "date": "2026-11-14 22:53:07",
+      "content": "<!-- wp:paragraph -->\n<p>みちを市ポータルサイトへ、ようこそ。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>ここは、「みちを市」という架空の街のポータルサイトです。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>みちを市には、現在のところ有名な観光スポットも、立派な名所もありません。<br>けれど、アリウスゲートが偶然この街へつながってしまったことで、音楽、動画、ゲーム、Webアプリ、そしてさまざまな物語へ通じる入口が生まれました。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>みちを市は、エンターテインメント・スタジオ<br>Studio MiCchiCchi（スタジオみっちっち）の本拠地でもあります。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>Studio MiCchiCchiは、音楽を起点に、動画、ゲーム、アプリ、ラジオ配信など、さまざまなエンターテインメント活動を展開しています。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>この街を少しでも面白く、少しでも楽しい場所にするために。<br>Studio MiCchiCchiは、作品づくりを通じて、みちを市の町興しに貢献してくれています。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>まだ何もない街かもしれません。<br>しかし、これから何かが始まる街です。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>どうぞ、アリウスゲートを通って、みちを市の各世界をお楽しみください。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:html -->\n<br><br><a data-ofuse-widget-button=\"\" href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async=\"\" src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/みちを市.jpg",
+      "sourceUrl": "http://mitiocity.local/about/"
+    },
+    {
+      "id": 24,
+      "title": "注意事項",
+      "slug": "notes",
+      "date": "2026-11-14 22:54:55",
+      "content": "<!-- wp:html -->\n<h2>みちを市ポータルサイトについて</h2>\n\n<p>\n  みちを市ポータルサイトは、個人により運営されています。\n</p>\n\n<p>\n  架空の街「みちを市」と、Studio MiCchiCchi（スタジオみっちっち）に関する情報、\n  音楽・動画・ゲーム・Webアプリなどのコンテンツへの入口を掲載しています。\n</p>\n\n<h2>サイト内容の変更・終了について</h2>\n\n<p>\n  当サイトは、運営上の都合、技術的な事情、サービスの変更その他の理由により、\n  掲載内容の変更、更新の停止、またはサイトの公開を予告なく終了する場合があります。\n</p>\n\n<p>\n  あらかじめご了承ください。\n</p>\n\n<h2>外部サービスへのリンクについて</h2>\n\n<p>\n  当サイトには、音楽配信サービス、動画サービス、SNS、ブログサービス、支援サービス、\n  Webアプリなど、運営者が管理していない外部サービスへのリンクが含まれます。\n</p>\n\n<p>\n  外部リンク先で提供されるサービス、掲載内容、利用条件、プライバシーポリシー、\n  表示される広告、その他の事項については、各サービスの運営者が定めるルールに従ってください。\n</p>\n\n<p>\n  外部サービスの利用によって生じた損害・トラブル等について、\n  当サイト運営者は責任を負いかねます。\n</p>\n\n<h2>個人情報について</h2>\n\n<p>\n  当サイトでは、問い合わせフォーム、会員登録、コメント機能などを設けず、\n  氏名、住所、メールアドレス、電話番号などの個人情報を原則として取得しません。\n</p>\n\n<p>\n  外部リンク先のサービスで入力・登録する情報については、\n  当サイトでは管理・取得・利用を行いません。\n</p>\n\n<h2>アクセス解析について</h2>\n\n<p>\n  当サイトでは、利用状況の把握とサイト改善を目的として、\n  Google Analytics等のアクセス解析サービスを利用する場合があります。\n</p>\n\n<p>\n  アクセス解析サービスでは、Cookie（クッキー）等の技術を利用して、\n  閲覧ページ、利用端末、参照元などの統計的な情報が収集される場合があります。\n  これらは個人を直接特定する目的では利用しません。\n</p>\n\n<p>\n  Cookieの利用は、ブラウザの設定によって制限または無効化できます。\n  ただし、設定によっては一部の表示・機能に影響する場合があります。\n</p>\n\n<h2>著作権について</h2>\n\n<p>\n  当サイトに掲載する文章、画像、音楽、動画、ロゴ、キャラクター、\n  その他のコンテンツに関する権利は、運営者または各権利者に帰属します。\n</p>\n\n<p>\n  法令で認められる範囲を超えた無断転載、複製、再配布、改変等はお控えください。\n</p>\n\n<h2>免責事項</h2>\n\n<p>\n  当サイトでは、可能な限り正確な情報を掲載するよう努めますが、\n  内容の正確性、完全性、最新性、安全性等を保証するものではありません。\n</p>\n\n<p>\n  当サイトの利用、または利用できなかったことによって生じた損害について、\n  当サイト運営者は責任を負いかねます。\n</p>\n\n<h2>お問い合わせについて</h2>\n\n<p>\n  当サイトでは、個人情報を受け取らない運用方針のため、\n  現時点で問い合わせ窓口は設けていません。\n</p>\n<br><br><a data-ofuse-widget-button=\"\" href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async=\"\" src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "",
+      "sourceUrl": "http://mitiocity.local/"
+    },
+    {
+      "id": 33,
+      "title": "スタジオみっちっちとは",
+      "slug": "studio",
+      "date": "2026-11-14 23:10:07",
+      "content": "<!-- wp:paragraph -->\n<p>Studio MiCchiCchiとは</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>音楽から、なんでもつくる。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>Studio MiCchiCchiは、音楽を起点に、<br>動画、ゲーム、アプリ、ラジオ配信など、<br>ジャンルの境界を軽やかに飛び越えるエンターテインメント・スタジオです。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>AIという新しい創作の相棒とともに、<br>音が物語になり、物語が映像になり、<br>映像が遊びになり、<br>遊びが誰かの毎日を少し楽しくする。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>そんな連鎖をつくっていきます。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>完成されたジャンルや正解に縛られず、<br>「これ、楽しいかも」から始まるアイデアを大切に。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>つくることも、観ることも、遊ぶことも、<br>みんなで面白がれる場所を目指します。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>楽しく遊ぶ！ 推せたら推して！</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>Studio MiCchiCchiは、<br>みちを市に本社を構え、<br>これからも音楽から世界を広げていきます。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:html -->\n<br><br><a data-ofuse-widget-button=\"\" href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async=\"\" src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/StudioMiCchiCchi.png",
+      "sourceUrl": "http://mitiocity.local/studio/"
+    },
+    {
+      "id": 43,
+      "title": "えせ音楽家xxxmitioみちを",
+      "slug": "xxxmitio",
+      "date": "2026-11-14 23:30:16",
+      "content": "<!-- wp:paragraph -->\n<p>みちを市市長兼スタジオみっちっち代表。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>主にAIを使った作品を展開。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>DjentやMetalcoreとオーケストラを融合させた<br>インストルメンタルを主軸に、<br>物語を彷彿とさせる曲調をリリースしている。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>その他、所属アーティストのプロデュースも行い、<br>運営や管理をしている。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:html -->\n<br><br><a data-ofuse-widget-button href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/みちを.png",
+      "sourceUrl": "http://mitiocity.local/xxxmitio/"
+    },
+    {
+      "id": 46,
+      "title": "Tableware Riot",
+      "slug": "tableware-riot",
+      "date": "2026-11-14 23:53:39",
+      "content": "<!-- wp:html -->\nBass Vocal：桃ノ木 のゝ乃（もものぎ ののの）<br>\nGuitar：陰李 甚平（かげり じんべい）<br>\nこの2人が織り成すコミカルファンクメタルコア<br>\n（Comical Funk Metalcore）<br><br>\n\n激しいスラップベースとタイトに刻むギターに、<br>\nちょっとヘンテコな歌詞が特徴です。\n<br><br>\n\n<iframe src=https://linkco.re/embed/62mpT6nh width=\"300\" height=\"600\" frameborder=\"0\"></iframe>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/Tableware-Riot2.jpg",
+      "sourceUrl": "http://mitiocity.local/tableware-riot/"
+    },
+    {
+      "id": 53,
+      "title": "O×07",
+      "slug": "oxo7",
+      "date": "2026-11-15 08:08:44",
+      "content": "<!-- wp:paragraph -->\n<p>O×07（オーバイセブン）は、<br>代表が所属する実際のバンドをモチーフにした<br>Post Art Progressive Rockバンド。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>メンバーはシルエットにしているが、<br>こちらも実際のバンドをモチーフにしている。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:html -->\n<br><br><a data-ofuse-widget-button href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/OXO7.png",
+      "sourceUrl": "http://mitiocity.local/oxo7/"
+    },
+    {
+      "id": 56,
+      "title": "The Vromen Town Metalicans",
+      "slug": "the-vromen-town-metalicans",
+      "date": "2026-11-15 08:30:48",
+      "content": "<!-- wp:paragraph -->\n<p>The Vromen Town Metalicans<br>ザ ブロメン タウン メタリカンズ</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>ブレーメンの音楽隊をモチーフに結成された、<br>Bollywood Dance Metalcoreバンド。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>ボーカルのHound Canine、<br>ギターのRobart Jackass、<br>ベースのCatzy Feline、<br>ドラムのRooster Gamefowl。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>ボリウッド映画のダンスミュージックとMetalcoreを融合した、<br>不思議なスパイスの踊れるメタル！</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:html -->\n<br><br><a data-ofuse-widget-button href=\"https://ofuse.me/o?uid=227673\" data-ofuse-id=\"227673\" data-ofuse-text=\"推せたら推して!\">推せたら推して!</a><script async src=\"https://ofuse.me/assets/platform/widget.js\" charset=\"utf-8\"></script>\n<!-- /wp:html -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/ブロメン.png",
+      "sourceUrl": "http://mitiocity.local/the-vromen-town-metalicans/"
+    },
+    {
+      "id": 65,
+      "title": "Five Peace Minichestra",
+      "slug": "five-peace-minichestra",
+      "date": "2026-11-15 09:38:45",
+      "content": "<!-- wp:paragraph -->\n<p>Five Peace Minichestra<br>ファイブ ピース ミニケストラ</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>ジャンル：Tiny Tale Orchestra<br>タイニー テイル オーケストラ</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>物語性のある、ちょっとしたオーケストラをお届けしています。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>手軽、身近、親しみやすさをテーマに、<br>温かさ、優しさ、癒し、幻想的、美しさ、<br>少しのファンタジーを感じてもらえたら嬉しいです。</p>\n<!-- /wp:paragraph -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/5peace.png",
+      "sourceUrl": "http://mitiocity.local/five-peace-minichestra/"
+    },
+    {
+      "id": 67,
+      "title": "Audio Protocol",
+      "slug": "audio-protocol",
+      "date": "2026-11-15 09:41:30",
+      "content": "<!-- wp:paragraph -->\n<p>Audio Protocol<br>オーディオ プロトコル</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>ジャンル：Experimental Art Music<br>エクスペリメンタル アート ミュージック</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>「常識やルールに縛られずにどれだけ出来るか」をテーマにした実験音楽。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>斬新、奇才、前衛的な感性に全振りしています。</p>\n<!-- /wp:paragraph -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/オーディオプロトコル.png",
+      "sourceUrl": "http://mitiocity.local/audio-protocol/"
+    },
+    {
+      "id": 69,
+      "title": "なごみっち",
+      "slug": "nagomicchi",
+      "date": "2026-11-15 09:42:49",
+      "content": "<!-- wp:paragraph -->\n<p>なごみっち</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>ジャンル：NagomicChill Sound<br>なごみっチルさうんど</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>癒し系の音楽を目指しています。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>ヒーリングだけでなく、<br>少し間の抜けた音楽も交えつつ、<br>みなさまが「和む」と嬉しいな。</p>\n<!-- /wp:paragraph -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/なごみっち.png",
+      "sourceUrl": "http://mitiocity.local/nagomicchi/"
+    },
+    {
+      "id": 71,
+      "title": "Sound GACHA",
+      "slug": "sound-gacha",
+      "date": "2026-11-15 09:44:16",
+      "content": "<!-- wp:paragraph -->\n<p>Sound GACHA<br>サウンド ガチャ</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>みちを市ポータルサイト内で流れる曲を担当しています。</p>\n<!-- /wp:paragraph -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/サウンドガチャ.png",
+      "sourceUrl": "http://mitiocity.local/sound-gacha/"
+    },
+    {
+      "id": 73,
+      "title": "Dochok9m",
+      "slug": "dochok9m",
+      "date": "2026-11-15 09:49:26",
+      "content": "<!-- wp:paragraph -->\n<p>Dochok9m<br>ドチョッキュウメーター</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>ジャンル：Proclaim Brass Rock<br>プロウクレイム ブラス ロック</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>作詞家の真向勝負（まむかい しょうぶ）の<br>鋭く研ぎ澄まされた歌詞に、<br>xxxmitioえせ音楽家みちをが曲を付けています。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>彼の皮肉たっぷりのProclaim（宣言）を、<br>ぜひお試しください。</p>\n<!-- /wp:paragraph -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/Dochok9m2.png",
+      "sourceUrl": "http://mitiocity.local/dochok9m/"
+    },
+    {
+      "id": 76,
+      "title": "mythtik",
+      "slug": "mythtik",
+      "date": "2026-11-15 09:55:04",
+      "content": "<!-- wp:paragraph -->\n<p>mythtik<br>ミスティック</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>3人組IDOL METALCORE DANCE POPグループ。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>赤いシルエットが赤井拓磨、<br>黄色いシルエットが黄瀬いつき、<br>青いシルエットが青山海斗。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>それぞれの色のシルエットで、<br>アイドル活動します。</p>\n<!-- /wp:paragraph -->",
+      "excerpt": "",
+      "thumbnail": "assets/images/uploads/2026/11/mythtik.jpg",
+      "sourceUrl": "http://mitiocity.local/mythtik/"
+    },
+    {
+      "id": 89,
+      "title": "ニュース一覧",
+      "slug": "news-home",
+      "date": "2026-11-15 15:09:45",
+      "content": "",
+      "excerpt": "",
+      "thumbnail": "",
+      "sourceUrl": "http://mitiocity.local/news-home/"
+    }
+  ],
+  "news": [
+    {
+      "id": 88,
+      "title": "みちを市ポータルサイト、公開準備中",
+      "slug": "みちを市ポータルサイト、公開準備中",
+      "date": "2026-11-15 14:40:01",
+      "content": "<!-- wp:paragraph -->\n<p>みちを市ポータルサイトを公開準備中です。</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p>音楽、動画、Webアプリ、オリジナルゲームなど、<br>アリウスゲートからさまざまな世界へつながる入口を順次追加していきます。</p>\n<!-- /wp:paragraph -->",
+      "excerpt": "",
+      "thumbnail": "",
+      "sourceUrl": "http://mitiocity.local/news/%e3%81%bf%e3%81%a1%e3%82%92%e5%b8%82%e3%83%9d%e3%83%bc%e3%82%bf%e3%83%ab%e3%82%b5%e3%82%a4%e3%83%88%e3%80%81%e5%85%ac%e9%96%8b%e6%ba%96%e5%82%99%e4%b8%ad/"
+    },
+    {
+      "id": 6,
+      "title": "みちを市ポータルサイト、ただいま接続中。",
+      "slug": "みちを市ポータルサイト、ただいま接続中。",
+      "date": "2026-11-14 13:40:15",
+      "content": "<!-- wp:paragraph -->\n<p>アリウスゲートは、偶然にもみちを市へつながってしまいました。<br>みちを市ポータルサイトを公開準備中です。</p>\n<!-- /wp:paragraph -->",
+      "excerpt": "",
+      "thumbnail": "",
+      "sourceUrl": "http://mitiocity.local/news/%e3%81%bf%e3%81%a1%e3%82%92%e5%b8%82%e3%83%9d%e3%83%bc%e3%82%bf%e3%83%ab%e3%82%b5%e3%82%a4%e3%83%88%e3%80%81%e3%81%9f%e3%81%a0%e3%81%84%e3%81%be%e6%8e%a5%e7%b6%9a%e4%b8%ad%e3%80%82/"
+    }
+  ],
+  "attachments": {
+    "35": {
+      "id": 35,
+      "title": "みちを市",
+      "parentId": 22,
+      "localUrl": "assets/images/uploads/2026/11/みちを市.jpg"
+    },
+    "36": {
+      "id": 36,
+      "title": "StudioMiCchiCchi",
+      "parentId": 33,
+      "localUrl": "assets/images/uploads/2026/11/StudioMiCchiCchi.png"
+    },
+    "44": {
+      "id": 44,
+      "title": "代表みちを",
+      "parentId": 43,
+      "localUrl": "assets/images/uploads/2026/11/代表みちを.jpg"
+    },
+    "47": {
+      "id": 47,
+      "title": "Tableware Riot2",
+      "parentId": 46,
+      "localUrl": "assets/images/uploads/2026/11/Tableware-Riot2.jpg"
+    },
+    "55": {
+      "id": 55,
+      "title": "OXO7",
+      "parentId": 53,
+      "localUrl": "assets/images/uploads/2026/11/OXO7.png"
+    },
+    "58": {
+      "id": 58,
+      "title": "みちを",
+      "parentId": 43,
+      "localUrl": "assets/images/uploads/2026/11/みちを.png"
+    },
+    "61": {
+      "id": 61,
+      "title": "ブロメン",
+      "parentId": 56,
+      "localUrl": "assets/images/uploads/2026/11/ブロメン.png"
+    },
+    "74": {
+      "id": 74,
+      "title": "Dochok9m2",
+      "parentId": 73,
+      "localUrl": "assets/images/uploads/2026/11/Dochok9m2.png"
+    },
+    "77": {
+      "id": 77,
+      "title": "mythtik",
+      "parentId": 76,
+      "localUrl": "assets/images/uploads/2026/11/mythtik.jpg"
+    },
+    "79": {
+      "id": 79,
+      "title": "なごみっち",
+      "parentId": 69,
+      "localUrl": "assets/images/uploads/2026/11/なごみっち.png"
+    },
+    "80": {
+      "id": 80,
+      "title": "サウンドガチャ",
+      "parentId": 71,
+      "localUrl": "assets/images/uploads/2026/11/サウンドガチャ.png"
+    },
+    "81": {
+      "id": 81,
+      "title": "オーディオプロトコル",
+      "parentId": 67,
+      "localUrl": "assets/images/uploads/2026/11/オーディオプロトコル.png"
+    },
+    "82": {
+      "id": 82,
+      "title": "5peace",
+      "parentId": 65,
+      "localUrl": "assets/images/uploads/2026/11/5peace.png"
+    },
+    "83": {
+      "id": 83,
+      "title": "mitiocity-icon-original",
+      "parentId": 0,
+      "localUrl": "assets/images/uploads/2026/11/mitiocity-icon-original.jpg"
+    },
+    "84": {
+      "id": 84,
+      "title": "cropped-mitiocity-icon-original.jpg",
+      "parentId": 83,
+      "localUrl": "assets/images/uploads/2026/11/cropped-mitiocity-icon-original.jpg"
+    },
+    "86": {
+      "id": 86,
+      "title": "cropped-mitiocity-icon-original-1.jpg",
+      "parentId": 83,
+      "localUrl": "assets/images/uploads/2026/11/cropped-mitiocity-icon-original-1.jpg"
+    }
+  }
+}

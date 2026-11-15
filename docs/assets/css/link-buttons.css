@@ -1,0 +1,137 @@
+/* =========================================
+   みちを市ポータルサイト
+   全ページ共通・本文リンク用アリウスゲートボタン
+   ========================================= */
+
+/*
+  対象：
+  site.js が表示する全固定ページ・ニュース本文の
+  .entry-content 内にある、すべてのテキストリンク。
+
+  WordPressから移した文章、リンク名、リンク先URLは変更しない。
+  見た目とタップ領域だけを統一する。
+*/
+
+/* 本文内のリンクは、すべて1つずつ独立したボタンにする */
+.entry-content a {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 60px;
+  align-items: center;
+  margin: 11px 0;
+  padding: 11px 48px 11px 63px;
+  overflow: hidden;
+  color: #fffaf0;
+  font-size: 0.93rem;
+  font-weight: 800;
+  line-height: 1.45;
+  text-decoration: none;
+  border: 1px solid rgba(255, 230, 174, 0.72);
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, rgba(7, 12, 34, 0.97), rgba(31, 52, 108, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 7px 15px rgba(8, 10, 25, 0.24);
+  transition:
+    transform 0.16s ease,
+    color 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+/*
+  左側：アリウスゲート画像。
+  assets/css/link-buttons.css から見た画像の場所は
+  ../images/arius-gate.png
+*/
+.entry-content a::before {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  width: 40px;
+  height: 40px;
+  content: "";
+  border: 1px solid rgba(255, 235, 190, 0.76);
+  border-radius: 8px;
+  background-color: #091127;
+  background-image: url("../images/arius-gate.png");
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 0 11px rgba(255, 223, 148, 0.35);
+  transform: translateY(-50%);
+}
+
+/* 右側：移動を示す矢印 */
+.entry-content a::after {
+  position: absolute;
+  right: 15px;
+  color: #ffe6ae;
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1;
+  content: "›";
+}
+
+/* タップ時 */
+.entry-content a:active {
+  color: #261803;
+  background: linear-gradient(135deg, #ffeab5, #d5a94f);
+  box-shadow: 0 3px 8px rgba(8, 10, 25, 0.2);
+  transform: scale(0.98);
+}
+
+.entry-content a:active::after {
+  color: #261803;
+}
+
+/* キーボード操作時の輪郭 */
+.entry-content a:focus-visible {
+  outline: 3px solid #ffe6ae;
+  outline-offset: 3px;
+}
+
+/*
+  画像そのものを包むリンクは、ボタン化しない。
+  画像をクリックできるまま、通常の画像表示を維持する。
+*/
+.entry-content figure a,
+.entry-content a:has(img) {
+  display: inline-block;
+  width: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.entry-content figure a::before,
+.entry-content figure a::after,
+.entry-content a:has(img)::before,
+.entry-content a:has(img)::after {
+  display: none;
+}
+
+/*
+  WordPress本文にリンクだけが連続していても、
+  1個ずつ改行したボタンとして並ぶようにする。
+*/
+.entry-content p:has(a) {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+/*
+  PCでは横幅を抑え、
+  スマホでは本文幅いっぱいの押しやすいボタンにする。
+*/
+@media (min-width: 680px) {
+  .entry-content a {
+    max-width: 540px;
+  }
+}

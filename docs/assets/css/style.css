@@ -1,0 +1,729 @@
+/* =========================================
+   みちを市ポータルサイト｜静的サイト版
+   ========================================= */
+
+:root {
+  --night: #070914;
+  --deep: #02030a;
+  --navy: #101a38;
+  --navy-light: #192959;
+  --gold: #d8af63;
+  --gold-light: #ffe6ae;
+  --paper: #fffaf0;
+  --ink: #18120b;
+  --muted: #b8b4ae;
+  --line: rgba(255, 230, 174, 0.27);
+  --red: #b83245;
+  --red-light: #ffbac2;
+
+  /* ヘッダー3段分の高さ */
+  --header-height: 137px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--deep);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--paper);
+  background:
+    radial-gradient(circle at 12% 23%, rgba(120, 145, 255, 0.18) 0 1px, transparent 2px),
+    radial-gradient(circle at 73% 17%, rgba(255, 236, 181, 0.3) 0 1px, transparent 2px),
+    radial-gradient(circle at 89% 62%, rgba(133, 165, 255, 0.18) 0 1px, transparent 2px),
+    radial-gradient(circle at 31% 81%, rgba(255, 235, 184, 0.17) 0 1px, transparent 2px),
+    linear-gradient(155deg, #101a38 0%, #070914 42%, #02030a 100%);
+  background-size: 190px 170px, 230px 210px, 260px 250px, 310px 280px, auto;
+  font-family:
+    "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans",
+    "Yu Gothic",
+    "YuGothic",
+    Meiryo,
+    sans-serif;
+  line-height: 1.75;
+}
+
+body.menu-is-open {
+  overflow: hidden;
+}
+
+button,
+a,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* キーボード操作時だけ輪郭を出す */
+:focus-visible {
+  outline: 3px solid var(--gold-light);
+  outline-offset: 3px;
+}
+
+/* =========================================
+   アクセシビリティ
+   ========================================= */
+
+.skip-link {
+  position: fixed;
+  z-index: 100000;
+  top: 8px;
+  left: 8px;
+  padding: 9px 13px;
+  color: var(--ink);
+  background: var(--gold-light);
+  border-radius: 8px;
+  transform: translateY(-150%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* =========================================
+   常設ヘッダー
+   ========================================= */
+
+.site-header {
+  position: fixed;
+  z-index: 9000;
+  top: 0;
+  right: 0;
+  left: 0;
+  border-bottom: 1px solid rgba(216, 175, 99, 0.55);
+  box-shadow: 0 7px 23px rgba(0, 0, 0, 0.5);
+  background:
+    linear-gradient(180deg, rgba(18, 30, 65, 0.99), rgba(5, 7, 18, 0.99));
+}
+
+.header-main-row {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 46px;
+  align-items: center;
+  min-height: 51px;
+  padding: 0 7px;
+}
+
+.menu-toggle,
+.bgm-toggle,
+.drawer-close {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
+  color: var(--gold-light);
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 230, 174, 0.43);
+  border-radius: 10px;
+}
+
+.menu-toggle {
+  gap: 4px;
+  align-content: center;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--gold-light);
+  border-radius: 9px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+body.menu-is-open .menu-toggle span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+body.menu-is-open .menu-toggle span:nth-child(2) {
+  opacity: 0;
+}
+
+body.menu-is-open .menu-toggle span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.site-brand {
+  min-width: 0;
+  padding: 0 5px;
+  overflow: hidden;
+  color: var(--paper);
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bgm-toggle {
+  justify-self: end;
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.bgm-toggle.is-playing {
+  color: #fff;
+  background: linear-gradient(135deg, #b1843e, #e9cb85);
+  border-color: #ffeab5;
+  box-shadow: 0 0 15px rgba(255, 219, 149, 0.36);
+}
+
+/* クイックメニュー */
+.quick-menu {
+  display: flex;
+  gap: 5px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(2, 3, 10, 0.72);
+}
+
+.quick-menu::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-menu a {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  color: var(--gold-light);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid rgba(216, 175, 99, 0.5);
+  border-radius: 999px;
+  background: rgba(27, 42, 85, 0.55);
+}
+
+.quick-menu a:active {
+  color: var(--ink);
+  background: var(--gold-light);
+}
+
+.quick-menu .quick-menu__blackbox {
+  color: var(--red-light);
+  border-color: rgba(255, 116, 135, 0.67);
+  background: rgba(110, 13, 28, 0.48);
+}
+
+/* ニュース専用行：メニューとは分離 */
+.header-news {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 34px;
+  overflow: hidden;
+  background: #05060f;
+}
+
+.header-news__label {
+  display: grid;
+  padding: 0 9px;
+  place-items: center;
+  color: #fff5d8;
+  font-size: 0.59rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #9d2836, #4c1019);
+}
+
+.header-news__ticker {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  overflow: hidden;
+  color: var(--paper);
+  font-size: 0.73rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.header-news__ticker span {
+  display: inline-block;
+  min-width: 100%;
+  padding-left: 100%;
+  animation: ticker-scroll 16s linear infinite;
+}
+
+.header-news__ticker:active {
+  color: var(--gold-light);
+}
+
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* =========================================
+   メイン本文
+   ========================================= */
+
+#main-content {
+  width: min(100%, 760px);
+  min-height: calc(100vh - var(--header-height) - 60px);
+  margin: 0 auto;
+  padding: calc(var(--header-height) + 24px) 16px 34px;
+}
+
+.loading-screen {
+  display: grid;
+  min-height: 46vh;
+  place-items: center;
+  color: var(--gold-light);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-align: center;
+}
+
+.page-hero,
+.news-hero {
+  position: relative;
+  margin-bottom: 18px;
+  padding: 31px 20px 22px;
+  overflow: hidden;
+  border: 1px solid rgba(216, 175, 99, 0.56);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% -25%, rgba(255, 227, 157, 0.27), transparent 39%),
+    linear-gradient(145deg, rgba(35, 56, 111, 0.92), rgba(4, 6, 20, 0.98));
+  box-shadow: 0 13px 31px rgba(0, 0, 0, 0.31);
+}
+
+.page-hero::before,
+.news-hero::before {
+  position: absolute;
+  top: -57px;
+  left: 50%;
+  width: 138px;
+  height: 120px;
+  content: "";
+  border: 2px solid rgba(255, 230, 174, 0.48);
+  border-radius: 70px 70px 0 0;
+  transform: translateX(-50%);
+}
+
+.page-hero__eyebrow,
+.news-hero__eyebrow {
+  position: relative;
+  margin: 0 0 6px;
+  color: var(--gold-light);
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-align: center;
+}
+
+.page-hero h1,
+.news-hero h1 {
+  position: relative;
+  margin: 0;
+  color: var(--paper);
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  line-height: 1.35;
+  text-align: center;
+  word-break: break-word;
+}
+
+.page-article,
+.news-article,
+.news-list {
+  padding: 17px;
+  color: var(--ink);
+  background: var(--paper);
+  border-radius: 18px;
+  box-shadow: 0 12px 27px rgba(0, 0, 0, 0.3);
+}
+
+.page-article .page-hero,
+.news-article .page-hero {
+  margin: -17px -17px 20px;
+  border-radius: 18px 18px 0 0;
+}
+
+.entry-content {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.entry-content > :first-child {
+  margin-top: 0;
+}
+
+.entry-content > :last-child {
+  margin-bottom: 0;
+}
+
+.entry-content h2,
+.entry-content h3,
+.entry-content h4 {
+  color: #17234a;
+  line-height: 1.4;
+}
+
+.entry-content h2 {
+  margin-top: 1.9em;
+  padding-bottom: 0.38em;
+  border-bottom: 2px solid rgba(216, 175, 99, 0.8);
+  font-size: 1.2rem;
+}
+
+.entry-content h3 {
+  font-size: 1.08rem;
+}
+
+.entry-content a {
+  color: #9c2536;
+  font-weight: 700;
+}
+
+.entry-content img {
+  margin: 1.15em auto;
+  border-radius: 10px;
+}
+
+.entry-content figure {
+  max-width: 100%;
+  margin: 1.2em 0;
+}
+
+.entry-content figcaption {
+  color: #625d52;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.news-card {
+  display: block;
+  margin-bottom: 12px;
+  padding: 16px;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid #e4d5b6;
+  border-radius: 13px;
+  background: #fffdf7;
+  box-shadow: 0 4px 12px rgba(36, 28, 17, 0.08);
+}
+
+.news-card:last-child {
+  margin-bottom: 0;
+}
+
+.news-card:active {
+  transform: scale(0.99);
+  background: #fff5db;
+}
+
+.news-card__date {
+  display: block;
+  margin-bottom: 3px;
+  color: #82663a;
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.news-card__title {
+  display: block;
+  color: #1b2b5d;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.news-card__excerpt {
+  display: -webkit-box;
+  margin: 8px 0 0;
+  overflow: hidden;
+  color: #514a3f;
+  font-size: 0.83rem;
+  line-height: 1.65;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+}
+
+/* =========================================
+   ハンバーガーメニュー
+   ========================================= */
+
+.drawer-backdrop {
+  position: fixed;
+  z-index: 9500;
+  inset: 0;
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(0, 0, 0, 0.67);
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.drawer-backdrop.is-open {
+  visibility: visible;
+  opacity: 1;
+}
+
+.portal-drawer {
+  position: fixed;
+  z-index: 9600;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: min(88vw, 390px);
+  flex-direction: column;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 76% 7%, rgba(255, 222, 146, 0.14), transparent 25%),
+    linear-gradient(160deg, #172754, #060817 63%, #02030a);
+  box-shadow: 8px 0 28px rgba(0, 0, 0, 0.55);
+  transform: translateX(-105%);
+  transition: transform 0.28s ease;
+}
+
+.portal-drawer.is-open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 13px 10px 17px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(8, 11, 28, 0.96);
+}
+
+.drawer-title {
+  margin: 0;
+  color: var(--gold-light);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.drawer-nav {
+  padding: 14px;
+}
+
+.drawer-nav a {
+  display: block;
+  padding: 11px 10px;
+  color: var(--paper);
+  font-size: 0.9rem;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+}
+
+.drawer-nav a:active {
+  color: var(--ink);
+  background: var(--gold-light);
+}
+
+.drawer-nav__news {
+  margin-bottom: 10px;
+  color: var(--gold-light) !important;
+  font-weight: 800;
+  border: 1px solid rgba(216, 175, 99, 0.6) !important;
+  border-radius: 10px;
+  background: rgba(216, 175, 99, 0.1);
+}
+
+.drawer-section {
+  margin: 0 0 20px;
+}
+
+.drawer-section h2 {
+  margin: 0;
+  padding: 8px 10px;
+  color: var(--gold-light);
+  font-size: 0.73rem;
+  letter-spacing: 0.06em;
+  border-left: 3px solid var(--gold);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+/* =========================================
+   BGM操作
+   ========================================= */
+
+.bgm-controls {
+  position: fixed;
+  z-index: 9700;
+  top: 59px;
+  right: 12px;
+  width: min(calc(100vw - 24px), 365px);
+  padding: 14px;
+  color: var(--paper);
+  border: 1px solid rgba(255, 230, 174, 0.56);
+  border-radius: 16px;
+  background: rgba(9, 13, 33, 0.98);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.54);
+}
+
+.bgm-controls[hidden] {
+  display: none;
+}
+
+.bgm-controls p {
+  margin: 0 0 10px;
+  color: var(--gold-light);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-align: center;
+}
+
+.bgm-controls__buttons {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 11px;
+}
+
+.bgm-controls button {
+  min-height: 54px;
+  padding: 8px;
+  font-weight: 900;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.bgm-control__primary {
+  color: #291b05;
+  font-size: 1.08rem;
+  background: linear-gradient(135deg, #ffe7ae, #d4a950);
+  border: 1px solid #fff0c8;
+}
+
+.bgm-control__next {
+  color: var(--paper);
+  font-size: 0.92rem;
+  background: #283a73;
+  border: 1px solid #8398d4;
+}
+
+/* =========================================
+   OFUSE・フッター
+   ========================================= */
+
+.ofuse-area {
+  position: fixed;
+  z-index: 8000;
+  right: 9px;
+  bottom: 10px;
+  transform: scale(0.72);
+  transform-origin: right bottom;
+}
+
+.site-footer {
+  padding: 16px 16px 88px;
+  color: rgba(255, 250, 240, 0.7);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+/* =========================================
+   PC・タブレット
+   ========================================= */
+
+@media (min-width: 680px) {
+  :root {
+    --header-height: 142px;
+  }
+
+  .header-main-row {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .quick-menu {
+    justify-content: center;
+  }
+
+  .quick-menu a {
+    padding: 5px 13px;
+    font-size: 0.71rem;
+  }
+
+  #main-content {
+    padding-top: calc(var(--header-height) + 36px);
+  }
+
+  .portal-drawer {
+    width: 390px;
+  }
+
+  .page-article,
+  .news-article,
+  .news-list {
+    padding: 25px;
+  }
+
+  .page-article .page-hero,
+  .news-article .page-hero {
+    margin: -25px -25px 26px;
+  }
+}
+
+/* 動きを減らす設定の端末ではテロップを止める */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .header-news__ticker span {
+    padding-left: 10px;
+  }
+}
