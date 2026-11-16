@@ -1,6 +1,12 @@
 "use strict";
 
-const CACHE_NAME = "mitiocity-static-v1";
+/*
+  キャッシュ名を v1 → v2 へ変更する。
+
+  これにより、以前の壊れたJavaScript・JSONのキャッシュを削除し、
+  次回アクセス時に最新版を取得する。
+*/
+const CACHE_NAME = "mitiocity-static-v2";
 
 const CORE_FILES = [
   "./",
@@ -18,6 +24,13 @@ const CORE_FILES = [
   "./assets/images/icons/icon-512.png"
 ];
 
+/*
+  サイト本体をキャッシュへ保存する。
+
+  ただし、下のfetch処理ではHTML・CSS・JS・JSONについて
+  ネットワーク優先にしているため、公開後の修正が
+  古いキャッシュで妨げられない。
+*/
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -28,6 +41,10 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
+/*
+  v1などの旧キャッシュを削除し、
+  更新直後から新しいService Workerを使う。
+*/
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -49,6 +66,44 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+function isAlwaysFreshFile(requestUrl) {
+  const pathname = requestUrl.pathname;
+
+  return (
+    pathname.endsWith("/") ||
+    pathname.endsWith("/index.html") ||
+    pathname.endsWith("/manifest.webmanifest") ||
+    pathname.endsWith("/data/site-data.json") ||
+    pathname.endsWith(".js") ||
+    pathname.endsWith(".css")
+  );
+}
+
+function saveToCache(request, response) {
+  if (!response || !response.ok) {
+    return;
+  }
+
+  const responseCopy = response.clone();
+
+  caches.open(CACHE_NAME).then((cache) => {
+    cache.put(request, responseCopy);
+  });
+}
+
+/*
+  動作に直結するファイルはネットワーク優先。
+
+  対象：
+  - HTML
+  - JavaScript
+  - CSS
+  - site-data.json
+  - manifest
+
+  これにより公開後の修正が即座に反映される。
+  通信不能時だけキャッシュへ戻る。
+*/
 self.addEventListener("fetch", (event) => {
   const request = event.request;
 
@@ -56,29 +111,32 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (new URL(request.url).origin !== self.location.origin) {
+  const requestUrl = new URL(request.url);
+
+  if (requestUrl.origin !== self.location.origin) {
     return;
   }
 
-  /*
-    画面移動はネットワーク優先。
-    通信できないときだけトップ画面を表示する。
-  */
-  if (request.mode === "navigate") {
+  if (request.mode === "navigate" || isAlwaysFreshFile(requestUrl)) {
     event.respondWith(
-      fetch(request).catch(() => {
-        return caches.match("./index.html");
-      })
+      fetch(request)
+        .then((networkResponse) => {
+          saveToCache(request, networkResponse);
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match(request).then((cachedResponse) => {
+            return cachedResponse || caches.match("./index.html");
+          });
+        })
     );
 
     return;
   }
 
   /*
-    CSS・JS・画像・BGM・動画は、
-    一度取得したものをキャッシュから先に返す。
-    未キャッシュの素材はネットワークから取得し、
-    次回以降のために保存する。
+    画像・BGM・動画はキャッシュ優先。
+    重い素材を毎回ダウンロードしないための設定。
   */
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
@@ -87,12 +145,7 @@ self.addEventListener("fetch", (event) => {
       }
 
       return fetch(request).then((networkResponse) => {
-        const responseCopy = networkResponse.clone();
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, responseCopy);
-        });
-
+        saveToCache(request, networkResponse);
         return networkResponse;
       });
     })
