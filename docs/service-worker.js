@@ -1,6 +1,12 @@
 "use strict";
 
-const CACHE_NAME = "mitiocity-static-v1";
+/*
+  正常版PWAのキャッシュを、新規作成する。
+
+  以前の v1 / v2 など、修正途中で残ったキャッシュは
+  activate時にすべて削除する。
+*/
+const CACHE_NAME = "mitiocity-static-reset-20261116";
 
 const CORE_FILES = [
   "./",
@@ -61,8 +67,8 @@ self.addEventListener("fetch", (event) => {
   }
 
   /*
-    画面移動はネットワーク優先。
-    通信できないときだけトップ画面を表示する。
+    画面遷移はネットワーク優先。
+    オフライン時のみキャッシュしたトップ画面を返す。
   */
   if (request.mode === "navigate") {
     event.respondWith(
@@ -75,10 +81,9 @@ self.addEventListener("fetch", (event) => {
   }
 
   /*
-    CSS・JS・画像・BGM・動画は、
-    一度取得したものをキャッシュから先に返す。
-    未キャッシュの素材はネットワークから取得し、
-    次回以降のために保存する。
+    CSS・JavaScript・画像・BGM・動画はキャッシュ優先。
+    ただし、今回は新しいキャッシュ名のため、
+    壊れた旧キャッシュは使用されない。
   */
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
