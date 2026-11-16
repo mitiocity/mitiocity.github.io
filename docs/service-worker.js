@@ -1,153 +1,51 @@
 "use strict";
 
 /*
-  キャッシュ名を v1 → v2 へ変更する。
+  mitiocity PWA キャッシュ初期化版
 
-  これにより、以前の壊れたJavaScript・JSONのキャッシュを削除し、
-  次回アクセス時に最新版を取得する。
+  以前の v1 / v2 キャッシュを削除する。
+  今後はHTML・JavaScript・CSS・JSONをキャッシュで固定せず、
+  常にGitHub Pagesの公開中最新版を利用する。
+
+  これにより、Safari版とホーム画面のPWA版で
+  表示・タップ動作が食い違う問題を防ぐ。
 */
-const CACHE_NAME = "mitiocity-static-v2";
 
-const CORE_FILES = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./data/site-data.json",
-  "./assets/css/style.css",
-  "./assets/css/link-buttons.css",
-  "./assets/js/entrance.js",
-  "./assets/js/site.js",
-  "./assets/js/gate.js",
-  "./assets/images/arius-gate.png",
-  "./assets/images/icons/apple-touch-icon.png",
-  "./assets/images/icons/icon-192.png",
-  "./assets/images/icons/icon-512.png"
-];
+const CACHE_PREFIX = "mitiocity-static-";
 
-/*
-  サイト本体をキャッシュへ保存する。
-
-  ただし、下のfetch処理ではHTML・CSS・JS・JSONについて
-  ネットワーク優先にしているため、公開後の修正が
-  古いキャッシュで妨げられない。
-*/
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(CORE_FILES);
-    })
-  );
-
+self.addEventListener("install", () => {
+  /*
+    新しいService Workerを待機させず、
+    更新後すぐ利用できるようにする。
+  */
   self.skipWaiting();
 });
 
-/*
-  v1などの旧キャッシュを削除し、
-  更新直後から新しいService Workerを使う。
-*/
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((cacheName) => {
-            return cacheName.startsWith("mitiocity-static-");
-          })
-          .filter((cacheName) => {
-            return cacheName !== CACHE_NAME;
-          })
-          .map((cacheName) => {
-            return caches.delete(cacheName);
-          })
-      );
-    })
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((cacheName) => {
+              return cacheName.startsWith(CACHE_PREFIX);
+            })
+            .map((cacheName) => {
+              return caches.delete(cacheName);
+            })
+        );
+      })
+      .then(() => {
+        return self.clients.claim();
+      })
   );
-
-  self.clients.claim();
 });
-
-function isAlwaysFreshFile(requestUrl) {
-  const pathname = requestUrl.pathname;
-
-  return (
-    pathname.endsWith("/") ||
-    pathname.endsWith("/index.html") ||
-    pathname.endsWith("/manifest.webmanifest") ||
-    pathname.endsWith("/data/site-data.json") ||
-    pathname.endsWith(".js") ||
-    pathname.endsWith(".css")
-  );
-}
-
-function saveToCache(request, response) {
-  if (!response || !response.ok) {
-    return;
-  }
-
-  const responseCopy = response.clone();
-
-  caches.open(CACHE_NAME).then((cache) => {
-    cache.put(request, responseCopy);
-  });
-}
 
 /*
-  動作に直結するファイルはネットワーク優先。
+  fetchイベントを登録しない。
 
-  対象：
-  - HTML
-  - JavaScript
-  - CSS
-  - site-data.json
-  - manifest
-
-  これにより公開後の修正が即座に反映される。
-  通信不能時だけキャッシュへ戻る。
+  つまり、PWAとしてホーム画面から開く形は維持しつつ、
+  HTML・CSS・JavaScript・site-data.json・画像・BGM・動画は
+  GitHub Pagesからその時点の最新版を直接読み込む。
 */
-self.addEventListener("fetch", (event) => {
-  const request = event.request;
-
-  if (request.method !== "GET") {
-    return;
-  }
-
-  const requestUrl = new URL(request.url);
-
-  if (requestUrl.origin !== self.location.origin) {
-    return;
-  }
-
-  if (request.mode === "navigate" || isAlwaysFreshFile(requestUrl)) {
-    event.respondWith(
-      fetch(request)
-        .then((networkResponse) => {
-          saveToCache(request, networkResponse);
-          return networkResponse;
-        })
-        .catch(() => {
-          return caches.match(request).then((cachedResponse) => {
-            return cachedResponse || caches.match("./index.html");
-          });
-        })
-    );
-
-    return;
-  }
-
-  /*
-    画像・BGM・動画はキャッシュ優先。
-    重い素材を毎回ダウンロードしないための設定。
-  */
-  event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(request).then((networkResponse) => {
-        saveToCache(request, networkResponse);
-        return networkResponse;
-      });
-    })
-  );
-});
