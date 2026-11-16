@@ -1,32 +1,101 @@
 "use strict";
 
 (() => {
-  /*
-    v3に変更。
-    修正版を保存後、同じブラウザでも入口画面を確認できるようにする。
-  */
   const SESSION_KEY = "mitiocity-entrance-viewed-v3";
   const VIDEO_PATH = "assets/video/entrance.mp4";
 
+  /*
+    iPhoneのホーム画面アプリでは、入口動画の終了後に
+    ページ下側の表示位置が残る場合がある。
+
+    必ずページ最上部へ戻し、
+    「☰／サイト名／♪」とクイックメニューが
+    画面上部に出る状態へ統一する。
+  */
+  function showHeaderAtTop() {
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto"
+    });
+
+    window.requestAnimationFrame(() => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      window.scrollTo(0, 0);
+    });
+
+    window.setTimeout(() => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      window.scrollTo(0, 0);
+    }, 100);
+
+    window.setTimeout(() => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      window.scrollTo(0, 0);
+    }, 350);
+  }
+
+  /*
+    Safari / iPhoneホーム画面アプリによる
+    スクロール位置の自動復元を使わせない。
+  */
+  if ("scrollRestoration" in history) {
+    history.scrollRestoration = "manual";
+  }
+
+  /*
+    入口画面の有無にかかわらず、
+    サイトを開いた時点でヘッダー側へ戻す。
+  */
+  showHeaderAtTop();
+
   try {
     if (sessionStorage.getItem(SESSION_KEY) === "true") {
+      window.addEventListener(
+        "load",
+        () => {
+          showHeaderAtTop();
+        },
+        { once: true }
+      );
+
       return;
     }
   } catch (error) {
     console.warn("入口画面の保存状態を確認できませんでした。", error);
   }
 
-  function finishEntrance(entrance) {
+  function finishEntrance(entrance, style) {
+    /*
+      動画終了直後、入口レイヤーが消える前後の両方で
+      最上部へ戻す。
+    */
+    showHeaderAtTop();
+
     entrance.classList.add("is-closing");
+    entrance.style.pointerEvents = "none";
 
     window.setTimeout(() => {
       entrance.remove();
+      style.remove();
 
       try {
         sessionStorage.setItem(SESSION_KEY, "true");
       } catch (error) {
         console.warn("入口画面の状態を保存できませんでした。", error);
       }
+
+      /*
+        入口レイヤー削除後にももう一度最上部へ固定。
+        ここで、☰とクイックメニューが見える位置になる。
+      */
+      showHeaderAtTop();
     }, 550);
   }
 
@@ -202,10 +271,6 @@
         transform: scale(0.97);
       }
 
-      /*
-        入口動画の表示領域。
-        flexで中央へ置き、背景は黒にする。
-      */
       .mitiocity-entrance__movie {
         position: absolute;
         z-index: 3;
@@ -221,12 +286,6 @@
         display: none;
       }
 
-      /*
-        重要：
-        横幅だけを画面幅に合わせ、高さは動画本来の比率で自動計算。
-        height: 100% や object-fit: cover は使用しない。
-        これで横長動画の上下・左右が切れない。
-      */
       .mitiocity-entrance__video {
         display: block;
         width: 100vw;
@@ -309,7 +368,7 @@
     video.addEventListener(
       "ended",
       () => {
-        finishEntrance(entrance);
+        finishEntrance(entrance, style);
       },
       { once: true }
     );
