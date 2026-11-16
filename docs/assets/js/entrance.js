@@ -2,11 +2,10 @@
 
 (() => {
   /*
-    v4:
-    iPhoneのホーム画面Webアプリで、入口動画終了後に
-    透明な入口レイヤーがタップを奪い続ける問題を修正する。
+    v3に変更。
+    修正版を保存後、同じブラウザでも入口画面を確認できるようにする。
   */
-  const SESSION_KEY = "mitiocity-entrance-viewed-v4";
+  const SESSION_KEY = "mitiocity-entrance-viewed-v3";
   const VIDEO_PATH = "assets/video/entrance.mp4";
 
   try {
@@ -17,12 +16,22 @@
     console.warn("入口画面の保存状態を確認できませんでした。", error);
   }
 
-  function createEntrance() {
-    let hasFinished = false;
-    let watchTimer = null;
+  function finishEntrance(entrance) {
+    entrance.classList.add("is-closing");
 
+    window.setTimeout(() => {
+      entrance.remove();
+
+      try {
+        sessionStorage.setItem(SESSION_KEY, "true");
+      } catch (error) {
+        console.warn("入口画面の状態を保存できませんでした。", error);
+      }
+    }, 550);
+  }
+
+  function createEntrance() {
     const entrance = document.createElement("section");
-    const style = document.createElement("style");
 
     entrance.className = "mitiocity-entrance";
     entrance.setAttribute("aria-label", "みちを市ポータルサイト入口");
@@ -49,15 +58,6 @@
         >
           アリウスゲートへ入る
         </button>
-
-        <p
-          class="mitiocity-entrance__error"
-          id="entrance-error"
-          hidden
-        >
-          動画を再生できませんでした。<br>
-          もう一度「アリウスゲートへ入る」を押してください。
-        </p>
       </div>
 
       <div class="mitiocity-entrance__movie" hidden>
@@ -70,8 +70,15 @@
           <source src="${VIDEO_PATH}" type="video/mp4">
           お使いのブラウザは動画再生に対応していません。
         </video>
+
+        <p class="mitiocity-entrance__error" id="entrance-error" hidden>
+          動画を再生できませんでした。<br>
+          もう一度「アリウスゲートへ入る」を押してください。
+        </p>
       </div>
     `;
+
+    const style = document.createElement("style");
 
     style.textContent = `
       .mitiocity-entrance {
@@ -88,15 +95,11 @@
           radial-gradient(circle at 12% 79%, rgba(185, 143, 64, 0.17), transparent 28%),
           linear-gradient(155deg, #121f45 0%, #070914 49%, #02030a 100%);
         opacity: 1;
-        transition: opacity 0.24s ease;
+        transition: opacity 0.55s ease;
       }
 
-      /*
-        終了後は、透明化より先にタップを完全に通す。
-        これがiPhoneのホーム画面起動時の操作不能対策。
-      */
       .mitiocity-entrance.is-closing {
-        pointer-events: none !important;
+        pointer-events: none;
         opacity: 0;
       }
 
@@ -199,6 +202,10 @@
         transform: scale(0.97);
       }
 
+      /*
+        入口動画の表示領域。
+        flexで中央へ置き、背景は黒にする。
+      */
       .mitiocity-entrance__movie {
         position: absolute;
         z-index: 3;
@@ -214,6 +221,12 @@
         display: none;
       }
 
+      /*
+        重要：
+        横幅だけを画面幅に合わせ、高さは動画本来の比率で自動計算。
+        height: 100% や object-fit: cover は使用しない。
+        これで横長動画の上下・左右が切れない。
+      */
       .mitiocity-entrance__video {
         display: block;
         width: 100vw;
@@ -225,17 +238,18 @@
       }
 
       .mitiocity-entrance__error {
-        position: relative;
-        z-index: 1;
-        margin: 18px 0 0;
+        position: absolute;
+        right: 18px;
+        bottom: 22px;
+        left: 18px;
+        margin: 0;
         padding: 11px;
         color: #fffaf0;
         font-size: 0.8rem;
-        line-height: 1.7;
         text-align: center;
         border: 1px solid rgba(255, 230, 174, 0.57);
         border-radius: 10px;
-        background: rgba(0, 0, 0, 0.46);
+        background: rgba(0, 0, 0, 0.76);
       }
 
       @keyframes entrance-stars {
@@ -269,89 +283,6 @@
     const button = entrance.querySelector("#entrance-start-button");
     const errorMessage = entrance.querySelector("#entrance-error");
 
-    function clearWatchTimer() {
-      if (watchTimer !== null) {
-        window.clearInterval(watchTimer);
-        watchTimer = null;
-      }
-    }
-
-    function finishEntrance() {
-      if (hasFinished) {
-        return;
-      }
-
-      hasFinished = true;
-      clearWatchTimer();
-
-      /*
-        最重要：
-        先にタップを通し、入口動画レイヤーを操作不能にする。
-      */
-      entrance.style.pointerEvents = "none";
-      entrance.setAttribute("aria-hidden", "true");
-
-      movie.hidden = true;
-      entrance.classList.add("is-closing");
-
-      try {
-        video.pause();
-      } catch (error) {
-        console.warn("入口動画の停止処理を完了できませんでした。", error);
-      }
-
-      try {
-        sessionStorage.setItem(SESSION_KEY, "true");
-      } catch (error) {
-        console.warn("入口画面の状態を保存できませんでした。", error);
-      }
-
-      /*
-        フェード表示後、DOM・CSSとも完全削除する。
-        透明な固定レイヤーを残さない。
-      */
-      window.setTimeout(() => {
-        entrance.remove();
-        style.remove();
-      }, 260);
-    }
-
-    function showPlaybackError(error) {
-      clearWatchTimer();
-
-      console.warn("入口動画を再生できませんでした。", error);
-
-      movie.hidden = true;
-      welcome.hidden = false;
-      errorMessage.hidden = false;
-    }
-
-    function startCompletionWatch() {
-      clearWatchTimer();
-
-      /*
-        iPhone側で ended が発火しなかった場合にも、
-        動画の再生位置で終了を判定する。
-      */
-      watchTimer = window.setInterval(() => {
-        const duration = video.duration;
-        const currentTime = video.currentTime;
-
-        if (video.ended) {
-          finishEntrance();
-          return;
-        }
-
-        if (
-          Number.isFinite(duration) &&
-          duration > 0 &&
-          currentTime >= duration - 0.15
-        ) {
-          finishEntrance();
-        }
-      }, 160);
-    }
-
     video.muted = false;
     video.defaultMuted = false;
     video.volume = 1;
@@ -366,40 +297,27 @@
       video.volume = 1;
       video.currentTime = 0;
 
-      video
-        .play()
-        .then(() => {
-          startCompletionWatch();
-        })
-        .catch((error) => {
-          showPlaybackError(error);
-        });
+      video.play().catch((error) => {
+        console.warn("入口動画を再生できませんでした。", error);
+
+        movie.hidden = true;
+        welcome.hidden = false;
+        errorMessage.hidden = false;
+      });
     });
 
-    video.addEventListener("ended", finishEntrance, { once: true });
-
-    /*
-      iPhone Safari/Web App用の保険。
-      動画終了時のWebKit独自イベントでも入口を終了する。
-    */
-    video.addEventListener("webkitendfullscreen", finishEntrance, {
-      once: true
-    });
-
-    video.addEventListener("pause", () => {
-      const duration = video.duration;
-
-      if (
-        Number.isFinite(duration) &&
-        duration > 0 &&
-        video.currentTime >= duration - 0.15
-      ) {
-        finishEntrance();
-      }
-    });
+    video.addEventListener(
+      "ended",
+      () => {
+        finishEntrance(entrance);
+      },
+      { once: true }
+    );
 
     video.addEventListener("error", () => {
-      showPlaybackError(new Error("動画ファイルを読み込めませんでした。"));
+      movie.hidden = true;
+      welcome.hidden = false;
+      errorMessage.hidden = false;
     });
   }
 
