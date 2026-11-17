@@ -1,12 +1,18 @@
 "use strict";
 
 /*
-  正常版PWAのキャッシュを、新規作成する。
+  サイト全体のService Worker
 
-  以前の v1 / v2 など、修正途中で残ったキャッシュは
-  activate時にすべて削除する。
+  通常サイトの主要ファイル：
+  キャッシュ優先（オフライン表示を維持）
+
+  /total-eight/ 配下：
+  ネットワーク優先
+  → GitHubへコミットした最新版を、Safariでゲームを開くたびに取得する。
+  → 古いCSS / JavaScriptが残り続ける問題を防ぐ。
 */
-const CACHE_NAME = "mitiocity-static-reset-20261116";
+
+const CACHE_NAME = "mitiocity-network-first-20261117";
 
 const CORE_FILES = [
   "./",
@@ -40,66 +46,89 @@ self.addEventListener("activate", (event) => {
       return Promise.all(
         cacheNames
           .filter((cacheName) => {
-            return cacheName.startsWith("mitiocity-static-");
+            return (
+              cacheName.startsWith("mitiocity-static-") ||
+              cacheName.startsWith("mitiocity-network-first-")
+            );
           })
-          .filter((cacheName) => {
-            return cacheName !== CACHE_NAME;
-          })
-          .map((cacheName) => {
-            return caches.delete(cacheName);
-          })
+          .filter((cacheName) => cacheName !== CACHE_NAME)
+          .map((cacheName) => caches.delete(cacheName))
       );
-    })
+    }).then(() => self.clients.claim())
   );
-
-  self.clients.claim();
 });
+
+async function cacheFirst(request) {
+  const cachedResponse = await caches.match(request);
+
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  const networkResponse = await fetch(request);
+
+  if (networkResponse.ok) {
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, networkResponse.clone());
+  }
+
+  return networkResponse;
+}
+
+async function networkFirst(request) {
+  try {
+    const networkResponse = await fetch(request);
+
+    if (networkResponse.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, networkResponse.clone());
+    }
+
+    return networkResponse;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    throw error;
+  }
+}
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
+  const url = new URL(request.url);
 
   if (request.method !== "GET") {
     return;
   }
 
-  if (new URL(request.url).origin !== self.location.origin) {
+  if (url.origin !== self.location.origin) {
     return;
   }
 
   /*
-    画面遷移はネットワーク優先。
-    オフライン時のみキャッシュしたトップ画面を返す。
+    とーたるえいと❣️は常にネットワーク優先。
+    index.html / style.css / script.js / 音源 / 画像を、
+    GitHub上の最新版から取得する。
+  */
+  if (url.pathname.startsWith("/total-eight/")) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  /*
+    通常サイトの画面遷移はネットワーク優先。
+    オフライン時だけキャッシュを使う。
   */
   if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).catch(() => {
-        return caches.match("./index.html");
-      })
-    );
-
+    event.respondWith(networkFirst(request));
     return;
   }
 
   /*
-    CSS・JavaScript・画像・BGM・動画はキャッシュ優先。
-    ただし、今回は新しいキャッシュ名のため、
-    壊れた旧キャッシュは使用されない。
+    通常サイトの画像・CSS・JSは従来どおりキャッシュ優先。
   */
-  event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(request).then((networkResponse) => {
-        const responseCopy = networkResponse.clone();
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, responseCopy);
-        });
-
-        return networkResponse;
-      });
-    })
-  );
+  event.respondWith(cacheFirst(request));
 });
