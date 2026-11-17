@@ -999,3 +999,8 @@ button:focus-visible {
     margin: 0 auto;
   }
 }
+/* ゲーム盤面：連打時のダブルタップ拡大を禁止 */
+#game-board,
+#game-board * {
+  touch-action: manipulation;
+}
