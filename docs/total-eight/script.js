@@ -1,13 +1,10 @@
 "use strict";
 
-/* =========================================================
-   とーたるえいと❣️
-   script.js 完成版：ゲーム処理
-========================================================= */
-
 const CONFIG = {
   rows: 4,
   cols: 8,
+
+  ringStepMs: 420,
 
   baseClearScore: 100,
   simultaneousBonus: 80,
@@ -16,35 +13,29 @@ const CONFIG = {
   feverDuration: 8000,
   feverMultiplier: 2,
 
-  clearDelay: 260,
+  clearDelay: 280,
   levelPreviewDelay: 900,
 
-  rankingKey: "total-eight-local-ranking-v1",
+  rankingKey: "total-eight-local-ranking-v2",
 
-  // 後からBGMを置く場所
-  // assets/audio/bgm/level-1.mp3
-  // assets/audio/bgm/level-2.mp3
   bgmPath(level) {
     return `assets/audio/bgm/level-${level}.mp3`;
   },
 
-  // 後からチュートリアル音声を置く場所
-  // assets/audio/tutorial/tutorial-01.mp3
-  // assets/audio/tutorial/tutorial-02.mp3
   tutorialVoicePath(step) {
     return `assets/audio/tutorial/tutorial-${String(step).padStart(2, "0")}.mp3`;
   }
 };
 
 const TUTORIAL_STEPS = [
-  "ようこそ、とーたるえいと❣️へ。オーブとリングの数字を足して、合計8を作ろう。",
-  "左にある球体がオーブ。オーブ自身の数字も、合計に入るぞ。",
-  "右から来る輪っかがリング。置きたいレーンをタップして、オーブへつなげよう。",
-  "オーブにつながったリングは、オーブと同じ色になる。",
-  "合計が5になると緑色に変化する。6、7と近づくほど点滅が強くなるぞ。",
-  "合計がちょうど8になると、オーブとつながったリングが消える。",
-  "8を超えると、新しいリングだけが消えて、オーバーゲージがたまる。",
-  "複数のオーブを7まで育てて、まとめて8にしよう。連鎖と同時消去で高得点を狙え！"
+  "ようこそ、とーたるえいと❣️へ。数字を足して、合計8を作ろう。",
+  "左側の球体がオーブ。オーブ自身の数字も合計に入るぞ。",
+  "リングは右から左へ流れてくる。盤面をタップして、流れるリングのレーンを変えよう。",
+  "リングがオーブ、または既存リングの右隣へ到達すると接続される。",
+  "オーブと接続したリングは、オーブと同じ色になる。合計5で緑、6と7で点滅する。",
+  "合計がちょうど8になると、オーブと接続済みリングが消える。",
+  "オーブのないレーンでも、白いリングだけで8を作れば消せる。ただし得点は入らない。",
+  "オーブを複数7まで育てて、一手でまとめて8にしよう。連鎖と同時消去で高得点を狙え！"
 ];
 
 const $ = (selector) => document.querySelector(selector);
@@ -83,6 +74,8 @@ const elements = {
 
 let state = null;
 let pieceId = 0;
+let movementTimer = null;
+
 let tutorialStep = 0;
 let tutorialVoice = null;
 
@@ -154,7 +147,7 @@ function createBoard() {
 }
 
 /* =========================================================
-   音：消去音、チュートリアル音声、BGM
+   音
 ========================================================= */
 
 function getAudioContext() {
@@ -194,7 +187,7 @@ function playTone(frequency, delay, duration, volume) {
     oscillator.start(context.currentTime + delay);
     oscillator.stop(context.currentTime + delay + duration + 0.03);
   } catch (error) {
-    // 音が出せない端末でもゲームは継続する。
+    // 音声非対応でもゲームは停止しない。
   }
 }
 
@@ -210,17 +203,15 @@ function playClearSound(chain) {
     523.25
   ];
 
-  // レベルごとに全音上へ転調。
-  const levelTranspose = 2 ** (((state.level - 1) * 2) / 12);
+  const transpose = 2 ** (((state.level - 1) * 2) / 12);
 
-  // 連鎖が続くほど高速化。
   const interval =
     chain === 1 ? 0.1 :
     chain === 2 ? 0.075 :
     0.052;
 
   notes.forEach((note, index) => {
-    playTone(note * levelTranspose, index * interval, interval * 1.12, 0.055);
+    playTone(note * transpose, index * interval, interval * 1.1, 0.055);
   });
 }
 
@@ -239,7 +230,7 @@ function playTutorialVoice(step) {
   tutorialVoice.volume = 0.9;
 
   tutorialVoice.play().catch(() => {
-    // MP3をまだ入れていない間は無音で進行。
+    // MP3未配置時は無音で進む。
   });
 }
 
@@ -258,20 +249,19 @@ function changeBgm(level) {
   nextBgm.volume = 0;
 
   nextBgm.play().then(() => {
-    const steps = 18;
     let count = 0;
 
     const fadeTimer = window.setInterval(() => {
       count += 1;
 
-      const ratio = count / steps;
+      const ratio = count / 18;
       nextBgm.volume = Math.min(0.42, ratio * 0.42);
 
       if (currentBgm) {
         currentBgm.volume = Math.max(0, 0.42 * (1 - ratio));
       }
 
-      if (count >= steps) {
+      if (count >= 18) {
         window.clearInterval(fadeTimer);
 
         if (currentBgm) {
@@ -305,7 +295,7 @@ function createGameState() {
     feverUntil: 0,
     orbAreaCols: 1,
 
-    nextRing: randomNumber(),
+    activeRing: null,
 
     isBusy: false,
     isGameOver: false,
@@ -324,6 +314,7 @@ function placeInitialOrbs() {
 }
 
 function startGame() {
+  stopRingMovement();
   closeAllModals();
   stopTutorialVoice();
 
@@ -332,76 +323,282 @@ function startGame() {
 
   showScreen("game");
   changeBgm(state.level);
+
+  spawnActiveRing();
   renderGame();
 }
 
 function returnToTitle() {
+  stopRingMovement();
   closeAllModals();
   stopTutorialVoice();
   stopBgm();
+
+  state = null;
   showScreen("title");
 }
 
 /* =========================================================
-   接続グループの取得
+   流れてくるリング
 ========================================================= */
 
 /*
-  各オーブから右方向へ、連続して接続しているリングを取得。
-  オーブ自身の数字も合計に含める。
+  activeRing は盤面に固定される前の、流れているリング。
+  col が8なら盤面右外。最初の移動で7列目へ入る。
+*/
+function spawnActiveRing() {
+  if (!state || state.isGameOver) return;
+
+  state.activeRing = {
+    id: `active-${Date.now()}-${Math.random()}`,
+    number: randomNumber(),
+    row: Math.floor(Math.random() * CONFIG.rows),
+    col: CONFIG.cols
+  };
+
+  startRingMovement();
+  renderGame();
+}
+
+function startRingMovement() {
+  stopRingMovement();
+
+  movementTimer = window.setInterval(() => {
+    moveActiveRingLeft();
+  }, CONFIG.ringStepMs);
+}
+
+function stopRingMovement() {
+  if (movementTimer) {
+    window.clearInterval(movementTimer);
+    movementTimer = null;
+  }
+}
+
+function moveActiveRingToRow(row) {
+  if (!state || !state.activeRing || state.isBusy || state.isGameOver) return;
+
+  const active = state.activeRing;
+
+  /*
+    移動先レーンの同じ位置が埋まっている場合はレーン変更しない。
+  */
+  if (
+    active.col < CONFIG.cols &&
+    state.board[row][active.col]
+  ) {
+    elements.combo.textContent = "LANE BLOCKED";
+    return;
+  }
+
+  active.row = row;
+  elements.combo.textContent = "AIM";
+
+  renderGame();
+}
+
+async function moveActiveRingLeft() {
+  if (!state || !state.activeRing || state.isBusy || state.isGameOver) return;
+
+  const active = state.activeRing;
+  const nextCol = active.col - 1;
+
+  /*
+    左へ進む先が盤面外なら、左端で停止・固定。
+  */
+  if (nextCol < 0) {
+    await landActiveRing();
+    return;
+  }
+
+  /*
+    次のマスが埋まっていれば、その右隣で停止・固定。
+  */
+  if (state.board[active.row][nextCol]) {
+    await landActiveRing();
+    return;
+  }
+
+  active.col = nextCol;
+  renderGame();
+}
+
+async function landActiveRing() {
+  if (!state || !state.activeRing || state.isBusy || state.isGameOver) return;
+
+  const active = state.activeRing;
+
+  /*
+    右端が詰まっており、盤面へ入れない場合。
+    プレイヤーは別レーンをタップして回避できる。
+  */
+  if (active.col >= CONFIG.cols) {
+    elements.combo.textContent = "CHANGE LANE";
+    return;
+  }
+
+  state.isBusy = true;
+  stopRingMovement();
+
+  const landedRing = createPiece("ring", active.number);
+
+  state.board[active.row][active.col] = landedRing;
+  state.activeRing = null;
+
+  renderGame();
+
+  const group = findGroupByPieceId(landedRing.id);
+
+  /*
+    新しく接続した先が9以上の場合。
+
+    オーブ起点：
+    新リングのみ消える＋オーバーゲージ増加。
+
+    白リングのみ：
+    新リングのみ消える＋ゲージ増加なし。
+  */
+  if (group && group.total >= 9) {
+    await wait(150);
+
+    removePieceById(landedRing.id);
+
+    if (group.kind === "orb") {
+      state.overGauge += 1;
+      elements.combo.textContent = "OVER!";
+
+      if (state.overGauge >= 3) {
+        state.overGauge = 0;
+        state.chainPower = Math.max(1, state.chainPower - 1);
+        elements.combo.textContent = "CHAIN DOWN";
+      }
+    } else {
+      elements.combo.textContent = "RING OVER";
+    }
+
+    state.isBusy = false;
+    spawnActiveRing();
+    renderGame();
+    return;
+  }
+
+  await resolveClearChains();
+
+  state.isBusy = false;
+  spawnActiveRing();
+  renderGame();
+}
+
+/* =========================================================
+   接続グループ
+========================================================= */
+
+/*
+  orb：
+  オーブ＋その右の連続リング。
+
+  neutral：
+  オーブに接続していない、白いリングだけの連続列。
 */
 function getGroups() {
   const groups = [];
 
   for (let row = 0; row < CONFIG.rows; row += 1) {
-    for (let col = 0; col < CONFIG.cols; col += 1) {
-      const orb = state.board[row][col];
+    let col = 0;
 
-      if (!orb || orb.type !== "orb") continue;
+    while (col < CONFIG.cols) {
+      const piece = state.board[row][col];
 
-      const rings = [];
-      let cursor = col + 1;
-
-      while (
-        cursor < CONFIG.cols &&
-        state.board[row][cursor] &&
-        state.board[row][cursor].type === "ring"
-      ) {
-        rings.push({
-          piece: state.board[row][cursor],
-          row,
-          col: cursor
-        });
-
-        cursor += 1;
+      if (!piece) {
+        col += 1;
+        continue;
       }
 
-      groups.push({
-        orb,
-        orbRow: row,
-        orbCol: col,
-        rings,
-        total: orb.number + rings.reduce(
-          (sum, ring) => sum + ring.piece.number,
-          0
-        )
-      });
+      if (piece.type === "orb") {
+        const rings = [];
+        let cursor = col + 1;
+
+        while (
+          cursor < CONFIG.cols &&
+          state.board[row][cursor]?.type === "ring"
+        ) {
+          rings.push({
+            piece: state.board[row][cursor],
+            row,
+            col: cursor
+          });
+
+          cursor += 1;
+        }
+
+        groups.push({
+          kind: "orb",
+          orb: piece,
+          orbRow: row,
+          orbCol: col,
+          rings,
+          total: piece.number + rings.reduce(
+            (sum, ring) => sum + ring.piece.number,
+            0
+          )
+        });
+
+        col = cursor;
+        continue;
+      }
+
+      if (piece.type === "ring") {
+        const rings = [];
+        let cursor = col;
+
+        while (
+          cursor < CONFIG.cols &&
+          state.board[row][cursor]?.type === "ring"
+        ) {
+          rings.push({
+            piece: state.board[row][cursor],
+            row,
+            col: cursor
+          });
+
+          cursor += 1;
+        }
+
+        groups.push({
+          kind: "neutral",
+          orb: null,
+          orbRow: null,
+          orbCol: null,
+          rings,
+          total: rings.reduce(
+            (sum, ring) => sum + ring.piece.number,
+            0
+          )
+        });
+
+        col = cursor;
+        continue;
+      }
+
+      col += 1;
     }
   }
 
   return groups;
 }
 
-function findGroupByRingId(ringId) {
+function findGroupByPieceId(pieceId) {
   return getGroups().find((group) => {
-    return group.rings.some((ring) => ring.piece.id === ringId);
+    if (group.orb?.id === pieceId) return true;
+
+    return group.rings.some((ring) => ring.piece.id === pieceId);
   });
 }
 
-function removeRingById(ringId) {
+function removePieceById(pieceId) {
   for (let row = 0; row < CONFIG.rows; row += 1) {
     for (let col = 0; col < CONFIG.cols; col += 1) {
-      if (state.board[row][col]?.id === ringId) {
+      if (state.board[row][col]?.id === pieceId) {
         state.board[row][col] = null;
         return;
       }
@@ -410,7 +607,9 @@ function removeRingById(ringId) {
 }
 
 function removeGroup(group) {
-  state.board[group.orbRow][group.orbCol] = null;
+  if (group.kind === "orb") {
+    state.board[group.orbRow][group.orbCol] = null;
+  }
 
   group.rings.forEach((ring) => {
     state.board[ring.row][ring.col] = null;
@@ -418,67 +617,65 @@ function removeGroup(group) {
 }
 
 function countOrbs() {
-  let total = 0;
+  let count = 0;
 
   state.board.forEach((row) => {
     row.forEach((piece) => {
       if (piece?.type === "orb") {
-        total += 1;
+        count += 1;
       }
     });
   });
 
-  return total;
+  return count;
 }
 
 /*
-  リングだけを左へ詰める。
-  オーブは固定され、リングはオーブを通り抜けない。
+  消去後だけ、空いた場所へリングを左詰めする。
+  オーブは固定される。
 */
 function settleBoard() {
   for (let row = 0; row < CONFIG.rows; row += 1) {
-    const previousRow = state.board[row];
+    const oldRow = state.board[row];
     const nextRow = Array(CONFIG.cols).fill(null);
 
-    previousRow.forEach((piece, col) => {
+    oldRow.forEach((piece, col) => {
       if (piece?.type === "orb") {
         nextRow[col] = piece;
       }
     });
 
-    let segmentStart = 0;
+    let start = 0;
 
     for (let col = 0; col <= CONFIG.cols; col += 1) {
-      const isBoundary =
+      const boundary =
         col === CONFIG.cols ||
-        previousRow[col]?.type === "orb";
+        oldRow[col]?.type === "orb";
 
-      if (!isBoundary) continue;
+      if (!boundary) continue;
 
       const rings = [];
 
-      for (let sourceCol = segmentStart; sourceCol < col; sourceCol += 1) {
-        const piece = previousRow[sourceCol];
-
-        if (piece?.type === "ring") {
-          rings.push(piece);
+      for (let source = start; source < col; source += 1) {
+        if (oldRow[source]?.type === "ring") {
+          rings.push(oldRow[source]);
         }
       }
 
-      let targetCol = segmentStart;
+      let target = start;
 
       rings.forEach((ring) => {
-        while (nextRow[targetCol]) {
-          targetCol += 1;
+        while (nextRow[target]) {
+          target += 1;
         }
 
-        if (targetCol < col) {
-          nextRow[targetCol] = ring;
-          targetCol += 1;
+        if (target < col) {
+          nextRow[target] = ring;
+          target += 1;
         }
       });
 
-      segmentStart = col + 1;
+      start = col + 1;
     }
 
     state.board[row] = nextRow;
@@ -486,65 +683,8 @@ function settleBoard() {
 }
 
 /* =========================================================
-   リング投入・オーバー判定・消去
+   消去・連鎖
 ========================================================= */
-
-async function placeRing(row) {
-  if (!state || state.isBusy || state.isGameOver) return;
-
-  // 右端が埋まっているレーンにはリングを投入できない。
-  if (state.board[row][CONFIG.cols - 1]) {
-    elements.combo.textContent = "LANE BLOCKED";
-    return;
-  }
-
-  state.isBusy = true;
-
-  const ring = createPiece("ring", state.nextRing);
-
-  // リングは右端から入る。
-  state.board[row][CONFIG.cols - 1] = ring;
-
-  // 入ったリングを含め、すべてのリングを左へ詰める。
-  settleBoard();
-  renderGame();
-
-  const group = findGroupByRingId(ring.id);
-
-  /*
-    9以上：
-    新しいリングだけが消える。
-    オーブ・既存リング・合計状態は維持する。
-  */
-  if (group && group.total >= 9) {
-    elements.combo.textContent = "OVER!";
-
-    await wait(180);
-
-    removeRingById(ring.id);
-    state.overGauge += 1;
-
-    if (state.overGauge >= 3) {
-      state.overGauge = 0;
-      state.chainPower = Math.max(1, state.chainPower - 1);
-      elements.combo.textContent = "CHAIN DOWN";
-    }
-
-    settleBoard();
-    state.nextRing = randomNumber();
-    state.isBusy = false;
-
-    renderGame();
-    return;
-  }
-
-  await resolveClearChains();
-
-  state.nextRing = randomNumber();
-  state.isBusy = false;
-
-  renderGame();
-}
 
 async function resolveClearChains() {
   let chain = 1;
@@ -554,35 +694,54 @@ async function resolveClearChains() {
 
     if (clearingGroups.length === 0) break;
 
-    const simultaneousCount = clearingGroups.length;
-    const feverMultiplier = isFeverActive() ? CONFIG.feverMultiplier : 1;
-    const chainMultiplier = state.chainPower + chain - 1;
-    const simultaneousMultiplier = Math.max(1, simultaneousCount);
-
-    const clearScore =
-      (CONFIG.baseClearScore * simultaneousCount +
-        CONFIG.simultaneousBonus * Math.max(0, simultaneousCount - 1)) *
-      chainMultiplier *
-      simultaneousMultiplier *
-      feverMultiplier;
-
-    state.score += clearScore;
-
-    // 8で消したオーブの数だけオーバーゲージを減らす。
-    state.overGauge = Math.max(
-      0,
-      state.overGauge - simultaneousCount
+    const orbGroups = clearingGroups.filter(
+      (group) => group.kind === "orb"
     );
 
-    if (simultaneousCount >= 2) {
-      elements.combo.textContent = `${simultaneousCount} SIMULTANEOUS!`;
-    } else if (chain >= 2) {
-      elements.combo.textContent = `${chain} CHAIN!`;
-    } else {
-      elements.combo.textContent = "CLEAR!";
-    }
+    const neutralGroups = clearingGroups.filter(
+      (group) => group.kind === "neutral"
+    );
 
-    playClearSound(chain);
+    /*
+      得点と消去音はオーブを含む消去だけ。
+      白リングだけの8消去は0点。
+    */
+    if (orbGroups.length > 0) {
+      const simultaneousCount = orbGroups.length;
+      const feverMultiplier = isFeverActive()
+        ? CONFIG.feverMultiplier
+        : 1;
+
+      const chainMultiplier = state.chainPower + chain - 1;
+      const simultaneousMultiplier = Math.max(1, simultaneousCount);
+
+      const gainedScore =
+        (CONFIG.baseClearScore * simultaneousCount +
+          CONFIG.simultaneousBonus * Math.max(0, simultaneousCount - 1)) *
+        chainMultiplier *
+        simultaneousMultiplier *
+        feverMultiplier;
+
+      state.score += gainedScore;
+
+      // オーブ消去数だけオーバーゲージを減らす。
+      state.overGauge = Math.max(
+        0,
+        state.overGauge - simultaneousCount
+      );
+
+      if (simultaneousCount >= 2) {
+        elements.combo.textContent = `${simultaneousCount} SIMULTANEOUS!`;
+      } else if (chain >= 2) {
+        elements.combo.textContent = `${chain} CHAIN!`;
+      } else {
+        elements.combo.textContent = "CLEAR!";
+      }
+
+      playClearSound(chain);
+    } else if (neutralGroups.length > 0) {
+      elements.combo.textContent = "RING CLEAR";
+    }
 
     clearingGroups.forEach(removeGroup);
     renderGame();
@@ -615,10 +774,6 @@ function checkFever() {
   elements.combo.textContent = "ALL CLEAR!";
   elements.fever.classList.remove("is-hidden");
 
-  /*
-    全オーブ消去後に、新しいオーブ群を置く。
-    フィーバー中は得点2倍。
-  */
   window.setTimeout(() => {
     if (!state || state.isGameOver) return;
 
@@ -646,7 +801,7 @@ function checkFever() {
 }
 
 /* =========================================================
-   レベルアップ・オーブ領域の拡張
+   レベルアップ・オーブ領域拡張
 ========================================================= */
 
 function checkLevelUp() {
@@ -659,10 +814,7 @@ function checkLevelUp() {
 
   elements.combo.textContent = `LEVEL ${state.level}`;
 
-  // 次の列を半透明で予告。
   renderGame(true);
-
-  // ゲームを止めずにBGMをクロスフェード。
   changeBgm(state.level);
 
   window.setTimeout(() => {
@@ -673,9 +825,6 @@ function checkLevelUp() {
 function extendOrbArea() {
   const newOrbColumn = state.orbAreaCols;
 
-  /*
-    オーブ領域が右端に届く段階でゲームオーバー。
-  */
   if (newOrbColumn >= CONFIG.cols - 1) {
     state.isExpanding = false;
     renderGame();
@@ -684,7 +833,8 @@ function extendOrbArea() {
   }
 
   /*
-    新オーブを置く列の右側にあるリングを右へ逃がす。
+    新しいオーブ列を作るため、
+    その列以降のリングを右へ逃がす。
   */
   for (let row = 0; row < CONFIG.rows; row += 1) {
     for (let col = CONFIG.cols - 1; col > newOrbColumn; col -= 1) {
@@ -711,10 +861,7 @@ function extendOrbArea() {
     );
   }
 
-  settleBoard();
   renderGame();
-
-  // 拡張後に8ができていれば自動消去。
   resolveClearChains();
 }
 
@@ -722,49 +869,67 @@ function extendOrbArea() {
    盤面描画
 ========================================================= */
 
-function makePieceElement(piece, visual) {
-  const pieceElement = document.createElement("span");
-
-  pieceElement.className = `piece piece--${piece.type}`;
-  pieceElement.textContent = piece.number;
-
-  if (visual.color !== null && visual.color !== undefined) {
-    pieceElement.classList.add(`piece--color-${visual.color}`);
-  }
-
-  if (visual.total === 5) {
-    pieceElement.classList.add("is-total-5");
-  }
-
-  if (visual.total === 6) {
-    pieceElement.classList.add("is-total-6");
-  }
-
-  if (visual.total === 7) {
-    pieceElement.classList.add("is-total-7");
-  }
-
-  return pieceElement;
-}
-
 function createVisualMap() {
-  const map = new Map();
+  const visualMap = new Map();
 
   getGroups().forEach((group) => {
-    map.set(group.orb.id, {
-      color: group.orb.color,
-      total: group.total
-    });
-
-    group.rings.forEach((ring) => {
-      map.set(ring.piece.id, {
+    if (group.kind === "orb") {
+      visualMap.set(group.orb.id, {
         color: group.orb.color,
-        total: group.total
+        total: group.total,
+        kind: "orb"
       });
-    });
+
+      group.rings.forEach((ring) => {
+        visualMap.set(ring.piece.id, {
+          color: group.orb.color,
+          total: group.total,
+          kind: "orb"
+        });
+      });
+    } else {
+      group.rings.forEach((ring) => {
+        visualMap.set(ring.piece.id, {
+          color: null,
+          total: group.total,
+          kind: "neutral"
+        });
+      });
+    }
   });
 
-  return map;
+  return visualMap;
+}
+
+function makePieceElement(piece, visual, isActive = false) {
+  const element = document.createElement("span");
+
+  element.className = `piece piece--${piece.type}`;
+  element.textContent = piece.number;
+
+  if (isActive) {
+    element.classList.add("is-total-6");
+  }
+
+  if (visual?.color !== null && visual?.color !== undefined) {
+    element.classList.add(`piece--color-${visual.color}`);
+  }
+
+  if (visual?.kind === "orb") {
+    if (visual.total === 5) {
+      element.classList.add("is-total-5");
+    }
+
+    if (visual.total === 6) {
+      element.classList.add("is-total-6");
+    }
+
+    if (visual.total === 7) {
+      element.classList.add("is-total-7");
+    }
+  }
+
+  return element;
 }
 
 function renderGame(showExpansionPreview = false) {
@@ -783,7 +948,10 @@ function renderGame(showExpansionPreview = false) {
 
       cell.type = "button";
       cell.className = "board-cell";
-      cell.setAttribute("aria-label", `${row + 1}番レーンにリングを置く`);
+      cell.setAttribute(
+        "aria-label",
+        `${row + 1}番レーンを選ぶ`
+      );
 
       if (col < state.orbAreaCols) {
         cell.classList.add("is-orb-zone");
@@ -802,16 +970,37 @@ function renderGame(showExpansionPreview = false) {
       }
 
       cell.addEventListener("click", () => {
-        placeRing(row);
+        moveActiveRingToRow(row);
       });
 
       if (piece) {
         const visual = visualMap.get(piece.id) || {
           color: piece.color,
-          total: piece.number
+          total: piece.number,
+          kind: piece.type
         };
 
         cell.appendChild(makePieceElement(piece, visual));
+      }
+
+      /*
+        流れているリングは、固定盤面とは別に描画する。
+      */
+      if (
+        state.activeRing &&
+        state.activeRing.row === row &&
+        state.activeRing.col === col
+      ) {
+        cell.appendChild(
+          makePieceElement(
+            {
+              type: "ring",
+              number: state.activeRing.number
+            },
+            null,
+            true
+          )
+        );
       }
 
       elements.gameBoard.appendChild(cell);
@@ -820,9 +1009,15 @@ function renderGame(showExpansionPreview = false) {
 
   elements.score.textContent = state.score.toLocaleString("ja-JP");
   elements.level.textContent = state.level;
-  elements.nextRingNumber.textContent = state.nextRing;
 
-  elements.nextRing.classList.toggle("is-disabled", state.isBusy);
+  if (state.activeRing) {
+    elements.nextRingNumber.textContent = state.activeRing.number;
+  }
+
+  elements.nextRing.classList.toggle(
+    "is-disabled",
+    state.isBusy || !state.activeRing
+  );
 
   [...elements.overGauge.children].forEach((gauge, index) => {
     gauge.classList.toggle("is-filled", index < state.overGauge);
@@ -838,6 +1033,7 @@ function renderGame(showExpansionPreview = false) {
 ========================================================= */
 
 function startTutorial() {
+  stopRingMovement();
   closeAllModals();
   stopBgm();
 
@@ -869,38 +1065,42 @@ function renderTutorialBoard(step) {
       const cell = document.createElement("div");
       cell.className = "board-cell";
 
-      const isExampleRow = row === 1;
-
-      if (isExampleRow && col === 0) {
-        const orb = createPiece("orb", 3, 0);
-
+      if (row === 1 && col === 0) {
         cell.appendChild(
-          makePieceElement(orb, {
-            color: 0,
-            total: step >= 4 ? 7 : 3
-          })
+          makePieceElement(
+            createPiece("orb", 3, 0),
+            {
+              color: 0,
+              total: step >= 4 ? 7 : 3,
+              kind: "orb"
+            }
+          )
         );
       }
 
-      if (isExampleRow && col === 1 && step >= 2) {
-        const ring = createPiece("ring", 2);
-
+      if (row === 1 && col === 1 && step >= 2) {
         cell.appendChild(
-          makePieceElement(ring, {
-            color: step >= 3 ? 0 : null,
-            total: step >= 4 ? 7 : 5
-          })
+          makePieceElement(
+            createPiece("ring", 2),
+            {
+              color: step >= 3 ? 0 : null,
+              total: step >= 4 ? 7 : 5,
+              kind: step >= 3 ? "orb" : "neutral"
+            }
+          )
         );
       }
 
-      if (isExampleRow && col === 2 && step >= 4) {
-        const ring = createPiece("ring", step >= 5 ? 3 : 2);
-
+      if (row === 1 && col === 2 && step >= 4) {
         cell.appendChild(
-          makePieceElement(ring, {
-            color: 0,
-            total: step >= 5 ? 8 : 7
-          })
+          makePieceElement(
+            createPiece("ring", step >= 5 ? 3 : 2),
+            {
+              color: 0,
+              total: step >= 5 ? 8 : 7,
+              kind: "orb"
+            }
+          )
         );
       }
 
@@ -926,15 +1126,15 @@ function nextTutorialStep() {
 
 function getRanking() {
   try {
-    const saved = JSON.parse(
+    const ranking = JSON.parse(
       localStorage.getItem(CONFIG.rankingKey)
     );
 
-    if (Array.isArray(saved)) {
-      return saved;
+    if (Array.isArray(ranking)) {
+      return ranking;
     }
   } catch (error) {
-    // 保存データ異常時は初期ランキングへ戻す。
+    // 保存データが壊れていた場合は初期値。
   }
 
   return [
@@ -1030,6 +1230,8 @@ function trySaveScore(score) {
 ========================================================= */
 
 function gameOver() {
+  stopRingMovement();
+
   state.isGameOver = true;
   state.isBusy = true;
 
@@ -1092,5 +1294,4 @@ document.querySelectorAll("[data-return-to-title]").forEach((button) => {
   button.addEventListener("click", returnToTitle);
 });
 
-/* 最初はタイトル画面 */
 showScreen("title");
