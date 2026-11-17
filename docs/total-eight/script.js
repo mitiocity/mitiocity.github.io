@@ -4,7 +4,7 @@ const CONFIG = {
   rows: 4,
   cols: 8,
 
-  ringStepMs: 420,
+  ringStepMs: 950,
 
   baseClearScore: 100,
   simultaneousBonus: 80,
