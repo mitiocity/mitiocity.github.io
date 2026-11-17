@@ -124,6 +124,11 @@
             class="mitiocity-entrance__video"
             id="entrance-video"
             playsinline
+            webkit-playsinline
+            x5-playsinline
+            x5-video-player-type="h5-page"
+            x5-video-orientation="portrait"
+            disablepictureinpicture
             preload="auto"
           >
             <source src="${VIDEO_PATH}" type="video/mp4">
@@ -287,8 +292,8 @@
       }
 
       /*
-        入口動画の表示枠は9:16固定。
-        iPhoneの縦画面に合わせる。
+        スマホ用の縦動画枠。
+        TikTok内ブラウザでも動画をページ内で再生する。
       */
       .mitiocity-entrance__video-frame {
         position: relative;
@@ -301,10 +306,6 @@
         aspect-ratio: 9 / 16;
       }
 
-      /*
-        元動画が16:9でも、9:16枠いっぱいに表示する。
-        横長素材の左右は切り取られる。
-      */
       .mitiocity-entrance__video {
         display: block;
         width: 100%;
@@ -315,33 +316,39 @@
       }
 
       /*
-        動画そのものの右上に重なるSKIPボタン。
+        動画の右上に直接重ねる。
+        親フレームより上のz-indexを与え、
+        TikTok内ブラウザでのタップも受け取る。
       */
       .mitiocity-entrance__skip {
         position: absolute;
-        z-index: 5;
+        z-index: 50;
         top: 14px;
         right: 14px;
-        min-width: 78px;
-        min-height: 44px;
-        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 84px;
+        min-height: 46px;
+        padding: 10px 16px;
         color: #fffaf0;
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         font-weight: 900;
         line-height: 1;
         letter-spacing: 0.12em;
         cursor: pointer;
-        border: 1px solid rgba(255, 230, 174, 0.92);
+        touch-action: manipulation;
+        border: 1px solid rgba(255, 230, 174, 0.96);
         border-radius: 999px;
-        background: rgba(2, 3, 10, 0.8);
-        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.52);
+        background: rgba(2, 3, 10, 0.86);
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.56);
         backdrop-filter: blur(5px);
         -webkit-backdrop-filter: blur(5px);
       }
 
       .mitiocity-entrance__skip:active {
         transform: scale(0.95);
-        background: rgba(216, 175, 99, 0.5);
+        background: rgba(216, 175, 99, 0.54);
       }
 
       .mitiocity-entrance__skip:focus-visible,
@@ -352,6 +359,7 @@
 
       .mitiocity-entrance__error {
         position: absolute;
+        z-index: 60;
         right: 18px;
         bottom: 22px;
         left: 18px;
@@ -397,6 +405,17 @@
     const button = entrance.querySelector("#entrance-start-button");
     const skipButton = entrance.querySelector("#entrance-skip-button");
     const errorMessage = entrance.querySelector("#entrance-error");
+
+    /*
+      属性とJavaScriptの両方でインライン再生を指定する。
+      TikTok内ブラウザ／iPhone／Android系WebViewへの対策。
+    */
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+    video.setAttribute("x5-playsinline", "");
+    video.setAttribute("x5-video-player-type", "h5-page");
+    video.setAttribute("disablepictureinpicture", "");
 
     video.muted = false;
     video.defaultMuted = false;
