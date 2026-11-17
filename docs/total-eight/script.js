@@ -1295,3 +1295,38 @@ document.querySelectorAll("[data-return-to-title]").forEach((button) => {
 });
 
 showScreen("title");
+/* =========================================================
+   NEXT RING表示：次に流れてくるリングを表示する
+========================================================= */
+
+spawnActiveRing = function () {
+  if (!state || state.isGameOver) return;
+
+  if (state.nextRing === undefined) {
+    state.nextRing = randomNumber();
+  }
+
+  const currentNumber = state.nextRing;
+
+  state.nextRing = randomNumber();
+
+  state.activeRing = {
+    id: `active-${Date.now()}-${Math.random()}`,
+    number: currentNumber,
+    row: Math.floor(Math.random() * CONFIG.rows),
+    col: CONFIG.cols
+  };
+
+  startRingMovement();
+  renderGame();
+};
+
+const originalRenderGame = renderGame;
+
+renderGame = function (showExpansionPreview = false) {
+  originalRenderGame(showExpansionPreview);
+
+  if (state && state.nextRing !== undefined) {
+    elements.nextRingNumber.textContent = state.nextRing;
+  }
+};
