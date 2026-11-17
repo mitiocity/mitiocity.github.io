@@ -1,23 +1,23 @@
-@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Orbitron:wght@500;600;700;800&display=swap");
 
 :root {
-  --bg: #070a12;
-  --bg-deep: #03050a;
-  --panel: rgba(17, 24, 40, 0.78);
-  --panel-line: rgba(179, 207, 255, 0.18);
+  --bg: #060912;
+  --deep: #02040a;
+  --panel: rgba(16, 25, 45, 0.84);
+  --line: rgba(170, 205, 255, 0.22);
   --text: #f4f7ff;
-  --muted: #8a97af;
-  --cyan: #50d9ff;
-  --blue: #5d8cff;
-  --purple: #a56dff;
-  --green: #68ff9a;
-  --yellow: #ffdd72;
-  --danger: #ff5f78;
+  --muted: #8f9db7;
+  --cyan: #5ce0ff;
+  --blue: #5b88ff;
+  --green: #65ff9a;
+  --yellow: #ffe073;
+  --danger: #ff607a;
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --font-ui: "Orbitron", "Noto Sans JP", sans-serif;
-  --font-jp: "Noto Sans JP", sans-serif;
+
+  --ui-font: "Orbitron", "Noto Sans JP", sans-serif;
+  --jp-font: "Noto Sans JP", sans-serif;
 }
 
 * {
@@ -30,13 +30,13 @@ body {
   width: 100%;
   min-height: 100%;
   margin: 0;
+  background: var(--deep);
   overscroll-behavior: none;
-  background: var(--bg-deep);
 }
 
 body {
   color: var(--text);
-  font-family: var(--font-jp);
+  font-family: var(--jp-font);
 }
 
 button {
@@ -56,13 +56,13 @@ button:focus-visible {
   min-height: 100dvh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 75% 6%, rgba(61, 103, 214, 0.23), transparent 30%),
-    radial-gradient(circle at 15% 85%, rgba(109, 54, 194, 0.18), transparent 40%),
-    linear-gradient(145deg, #10182b 0%, #060912 48%, #03050b 100%);
+    radial-gradient(circle at 74% 4%, rgba(55, 113, 222, 0.25), transparent 28%),
+    radial-gradient(circle at 10% 85%, rgba(125, 58, 195, 0.2), transparent 40%),
+    linear-gradient(145deg, #111a30 0%, #070a13 49%, #02040a 100%);
 }
 
 /* =========================================================
-   画面切り替え
+   共通：画面切り替え
 ========================================================= */
 
 .screen {
@@ -77,7 +77,7 @@ button:focus-visible {
 }
 
 /* =========================================================
-   タイトル
+   タイトル画面
 ========================================================= */
 
 .title-screen {
@@ -101,37 +101,37 @@ button:focus-visible {
 }
 
 .title-screen::before {
-  width: 78vw;
-  height: 78vw;
-  top: -21vw;
-  right: -27vw;
-  border: 1px solid rgba(107, 193, 255, 0.18);
+  top: -18vw;
+  right: -25vw;
+  width: 75vw;
+  height: 75vw;
+  border: 1px solid rgba(121, 192, 255, 0.18);
   box-shadow:
-    0 0 0 23px rgba(99, 135, 255, 0.03),
-    0 0 0 47px rgba(99, 135, 255, 0.025);
+    0 0 0 24px rgba(108, 144, 255, 0.035),
+    0 0 0 48px rgba(108, 144, 255, 0.025);
 }
 
 .title-screen::after {
-  width: 64vw;
-  height: 64vw;
-  bottom: -26vw;
-  left: -25vw;
-  background: radial-gradient(circle, rgba(144, 79, 255, 0.14), transparent 68%);
+  bottom: -28vw;
+  left: -28vw;
+  width: 70vw;
+  height: 70vw;
+  background: radial-gradient(circle, rgba(128, 65, 218, 0.18), transparent 67%);
 }
 
 .title-screen__glow {
   position: absolute;
-  top: 20%;
+  top: 21%;
   left: 50%;
   z-index: -1;
-  width: min(92vw, 520px);
+  width: min(91vw, 510px);
   aspect-ratio: 1;
   transform: translateX(-50%);
-  border: 1px solid rgba(112, 222, 255, 0.16);
+  border: 1px solid rgba(111, 206, 255, 0.15);
   border-radius: 50%;
   box-shadow:
-    inset 0 0 60px rgba(80, 174, 255, 0.06),
-    0 0 65px rgba(91, 96, 255, 0.12);
+    inset 0 0 63px rgba(81, 170, 255, 0.06),
+    0 0 70px rgba(90, 96, 255, 0.11);
 }
 
 .title-screen__content {
@@ -142,64 +142,67 @@ button:focus-visible {
 .title-screen__eyebrow {
   margin: 0 0 17px;
   color: var(--cyan);
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.17em;
-  opacity: 0.82;
+  letter-spacing: 0.16em;
+  opacity: 0.85;
 }
 
+/* タイトルはスマホ・PCともに必ず1行 */
 .game-title {
   margin: 0;
-  color: #ffffff;
-  font-family: var(--font-ui);
-  font-size: clamp(2.45rem, 11vw, 4.2rem);
+  color: #fff;
+  font-family: var(--ui-font);
+  font-size: clamp(1.75rem, 8vw, 2.5rem);
   font-weight: 800;
-  letter-spacing: -0.09em;
-  line-height: 1;
+  letter-spacing: -0.1em;
+  line-height: 1.12;
+  white-space: nowrap;
   text-shadow:
-    0 0 12px rgba(105, 212, 255, 0.75),
-    0 0 38px rgba(91, 119, 255, 0.48);
+    0 0 12px rgba(104, 212, 255, 0.77),
+    0 0 36px rgba(91, 119, 255, 0.48);
 }
 
 .game-title span {
-  color: #a9c9ff;
+  color: #aac9ff;
 }
 
 .game-title b {
   color: var(--green);
-  font-size: 0.78em;
-  vertical-align: 0.08em;
-  text-shadow: 0 0 16px rgba(104, 255, 154, 0.78);
+  font-size: 0.8em;
+  text-shadow: 0 0 16px rgba(99, 255, 151, 0.82);
+  vertical-align: 0.06em;
 }
 
 .title-screen__lead {
-  margin: 20px 0 48px;
-  color: #d2dbef;
-  font-size: 0.94rem;
+  margin: 20px 0 45px;
+  color: #d1dbef;
+  font-size: 0.88rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.13em;
 }
 
 .title-menu {
   display: grid;
-  gap: 13px;
+  gap: 12px;
 }
 
 .menu-button {
   position: relative;
   width: 100%;
-  min-height: 76px;
+  min-height: 75px;
   overflow: hidden;
-  border: 1px solid rgba(166, 196, 255, 0.25);
+  border: 1px solid rgba(167, 196, 255, 0.25);
   border-radius: 12px;
-  background: rgba(19, 29, 50, 0.67);
+  background: rgba(17, 27, 48, 0.72);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  transition: transform 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+  transition: transform 0.14s ease, filter 0.14s ease;
 }
 
 .menu-button:active {
   transform: scale(0.975);
+  filter: brightness(1.2);
 }
 
 .menu-button span,
@@ -210,53 +213,58 @@ button:focus-visible {
 }
 
 .menu-button span {
-  font-family: var(--font-ui);
-  font-size: 1rem;
+  font-family: var(--ui-font);
+  font-size: 0.95rem;
   font-weight: 700;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.08em;
 }
 
 .menu-button small {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 0.68rem;
+  font-size: 0.65rem;
 }
 
 .menu-button--primary {
-  border-color: rgba(111, 226, 255, 0.7);
+  border-color: rgba(105, 224, 255, 0.72);
   background:
-    linear-gradient(105deg, rgba(39, 145, 201, 0.45), rgba(72, 81, 226, 0.42)),
-    rgba(20, 48, 89, 0.85);
+    linear-gradient(105deg, rgba(35, 143, 204, 0.58), rgba(67, 75, 219, 0.58)),
+    rgba(24, 50, 91, 0.88);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 0 24px rgba(72, 162, 255, 0.22);
+    0 0 24px rgba(71, 159, 255, 0.23);
 }
 
 .menu-button--primary::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 17%, rgba(255, 255, 255, 0.23) 50%, transparent 82%);
-  transform: translateX(-100%);
+  background: linear-gradient(
+    105deg,
+    transparent 17%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 83%
+  );
+  transform: translateX(-120%);
   animation: menu-shine 3.8s ease-in-out infinite;
 }
 
 .menu-button--sub {
-  min-height: 60px;
-  background: rgba(10, 15, 27, 0.55);
+  min-height: 58px;
+  background: rgba(8, 13, 24, 0.6);
 }
 
 .menu-button--sub span {
-  font-size: 0.8rem;
+  font-size: 0.76rem;
 }
 
 .title-screen__footer {
   position: absolute;
-  bottom: calc(16px + var(--safe-bottom));
+  bottom: calc(15px + var(--safe-bottom));
   margin: 0;
-  color: rgba(182, 198, 230, 0.42);
-  font-family: var(--font-ui);
-  font-size: 0.55rem;
+  color: rgba(180, 198, 230, 0.45);
+  font-family: var(--ui-font);
+  font-size: 0.53rem;
   letter-spacing: 0.1em;
 }
 
@@ -267,13 +275,13 @@ button:focus-visible {
 .game-screen {
   flex-direction: column;
   padding:
-    calc(12px + var(--safe-top))
+    calc(11px + var(--safe-top))
     11px
-    calc(12px + var(--safe-bottom));
+    calc(11px + var(--safe-bottom));
   background:
     linear-gradient(rgba(99, 177, 255, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(99, 177, 255, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 50% 20%, rgba(46, 98, 194, 0.19), transparent 45%),
+    radial-gradient(circle at 50% 20%, rgba(45, 97, 194, 0.2), transparent 45%),
     #070b14;
   background-size: 25px 25px, 25px 25px, auto, auto;
 }
@@ -290,16 +298,16 @@ button:focus-visible {
 .over-panel {
   min-height: 49px;
   padding: 7px 8px;
-  border: 1px solid var(--panel-line);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(11, 18, 34, 0.79);
+  background: rgba(11, 18, 34, 0.8);
 }
 
 .hud-label {
   display: block;
-  color: #8b9bb9;
-  font-family: var(--font-ui);
-  font-size: 0.51rem;
+  color: #8c9dbb;
+  font-family: var(--ui-font);
+  font-size: 0.5rem;
   font-weight: 700;
   letter-spacing: 0.09em;
 }
@@ -308,7 +316,7 @@ button:focus-visible {
 .level-panel strong {
   display: block;
   margin-top: 2px;
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 1rem;
   font-weight: 700;
   line-height: 1;
@@ -324,9 +332,9 @@ button:focus-visible {
   display: block;
   width: 100%;
   height: 7px;
-  border: 1px solid rgba(215, 229, 255, 0.2);
+  border: 1px solid rgba(215, 229, 255, 0.22);
   border-radius: 999px;
-  background: rgba(155, 175, 216, 0.13);
+  background: rgba(155, 175, 216, 0.14);
 }
 
 .over-gauge i.is-filled {
@@ -340,8 +348,8 @@ button:focus-visible {
   justify-content: space-between;
   min-height: 25px;
   padding: 7px 4px 0;
-  font-family: var(--font-ui);
-  font-size: 0.61rem;
+  font-family: var(--ui-font);
+  font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -371,14 +379,17 @@ button:focus-visible {
 .game-board {
   --rows: 4;
   --cols: 8;
+
   display: grid;
   grid-template-columns: repeat(var(--cols), 1fr);
   grid-template-rows: repeat(var(--rows), 1fr);
   gap: 4px;
+
   width: 100%;
   min-height: 300px;
   max-height: 59dvh;
   aspect-ratio: 0.92;
+
   padding: 6px;
   border: 1px solid rgba(143, 188, 255, 0.2);
   border-radius: 13px;
@@ -438,30 +449,25 @@ button:focus-visible {
   max-width: 66px;
   aspect-ratio: 1;
   color: #fff;
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: clamp(0.86rem, 4.6vw, 1.35rem);
   font-weight: 800;
   line-height: 1;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55);
   user-select: none;
-  transition: transform 0.18s ease, filter 0.18s ease;
 }
 
 .piece::before,
 .piece::after {
   content: "";
   position: absolute;
+  z-index: -1;
   pointer-events: none;
 }
 
 .piece::before {
   inset: 0;
-  z-index: -1;
   border-radius: 50%;
-}
-
-.piece::after {
-  z-index: -1;
 }
 
 .piece--orb::before {
@@ -498,35 +504,36 @@ button:focus-visible {
   background: radial-gradient(circle, rgba(237, 255, 255, 0.17), transparent 65%);
 }
 
-/* オーブの色。JSが piece--color-○ を付与する */
+/* オーブ色と、色を伝播したリング */
 .piece--color-0.piece--orb::before,
 .piece--color-0.piece--ring::before {
-  border-color: rgba(194, 237, 255, 0.9);
+  border-color: rgba(194, 237, 255, 0.92);
   background-color: rgba(58, 157, 255, 0.24);
   box-shadow: 0 0 13px rgba(65, 176, 255, 0.72);
 }
 
 .piece--color-1.piece--orb::before,
 .piece--color-1.piece--ring::before {
-  border-color: rgba(255, 205, 247, 0.9);
+  border-color: rgba(255, 205, 247, 0.92);
   background-color: rgba(229, 67, 185, 0.24);
   box-shadow: 0 0 13px rgba(240, 68, 186, 0.69);
 }
 
 .piece--color-2.piece--orb::before,
 .piece--color-2.piece--ring::before {
-  border-color: rgba(240, 218, 255, 0.9);
+  border-color: rgba(240, 218, 255, 0.92);
   background-color: rgba(146, 80, 255, 0.24);
   box-shadow: 0 0 13px rgba(155, 92, 255, 0.68);
 }
 
 .piece--color-3.piece--orb::before,
 .piece--color-3.piece--ring::before {
-  border-color: rgba(255, 239, 191, 0.9);
+  border-color: rgba(255, 239, 191, 0.92);
   background-color: rgba(255, 159, 48, 0.25);
   box-shadow: 0 0 13px rgba(255, 158, 49, 0.67);
 }
 
+/* 合計5、6、7 */
 .piece.is-total-5::before,
 .piece.is-total-6::before,
 .piece.is-total-7::before {
@@ -545,18 +552,6 @@ button:focus-visible {
   animation: warning-pulse 0.38s ease-in-out infinite alternate;
 }
 
-.piece.is-clearing {
-  animation: piece-clear 0.36s ease-in forwards;
-}
-
-.piece.is-over {
-  animation: piece-over 0.3s ease-in-out forwards;
-}
-
-.piece.is-new {
-  animation: piece-in 0.22s ease-out;
-}
-
 .next-ring-area {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -570,7 +565,7 @@ button:focus-visible {
   justify-self: start;
   margin: 0;
   color: #91a3c2;
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -599,7 +594,7 @@ button:focus-visible {
     inset -3px -5px 7px rgba(80, 111, 153, 0.48),
     0 0 13px rgba(209, 237, 255, 0.35);
   color: #fff;
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 1.3rem;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
@@ -612,7 +607,7 @@ button:focus-visible {
 
 .corner-button {
   position: absolute;
-  top: calc(13px + var(--safe-top));
+  top: calc(12px + var(--safe-top));
   right: 11px;
   min-width: 39px;
   min-height: 49px;
@@ -621,7 +616,7 @@ button:focus-visible {
   border-radius: 7px;
   background: rgba(8, 14, 27, 0.8);
   color: #b9c9e8;
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.47rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -653,7 +648,7 @@ button:focus-visible {
 .tutorial-header p {
   margin: 0;
   color: var(--cyan);
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -707,7 +702,7 @@ button:focus-visible {
 
 #tutorial-step-label {
   color: var(--cyan);
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -729,7 +724,7 @@ button:focus-visible {
   border: 1px solid rgba(108, 224, 255, 0.68);
   border-radius: 8px;
   background: linear-gradient(100deg, rgba(38, 132, 206, 0.66), rgba(69, 79, 223, 0.64));
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -789,7 +784,7 @@ button:focus-visible {
 
 .modal__kicker {
   color: var(--cyan) !important;
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.57rem !important;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -811,7 +806,7 @@ button:focus-visible {
   border: 1px solid rgba(174, 203, 255, 0.3);
   border-radius: 8px;
   background: rgba(30, 43, 69, 0.8);
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -831,7 +826,7 @@ button:focus-visible {
 .final-score-label {
   margin-top: 20px !important;
   color: #92a5c7 !important;
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.56rem !important;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -841,7 +836,7 @@ button:focus-visible {
   display: block;
   margin-top: 5px;
   color: #fff;
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 2.1rem;
   text-shadow: 0 0 18px rgba(92, 198, 255, 0.56);
 }
@@ -867,7 +862,7 @@ button:focus-visible {
 
 .simple-header h2 {
   margin: 0;
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.89rem;
   letter-spacing: 0.07em;
 }
@@ -893,7 +888,7 @@ button:focus-visible {
 
 .ranking-list__rank {
   color: var(--cyan);
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -904,7 +899,7 @@ button:focus-visible {
 }
 
 .ranking-list__score {
-  font-family: var(--font-ui);
+  font-family: var(--ui-font);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -969,57 +964,6 @@ button:focus-visible {
   }
 }
 
-@keyframes piece-clear {
-  0% {
-    opacity: 1;
-    filter: brightness(1);
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 1;
-    filter: brightness(2.2);
-    transform: scale(1.3);
-  }
-
-  100% {
-    opacity: 0;
-    filter: brightness(3);
-    transform: scale(0.05);
-  }
-}
-
-@keyframes piece-over {
-  0%,
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  30% {
-    filter: brightness(2) sepia(1) saturate(4);
-    transform: translateX(-7px);
-  }
-
-  60% {
-    opacity: 0.45;
-    transform: translateX(7px);
-  }
-}
-
-@keyframes piece-in {
-  from {
-    opacity: 0;
-    transform: scale(0.4);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* 横長端末でも操作部が隠れないようにする */
 @media (max-height: 680px) {
   .title-screen__lead {
     margin: 15px 0 27px;
@@ -1053,9 +997,5 @@ button:focus-visible {
   .tutorial-screen {
     width: min(100%, 540px);
     margin: 0 auto;
-  }
-
-  .title-screen__content {
-    width: 390px;
   }
 }
