@@ -287,38 +287,41 @@
       }
 
       /*
-        動画とSKIPボタンを一つの枠にする。
-        これでSKIPは画面右上ではなく、
-        動画表示領域の右上へ必ず重なる。
+        入口動画の表示枠は9:16固定。
+        iPhoneの縦画面に合わせる。
       */
       .mitiocity-entrance__video-frame {
         position: relative;
-        display: block;
-        width: 100vw;
-        max-width: 100%;
-        margin: auto;
-        line-height: 0;
+        width: min(100vw, calc(100svh * 9 / 16));
+        height: min(100svh, calc(100vw * 16 / 9));
+        max-width: 100vw;
+        max-height: 100svh;
+        overflow: hidden;
+        background: #000;
+        aspect-ratio: 9 / 16;
       }
 
+      /*
+        元動画が16:9でも、9:16枠いっぱいに表示する。
+        横長素材の左右は切り取られる。
+      */
       .mitiocity-entrance__video {
         display: block;
         width: 100%;
-        max-width: 100%;
-        height: auto;
-        max-height: 100svh;
-        margin: 0;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
         background: #000;
       }
 
       /*
-        横長動画の右上に直接表示するSKIPボタン。
-        iPhoneでも動画の上に重なる。
+        動画そのものの右上に重なるSKIPボタン。
       */
       .mitiocity-entrance__skip {
         position: absolute;
         z-index: 5;
-        top: 12px;
-        right: 12px;
+        top: 14px;
+        right: 14px;
         min-width: 78px;
         min-height: 44px;
         padding: 10px 15px;
@@ -330,7 +333,7 @@
         cursor: pointer;
         border: 1px solid rgba(255, 230, 174, 0.92);
         border-radius: 999px;
-        background: rgba(2, 3, 10, 0.78);
+        background: rgba(2, 3, 10, 0.8);
         box-shadow: 0 5px 18px rgba(0, 0, 0, 0.52);
         backdrop-filter: blur(5px);
         -webkit-backdrop-filter: blur(5px);
