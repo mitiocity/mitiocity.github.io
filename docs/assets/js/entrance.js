@@ -109,13 +109,23 @@
           異世界への扉、アリウスゲートへようこそ。
         </p>
 
-        <button
-          class="mitiocity-entrance__button"
-          type="button"
-          id="entrance-start-button"
-        >
-          アリウスゲートへ入る
-        </button>
+        <div class="mitiocity-entrance__actions">
+          <button
+            class="mitiocity-entrance__button"
+            type="button"
+            id="entrance-start-button"
+          >
+            アリウスゲートへ入る
+          </button>
+
+          <button
+            class="mitiocity-entrance__skip-before"
+            type="button"
+            id="entrance-skip-before-button"
+          >
+            動画をスキップして入る
+          </button>
+        </div>
       </div>
 
       <div class="mitiocity-entrance__movie" hidden>
@@ -257,6 +267,12 @@
         line-height: 1.8;
       }
 
+      .mitiocity-entrance__actions {
+        display: grid;
+        gap: 12px;
+        justify-items: center;
+      }
+
       .mitiocity-entrance__button {
         width: min(100%, 300px);
         min-height: 59px;
@@ -276,6 +292,27 @@
         transform: scale(0.97);
       }
 
+      /*
+        TikTok内ブラウザでも必ず押せる、動画再生前のSKIP。
+      */
+      .mitiocity-entrance__skip-before {
+        min-height: 43px;
+        padding: 9px 17px;
+        color: rgba(255, 250, 240, 0.94);
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        border: 1px solid rgba(255, 230, 174, 0.62);
+        border-radius: 999px;
+        background: rgba(2, 3, 10, 0.5);
+      }
+
+      .mitiocity-entrance__skip-before:active {
+        transform: scale(0.96);
+        background: rgba(255, 230, 174, 0.17);
+      }
+
       .mitiocity-entrance__movie {
         position: absolute;
         z-index: 3;
@@ -291,10 +328,6 @@
         display: none;
       }
 
-      /*
-        スマホ用の縦動画枠。
-        TikTok内ブラウザでも動画をページ内で再生する。
-      */
       .mitiocity-entrance__video-frame {
         position: relative;
         width: min(100vw, calc(100svh * 9 / 16));
@@ -316,9 +349,9 @@
       }
 
       /*
-        動画の右上に直接重ねる。
-        親フレームより上のz-indexを与え、
-        TikTok内ブラウザでのタップも受け取る。
+        Safari・Chrome等で動画がページ内再生される場合のSKIP。
+        TikTokでは動画プレイヤーの仕様で出ない場合があるが、
+        再生前の「動画をスキップして入る」は必ず利用できる。
       */
       .mitiocity-entrance__skip {
         position: absolute;
@@ -352,6 +385,7 @@
       }
 
       .mitiocity-entrance__skip:focus-visible,
+      .mitiocity-entrance__skip-before:focus-visible,
       .mitiocity-entrance__button:focus-visible {
         outline: 3px solid #ffffff;
         outline-offset: 3px;
@@ -403,13 +437,12 @@
     const movie = entrance.querySelector(".mitiocity-entrance__movie");
     const video = entrance.querySelector("#entrance-video");
     const button = entrance.querySelector("#entrance-start-button");
+    const skipBeforeButton = entrance.querySelector(
+      "#entrance-skip-before-button"
+    );
     const skipButton = entrance.querySelector("#entrance-skip-button");
     const errorMessage = entrance.querySelector("#entrance-error");
 
-    /*
-      属性とJavaScriptの両方でインライン再生を指定する。
-      TikTok内ブラウザ／iPhone／Android系WebViewへの対策。
-    */
     video.playsInline = true;
     video.setAttribute("playsinline", "");
     video.setAttribute("webkit-playsinline", "");
@@ -440,6 +473,16 @@
       });
     });
 
+    /*
+      TikTokを含め、動画を開始する前に確実にスキップできる。
+    */
+    skipBeforeButton.addEventListener("click", () => {
+      finishEntrance(entrance, style, video);
+    });
+
+    /*
+      通常ブラウザで動画上のSKIPが使える場合の処理。
+    */
     skipButton.addEventListener("click", () => {
       finishEntrance(entrance, style, video);
     });
