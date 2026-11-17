@@ -1330,3 +1330,87 @@ renderGame = function (showExpansionPreview = false) {
     elements.nextRingNumber.textContent = state.nextRing;
   }
 };
+/* =========================================================
+   オーブを2回タップして即接続する操作
+========================================================= */
+
+function handleOrbTap(row, col) {
+  if (!state || !state.activeRing || state.isBusy || state.isGameOver) {
+    return;
+  }
+
+  const orb = state.board[row][col];
+
+  if (!orb || orb.type !== "orb") {
+    moveActiveRingToRow(row);
+    return;
+  }
+
+  /*
+    1回目：
+    指定オーブのレーンへ、流れているリングを移動。
+  */
+  if (state.selectedOrbId !== orb.id) {
+    state.selectedOrbId = orb.id;
+    state.activeRing.row = row;
+    elements.combo.textContent = "TARGET LOCK";
+    renderGame();
+    return;
+  }
+
+  /*
+    2回目：
+    同じオーブの接続列の右端へ、即座にリングを接続。
+  */
+  const targetGroup = getGroups().find((group) => {
+    return group.kind === "orb" && group.orb.id === orb.id;
+  });
+
+  if (!targetGroup) return;
+
+  const lastRing = targetGroup.rings[targetGroup.rings.length - 1];
+
+  const landingCol = lastRing
+    ? lastRing.col + 1
+    : targetGroup.orbCol + 1;
+
+  /*
+    右端までリングで埋まっている場合は即接続できない。
+  */
+  if (landingCol >= CONFIG.cols) {
+    elements.combo.textContent = "ROW FULL";
+    return;
+  }
+
+  state.activeRing.row = row;
+  state.activeRing.col = landingCol;
+  state.selectedOrbId = null;
+
+  landActiveRing();
+}
+
+/*
+  既存の盤面タップ操作を上書きする。
+  オーブなら2回タップ判定、それ以外は通常のレーン移動。
+*/
+elements.gameBoard.addEventListener(
+  "click",
+  (event) => {
+    const cell = event.target.closest(".board-cell");
+
+    if (!cell) return;
+
+    event.stopImmediatePropagation();
+
+    const cells = Array.from(elements.gameBoard.children);
+    const cellIndex = cells.indexOf(cell);
+
+    if (cellIndex < 0) return;
+
+    const row = Math.floor(cellIndex / CONFIG.cols);
+    const col = cellIndex % CONFIG.cols;
+
+    handleOrbTap(row, col);
+  },
+  true
+);
