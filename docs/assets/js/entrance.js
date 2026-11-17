@@ -6,10 +6,6 @@
 
   let isFinishing = false;
 
-  /*
-    入口動画の後、必ずページ最上部へ戻す。
-    ☰／サイト名／♪ とクイックメニューが画面上部に見える状態にする。
-  */
   function showHeaderAtTop() {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
@@ -123,24 +119,26 @@
       </div>
 
       <div class="mitiocity-entrance__movie" hidden>
-        <video
-          class="mitiocity-entrance__video"
-          id="entrance-video"
-          playsinline
-          preload="auto"
-        >
-          <source src="${VIDEO_PATH}" type="video/mp4">
-          お使いのブラウザは動画再生に対応していません。
-        </video>
+        <div class="mitiocity-entrance__video-frame">
+          <video
+            class="mitiocity-entrance__video"
+            id="entrance-video"
+            playsinline
+            preload="auto"
+          >
+            <source src="${VIDEO_PATH}" type="video/mp4">
+            お使いのブラウザは動画再生に対応していません。
+          </video>
 
-        <button
-          class="mitiocity-entrance__skip"
-          id="entrance-skip-button"
-          type="button"
-          aria-label="入口動画をスキップしてサイトへ進む"
-        >
-          SKIP
-        </button>
+          <button
+            class="mitiocity-entrance__skip"
+            id="entrance-skip-button"
+            type="button"
+            aria-label="入口動画をスキップしてサイトへ進む"
+          >
+            SKIP
+          </button>
+        </div>
 
         <p class="mitiocity-entrance__error" id="entrance-error" hidden>
           動画を再生できませんでした。<br>
@@ -288,44 +286,59 @@
         display: none;
       }
 
-      .mitiocity-entrance__video {
+      /*
+        動画とSKIPボタンを一つの枠にする。
+        これでSKIPは画面右上ではなく、
+        動画表示領域の右上へ必ず重なる。
+      */
+      .mitiocity-entrance__video-frame {
+        position: relative;
         display: block;
         width: 100vw;
         max-width: 100%;
+        margin: auto;
+        line-height: 0;
+      }
+
+      .mitiocity-entrance__video {
+        display: block;
+        width: 100%;
+        max-width: 100%;
         height: auto;
         max-height: 100svh;
-        margin: auto;
+        margin: 0;
         background: #000;
       }
 
       /*
-        動画再生中だけ右上に表示するスキップボタン。
-        動画上に重ねるため、動画の表示領域は変えない。
+        横長動画の右上に直接表示するSKIPボタン。
+        iPhoneでも動画の上に重なる。
       */
       .mitiocity-entrance__skip {
         position: absolute;
         z-index: 5;
-        top: max(16px, env(safe-area-inset-top, 0px));
-        right: 16px;
-        min-width: 76px;
-        min-height: 42px;
-        padding: 9px 14px;
+        top: 12px;
+        right: 12px;
+        min-width: 78px;
+        min-height: 44px;
+        padding: 10px 15px;
         color: #fffaf0;
-        font-size: 0.78rem;
+        font-size: 0.8rem;
         font-weight: 900;
+        line-height: 1;
         letter-spacing: 0.12em;
         cursor: pointer;
-        border: 1px solid rgba(255, 230, 174, 0.82);
+        border: 1px solid rgba(255, 230, 174, 0.92);
         border-radius: 999px;
-        background: rgba(2, 3, 10, 0.68);
-        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.4);
+        background: rgba(2, 3, 10, 0.78);
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.52);
         backdrop-filter: blur(5px);
         -webkit-backdrop-filter: blur(5px);
       }
 
       .mitiocity-entrance__skip:active {
         transform: scale(0.95);
-        background: rgba(216, 175, 99, 0.34);
+        background: rgba(216, 175, 99, 0.5);
       }
 
       .mitiocity-entrance__skip:focus-visible,
@@ -343,6 +356,7 @@
         padding: 11px;
         color: #fffaf0;
         font-size: 0.8rem;
+        line-height: 1.6;
         text-align: center;
         border: 1px solid rgba(255, 230, 174, 0.57);
         border-radius: 10px;
@@ -404,10 +418,6 @@
       });
     });
 
-    /*
-      ユーザーがSKIPを押した場合、
-      動画を止めて通常画面へ進む。
-    */
     skipButton.addEventListener("click", () => {
       finishEntrance(entrance, style, video);
     });
