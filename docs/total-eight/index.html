@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+  <meta
+    name="description"
+    content="数字をつないで合計8を目指すパズルゲーム、とーたるえいと❣️"
+  >
+  <title>とーたるえいと❣️</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <main class="app-shell">
+
+    <!-- タイトル画面 -->
+    <section id="title-screen" class="screen title-screen is-active">
+      <div class="title-screen__glow" aria-hidden="true"></div>
+
+      <div class="title-screen__content">
+        <p class="title-screen__eyebrow">CONNECT · CALCULATE · CLEAR</p>
+        <h1 class="game-title">とーたる<span>えいと</span><b>❣️</b></h1>
+        <p class="title-screen__lead">すべてを、8にしろ。</p>
+
+        <nav class="title-menu" aria-label="メインメニュー">
+          <button id="start-button" class="menu-button menu-button--primary" type="button">
+            <span>START</span>
+            <small>ゲームを始める</small>
+          </button>
+
+          <button id="tutorial-button" class="menu-button" type="button">
+            <span>TUTORIAL</span>
+            <small>遊び方を聞く</small>
+          </button>
+
+          <button id="ranking-button" class="menu-button menu-button--sub" type="button">
+            <span>LOCAL RANKING</span>
+            <small>ローカルランキング</small>
+          </button>
+        </nav>
+      </div>
+
+      <p class="title-screen__footer">© Studio MiChiChi</p>
+    </section>
+
+    <!-- 通常ゲーム画面 -->
+    <section id="game-screen" class="screen game-screen" aria-label="ゲーム画面">
+      <header class="game-header">
+        <div class="score-panel">
+          <span class="hud-label">SCORE</span>
+          <strong id="score-value">0</strong>
+        </div>
+
+        <div class="level-panel">
+          <span class="hud-label">LEVEL</span>
+          <strong id="level-value">1</strong>
+        </div>
+
+        <div class="over-panel">
+          <span class="hud-label">OVER</span>
+          <div id="over-gauge" class="over-gauge" aria-label="オーバーゲージ">
+            <i></i><i></i><i></i>
+          </div>
+        </div>
+      </header>
+
+      <div class="game-status" aria-live="polite">
+        <span id="combo-label">READY</span>
+        <span id="fever-label" class="is-hidden">FEVER!</span>
+      </div>
+
+      <!-- JavaScriptが盤面を生成する場所 -->
+      <section class="board-wrap" aria-label="盤面">
+        <div id="game-board" class="game-board"></div>
+      </section>
+
+      <!-- 次に配置するリング -->
+      <section class="next-ring-area" aria-label="次のリング">
+        <p class="next-ring-area__label">NEXT RING</p>
+
+        <div id="next-ring" class="next-ring" aria-label="次に置くリング">
+          <span id="next-ring-number">1</span>
+        </div>
+
+        <p class="next-ring-area__hint">
+          置きたいレーンをタップ
+        </p>
+      </section>
+
+      <button id="game-menu-button" class="corner-button" type="button">
+        MENU
+      </button>
+    </section>
+
+    <!-- チュートリアル画面 -->
+    <section id="tutorial-screen" class="screen tutorial-screen" aria-label="チュートリアル">
+      <header class="tutorial-header">
+        <p>TUTORIAL</p>
+        <button id="tutorial-exit-button" class="tutorial-exit-button" type="button">
+          終了
+        </button>
+      </header>
+
+      <div class="tutorial-stage">
+        <div id="tutorial-board" class="tutorial-board"></div>
+
+        <div class="tutorial-message">
+          <p id="tutorial-step-label">STEP 1 / 8</p>
+          <p id="tutorial-text">ようこそ、とーたるえいと❣️へ。</p>
+          <button id="tutorial-next-button" class="tutorial-next-button" type="button">
+            次へ
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- チュートリアル中断確認 -->
+    <section id="tutorial-exit-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop"></div>
+
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="exit-modal-title">
+        <h2 id="exit-modal-title">チュートリアルを終了しますか？</h2>
+        <p>進行中のチュートリアルは最初からになります。</p>
+
+        <div class="modal__actions">
+          <button id="tutorial-resume-button" class="modal-button" type="button">
+            つづける
+          </button>
+          <button id="tutorial-quit-button" class="modal-button modal-button--danger" type="button">
+            終了する
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- チュートリアル終了時 -->
+    <section id="tutorial-complete-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop"></div>
+
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="complete-modal-title">
+        <p class="modal__kicker">TUTORIAL COMPLETE</p>
+        <h2 id="complete-modal-title">準備はいい？</h2>
+        <p>目指すのは、すべての合計を8にすること。</p>
+
+        <div class="modal__actions modal__actions--vertical">
+          <button id="tutorial-start-game-button" class="modal-button modal-button--primary" type="button">
+            START
+          </button>
+          <button id="tutorial-restart-button" class="modal-button" type="button">
+            もう一度
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ランキング画面 -->
+    <section id="ranking-screen" class="screen ranking-screen" aria-label="ローカルランキング">
+      <header class="simple-header">
+        <button class="back-button" data-return-to-title type="button">← BACK</button>
+        <h2>LOCAL RANKING</h2>
+      </header>
+
+      <ol id="ranking-list" class="ranking-list">
+        <!-- JavaScriptで生成 -->
+      </ol>
+
+      <p class="ranking-note">この端末内に保存されるランキングです。</p>
+    </section>
+
+    <!-- ゲームオーバー画面 -->
+    <section id="game-over-modal" class="modal" aria-hidden="true">
+      <div class="modal__backdrop"></div>
+
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="game-over-title">
+        <p class="modal__kicker">GAME OVER</p>
+        <h2 id="game-over-title">オーブ領域が限界です</h2>
+
+        <p class="final-score-label">FINAL SCORE</p>
+        <strong id="final-score-value" class="final-score-value">0</strong>
+
+        <div class="modal__actions modal__actions--vertical">
+          <button id="retry-button" class="modal-button modal-button--primary" type="button">
+            RETRY
+          </button>
+          <button id="return-title-button" class="modal-button" type="button">
+            TITLE
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
