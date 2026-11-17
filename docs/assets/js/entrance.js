@@ -4,13 +4,11 @@
   const SESSION_KEY = "mitiocity-entrance-viewed-v3";
   const VIDEO_PATH = "assets/video/entrance.mp4";
 
-  /*
-    iPhoneのホーム画面アプリでは、入口動画の終了後に
-    ページ下側の表示位置が残る場合がある。
+  let isFinishing = false;
 
-    必ずページ最上部へ戻し、
-    「☰／サイト名／♪」とクイックメニューが
-    画面上部に出る状態へ統一する。
+  /*
+    入口動画の後、必ずページ最上部へ戻す。
+    ☰／サイト名／♪ とクイックメニューが画面上部に見える状態にする。
   */
   function showHeaderAtTop() {
     document.documentElement.scrollTop = 0;
@@ -41,18 +39,10 @@
     }, 350);
   }
 
-  /*
-    Safari / iPhoneホーム画面アプリによる
-    スクロール位置の自動復元を使わせない。
-  */
   if ("scrollRestoration" in history) {
     history.scrollRestoration = "manual";
   }
 
-  /*
-    入口画面の有無にかかわらず、
-    サイトを開いた時点でヘッダー側へ戻す。
-  */
   showHeaderAtTop();
 
   try {
@@ -71,11 +61,18 @@
     console.warn("入口画面の保存状態を確認できませんでした。", error);
   }
 
-  function finishEntrance(entrance, style) {
-    /*
-      動画終了直後、入口レイヤーが消える前後の両方で
-      最上部へ戻す。
-    */
+  function finishEntrance(entrance, style, video) {
+    if (isFinishing) {
+      return;
+    }
+
+    isFinishing = true;
+
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+    }
+
     showHeaderAtTop();
 
     entrance.classList.add("is-closing");
@@ -91,10 +88,6 @@
         console.warn("入口画面の状態を保存できませんでした。", error);
       }
 
-      /*
-        入口レイヤー削除後にももう一度最上部へ固定。
-        ここで、☰とクイックメニューが見える位置になる。
-      */
       showHeaderAtTop();
     }, 550);
   }
@@ -139,6 +132,15 @@
           <source src="${VIDEO_PATH}" type="video/mp4">
           お使いのブラウザは動画再生に対応していません。
         </video>
+
+        <button
+          class="mitiocity-entrance__skip"
+          id="entrance-skip-button"
+          type="button"
+          aria-label="入口動画をスキップしてサイトへ進む"
+        >
+          SKIP
+        </button>
 
         <p class="mitiocity-entrance__error" id="entrance-error" hidden>
           動画を再生できませんでした。<br>
@@ -296,6 +298,42 @@
         background: #000;
       }
 
+      /*
+        動画再生中だけ右上に表示するスキップボタン。
+        動画上に重ねるため、動画の表示領域は変えない。
+      */
+      .mitiocity-entrance__skip {
+        position: absolute;
+        z-index: 5;
+        top: max(16px, env(safe-area-inset-top, 0px));
+        right: 16px;
+        min-width: 76px;
+        min-height: 42px;
+        padding: 9px 14px;
+        color: #fffaf0;
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        cursor: pointer;
+        border: 1px solid rgba(255, 230, 174, 0.82);
+        border-radius: 999px;
+        background: rgba(2, 3, 10, 0.68);
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+      }
+
+      .mitiocity-entrance__skip:active {
+        transform: scale(0.95);
+        background: rgba(216, 175, 99, 0.34);
+      }
+
+      .mitiocity-entrance__skip:focus-visible,
+      .mitiocity-entrance__button:focus-visible {
+        outline: 3px solid #ffffff;
+        outline-offset: 3px;
+      }
+
       .mitiocity-entrance__error {
         position: absolute;
         right: 18px;
@@ -340,6 +378,7 @@
     const movie = entrance.querySelector(".mitiocity-entrance__movie");
     const video = entrance.querySelector("#entrance-video");
     const button = entrance.querySelector("#entrance-start-button");
+    const skipButton = entrance.querySelector("#entrance-skip-button");
     const errorMessage = entrance.querySelector("#entrance-error");
 
     video.muted = false;
@@ -365,10 +404,18 @@
       });
     });
 
+    /*
+      ユーザーがSKIPを押した場合、
+      動画を止めて通常画面へ進む。
+    */
+    skipButton.addEventListener("click", () => {
+      finishEntrance(entrance, style, video);
+    });
+
     video.addEventListener(
       "ended",
       () => {
-        finishEntrance(entrance, style);
+        finishEntrance(entrance, style, video);
       },
       { once: true }
     );
