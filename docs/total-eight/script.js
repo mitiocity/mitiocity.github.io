@@ -1407,10 +1407,113 @@ elements.gameBoard.addEventListener(
 
     if (cellIndex < 0) return;
 
-    const row = Math.floor(cellIndex / CONFIG.cols);
+    const (row = Math.floor(cellIndex / CONFIG.cols);
     const col = cellIndex % CONFIG.cols;
 
     handleOrbTap(row, col);
   },
   true
 );
+/* =========================================================
+   空白レーンも2回タップで即固定する操作
+========================================================= */
+
+handleOrbTap = function (row, col) {
+  if (!state || !state.activeRing || state.isBusy || state.isGameOver) {
+    return;
+  }
+
+  const tappedPiece = state.board[row][col];
+  const rowOrb = state.board[row].find((piece) => piece?.type === "orb");
+
+  /*
+    オーブをタップした場合：
+    1回目で狙いを固定、同じオーブの2回目で即接続。
+  */
+  if (tappedPiece?.type === "orb") {
+    if (state.selectedOrbId !== tappedPiece.id) {
+      state.selectedOrbId = tappedPiece.id;
+      state.selectedEmptyRow = null;
+      state.activeRing.row = row;
+      elements.combo.textContent = "TARGET LOCK";
+      renderGame();
+      return;
+    }
+
+    const targetGroup = getGroups().find((group) => {
+      return group.kind === "orb" && group.orb.id === tappedPiece.id;
+    });
+
+    if (!targetGroup) return;
+
+    const lastRing = targetGroup.rings[targetGroup.rings.length - 1];
+    const landingCol = lastRing
+      ? lastRing.col + 1
+      : targetGroup.orbCol + 1;
+
+    if (landingCol >= CONFIG.cols) {
+      elements.combo.textContent = "ROW FULL";
+      return;
+    }
+
+    state.activeRing.row = row;
+    state.activeRing.col = landingCol;
+    state.selectedOrbId = null;
+    state.selectedEmptyRow = null;
+
+    landActiveRing();
+    return;
+  }
+
+  /*
+    オーブが存在するレーンの空白部分を押した場合：
+    即固定ではなく、そのレーンへ移動するだけ。
+  */
+  if (rowOrb) {
+    state.selectedOrbId = null;
+    state.selectedEmptyRow = null;
+    moveActiveRingToRow(row);
+    return;
+  }
+
+  /*
+    オーブがない空白レーン：
+    1回目でレーンを選択する。
+  */
+  if (state.selectedEmptyRow !== row) {
+    state.selectedOrbId = null;
+    state.selectedEmptyRow = row;
+    state.activeRing.row = row;
+    elements.combo.textContent = "EMPTY LANE LOCK";
+    renderGame();
+    return;
+  }
+
+  /*
+    同じ空白レーンの2回目：
+    そのレーンにある最も右のリングの右隣へ即固定。
+    リングがなければ左端へ即固定。
+  */
+  let rightmostRingCol = -1;
+
+  for (let scanCol = CONFIG.cols - 1; scanCol >= 0; scanCol -= 1) {
+    if (state.board[row][scanCol]?.type === "ring") {
+      rightmostRingCol = scanCol;
+      break;
+    }
+  }
+
+  const landingCol = rightmostRingCol + 1;
+
+  if (landingCol >= CONFIG.cols) {
+    elements.combo.textContent = "ROW FULL";
+    return;
+  }
+
+  state.activeRing.row = row;
+  state.activeRing.col = landingCol;
+  state.selectedOrbId = null;
+  state.selectedEmptyRow = null;
+
+  landActiveRing();
+};
