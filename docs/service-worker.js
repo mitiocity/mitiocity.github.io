@@ -3,16 +3,18 @@
 /*
   サイト全体のService Worker
 
-  通常サイトの主要ファイル：
-  キャッシュ優先（オフライン表示を維持）
+  通常サイト：
+  キャッシュ優先で表示する。
 
-  /total-eight/ 配下：
-  ネットワーク優先
-  → GitHubへコミットした最新版を、Safariでゲームを開くたびに取得する。
-  → 古いCSS / JavaScriptが残り続ける問題を防ぐ。
+  とーたるえいと❣️（/total-eight/）：
+  ネットワーク優先で表示する。
+  GitHubでコミットした最新版の index.html / style.css / script.js を
+  SafariでゲームURLを開いた時に最初に取得する。
+
+  通信できない時だけ、最後に保存されたキャッシュを使う。
 */
 
-const CACHE_NAME = "mitiocity-network-first-20261117";
+const CACHE_NAME = "mitiocity-network-first-20261118-v1";
 
 const CORE_FILES = [
   "./",
@@ -58,6 +60,10 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+/*
+  通常サイト用：
+  すでに保存済みならキャッシュを優先する。
+*/
 async function cacheFirst(request) {
   const cachedResponse = await caches.match(request);
 
@@ -67,21 +73,30 @@ async function cacheFirst(request) {
 
   const networkResponse = await fetch(request);
 
-  if (networkResponse.ok) {
+  if (networkResponse.ok && !request.headers.has("range")) {
     const cache = await caches.open(CACHE_NAME);
-    cache.put(request, networkResponse.clone());
+    await cache.put(request, networkResponse.clone());
   }
 
   return networkResponse;
 }
 
+/*
+  とーたるえいと❣️用：
+  常にGitHub Pages上の最新版を最初に取得する。
+  取得できなかった場合だけキャッシュを使う。
+*/
 async function networkFirst(request) {
   try {
-    const networkResponse = await fetch(request);
+    const latestRequest = new Request(request, {
+      cache: "no-store"
+    });
 
-    if (networkResponse.ok) {
+    const networkResponse = await fetch(latestRequest);
+
+    if (networkResponse.ok && !request.headers.has("range")) {
       const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+      await cache.put(request, networkResponse.clone());
     }
 
     return networkResponse;
@@ -109,9 +124,9 @@ self.addEventListener("fetch", (event) => {
   }
 
   /*
-    とーたるえいと❣️は常にネットワーク優先。
-    index.html / style.css / script.js / 音源 / 画像を、
-    GitHub上の最新版から取得する。
+    とーたるえいと❣️だけは常にネットワーク優先。
+    index.html、style.css、script.js、画像、音声も含めて
+    公開サーバー上の最新版を最初に読む。
   */
   if (url.pathname.startsWith("/total-eight/")) {
     event.respondWith(networkFirst(request));
@@ -119,7 +134,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   /*
-    通常サイトの画面遷移はネットワーク優先。
+    通常サイトのページ移動はネットワーク優先。
     オフライン時だけキャッシュを使う。
   */
   if (request.mode === "navigate") {
@@ -128,7 +143,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   /*
-    通常サイトの画像・CSS・JSは従来どおりキャッシュ優先。
+    通常サイトの画像・CSS・JavaScriptはキャッシュ優先。
   */
   event.respondWith(cacheFirst(request));
 });
