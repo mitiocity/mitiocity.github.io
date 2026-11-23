@@ -1,5 +1,9 @@
 "use strict";
 
+/* ==================================================
+   とーたるえいと❣️ / ver1.1
+================================================== */
+
 const CONFIG = {
   rows: 4,
   cols: 8,
@@ -7,17 +11,21 @@ const CONFIG = {
   startTime: 300,
   maxLevel: 5,
 
+  /*
+    実プレイを基準に調整した、
+    各LEVELで必要なステージ経験値。
+  */
   stageTargets: [
     4500,
-    6000,
-    7500,
-    9000,
-    10500
+    4500,
+    5500,
+    6500,
+    7500
   ],
 
   /*
-    1マス移動する間隔。
-    以前の950msから、約半分の速さに変更。
+    右から左へ1マス移動する間隔。
+    以前の950msから大幅に減速。
   */
   ringStepMs: 1800,
 
@@ -101,11 +109,10 @@ const el = {
   clearRetry: $("#clear-retry-button"),
   clearTitle: $("#clear-title-button"),
 
-  orientationOverlay: $("#orientation-overlay")
+  landscapeButton: $("#landscape-button")
 };
 
 let state = null;
-
 let moveTimer = null;
 let clockTimer = null;
 
@@ -134,7 +141,7 @@ const landscapeQuery = window.matchMedia(
 );
 
 /* ==================================================
-   基本
+   共通
 ================================================== */
 
 function wait(milliseconds) {
@@ -208,26 +215,14 @@ function createGameState() {
     level: 1,
     time: CONFIG.startTime,
 
-    /*
-      オーバーゲージは回復しない。
-      LEVEL変更でもリセットしない。
-    */
     over: 0,
-
     feverUntil: 0,
 
     isBusy: true,
     isPaused: false,
     isEnded: false,
 
-    /*
-      横画面待ち中かどうか。
-    */
     isWaitingForLandscape: false,
-
-    /*
-      縦画面に切り替わったために中断したか。
-    */
     pausedByOrientation: false,
 
     bgmPrimed: false,
@@ -248,12 +243,12 @@ function getStageTarget() {
   ];
 }
 
-function isFever() {
-  return state && Date.now() < state.feverUntil;
-}
-
 function isLandscape() {
   return landscapeQuery.matches;
+}
+
+function isFever() {
+  return state && Date.now() < state.feverUntil;
 }
 
 function isGameRunning() {
@@ -360,10 +355,7 @@ function playTone(
   oscillator.type = "sine";
   oscillator.frequency.value = frequency;
 
-  gain.gain.setValueAtTime(
-    0.001,
-    startTime
-  );
+  gain.gain.setValueAtTime(0.001, startTime);
 
   gain.gain.exponentialRampToValueAtTime(
     volume,
@@ -514,35 +506,33 @@ function disconnectBgm(bgm) {
   try {
     bgm.source?.disconnect();
   } catch (error) {
-    /* 接続済みでない場合 */
+    /* 接続解除済み */
   }
 
   try {
     bgm.analyser?.disconnect();
   } catch (error) {
-    /* 接続済みでない場合 */
+    /* 接続解除済み */
   }
-}
-
-function setElectricValue(name, value) {
-  document.documentElement.style.setProperty(
-    name,
-    String(value)
-  );
 }
 
 function stopElectricAnimation() {
   window.cancelAnimationFrame(electricAnimationId);
 
-  electricAnimationId = null;
+  document.documentElement.style.setProperty(
+    "--electric-bass",
+    "0"
+  );
 
-  visualEnergy.bass = 0;
-  visualEnergy.middle = 0;
-  visualEnergy.high = 0;
+  document.documentElement.style.setProperty(
+    "--electric-middle",
+    "0"
+  );
 
-  setElectricValue("--electric-bass", 0);
-  setElectricValue("--electric-middle", 0);
-  setElectricValue("--electric-high", 0);
+  document.documentElement.style.setProperty(
+    "--electric-high",
+    "0"
+  );
 }
 
 function stopBgm() {
@@ -555,7 +545,7 @@ function stopBgm() {
     currentBgm.audio.pause();
     currentBgm.audio.currentTime = 0;
   } catch (error) {
-    /* 停止失敗時も継続 */
+    /* 停止失敗時も続行 */
   }
 
   disconnectBgm(currentBgm);
@@ -576,7 +566,7 @@ function stopEndMusic() {
     endMusic.pause();
     endMusic.currentTime = 0;
   } catch (error) {
-    /* 停止失敗時も継続 */
+    /* 停止失敗時も続行 */
   }
 
   endMusic = null;
@@ -642,16 +632,9 @@ function createBgmForCurrentLevel() {
     source: null,
     analyser: null
   };
-
-  currentAnalyser = null;
-  analyserData = null;
 }
 
 function fadeAudio(audio, from, to, duration) {
-  if (!audio) {
-    return;
-  }
-
   const start = performance.now();
 
   function update(now) {
@@ -695,55 +678,7 @@ function primeBgmFromUserTap() {
 }
 
 function revealBgmAtGo() {
-  if (
-    !currentBgm?.audio ||
-    !state ||
-    state.isEnded
-  ) {
-    return;
-  }
-
-  const { audio } = currentBgm;
-
-  audio.muted = false;
-
-  if (!state.bgmPrimed) {
-    audio.play()
-      .then(() => {
-        state.bgmPrimed = true;
-
-        fadeAudio(
-          audio,
-          0,
-          CONFIG.bgmVolume,
-          CONFIG.bgmFadeMs
-        );
-
-        hideSoundEnableButton();
-        startElectricAnimation();
-      })
-      .catch(() => {
-        showSoundEnableButton();
-      });
-
-    return;
-  }
-
-  fadeAudio(
-    audio,
-    0,
-    CONFIG.bgmVolume,
-    CONFIG.bgmFadeMs
-  );
-
-  startElectricAnimation();
-}
-
-function enableSoundFromUserTap() {
-  unlockAudio();
-
   if (!currentBgm?.audio || !state) {
-    hideSoundEnableButton();
     return;
   }
 
@@ -757,7 +692,7 @@ function enableSoundFromUserTap() {
 
       fadeAudio(
         audio,
-        audio.volume || 0,
+        audio.volume,
         CONFIG.bgmVolume,
         CONFIG.bgmFadeMs
       );
@@ -767,7 +702,32 @@ function enableSoundFromUserTap() {
     })
     .catch(() => {
       showSoundEnableButton();
-      setStatus("SOUND TAP REQUIRED");
+    });
+}
+
+function enableSoundFromUserTap() {
+  unlockAudio();
+
+  if (!currentBgm?.audio) {
+    return;
+  }
+
+  currentBgm.audio.muted = false;
+
+  currentBgm.audio.play()
+    .then(() => {
+      fadeAudio(
+        currentBgm.audio,
+        currentBgm.audio.volume,
+        CONFIG.bgmVolume,
+        CONFIG.bgmFadeMs
+      );
+
+      hideSoundEnableButton();
+      startElectricAnimation();
+    })
+    .catch(() => {
+      showSoundEnableButton();
     });
 }
 
@@ -780,12 +740,9 @@ function changeBgmForLevel() {
   }
 
   currentBgm.audio.muted = false;
-  currentBgm.audio.volume = 0;
 
   currentBgm.audio.play()
     .then(() => {
-      state.bgmPrimed = true;
-
       fadeAudio(
         currentBgm.audio,
         0,
@@ -793,7 +750,6 @@ function changeBgmForLevel() {
         CONFIG.bgmFadeMs
       );
 
-      hideSoundEnableButton();
       startElectricAnimation();
     })
     .catch(() => {
@@ -802,27 +758,14 @@ function changeBgmForLevel() {
 }
 
 function pauseBgm() {
-  if (!currentBgm?.audio) {
-    return;
-  }
-
-  currentBgm.audio.pause();
+  currentBgm?.audio?.pause();
 
   window.cancelAnimationFrame(electricAnimationId);
 }
 
 function resumeBgm() {
-  if (
-    !currentBgm?.audio ||
-    !state ||
-    state.isEnded
-  ) {
-    return;
-  }
-
-  currentBgm.audio.play()
+  currentBgm?.audio?.play()
     .then(() => {
-      hideSoundEnableButton();
       startElectricAnimation();
     })
     .catch(() => {
@@ -830,14 +773,7 @@ function resumeBgm() {
     });
 }
 
-/* ==================================================
-   BGM周波数 → 電流演出
-================================================== */
-
-function getBandEnergy(
-  startFrequency,
-  endFrequency
-) {
+function getBandEnergy(from, to) {
   if (
     !currentAnalyser ||
     !analyserData ||
@@ -852,18 +788,18 @@ function getBandEnergy(
 
   const nyquist = audioContext.sampleRate / 2;
 
-  const startIndex = Math.max(
+  const start = Math.max(
     0,
     Math.floor(
-      (startFrequency / nyquist) *
+      (from / nyquist) *
       analyserData.length
     )
   );
 
-  const endIndex = Math.min(
+  const end = Math.min(
     analyserData.length - 1,
     Math.ceil(
-      (endFrequency / nyquist) *
+      (to / nyquist) *
       analyserData.length
     )
   );
@@ -871,24 +807,14 @@ function getBandEnergy(
   let total = 0;
   let count = 0;
 
-  for (
-    let index = startIndex;
-    index <= endIndex;
-    index += 1
-  ) {
-    total += analyserData[index];
+  for (let i = start; i <= end; i += 1) {
+    total += analyserData[i];
     count += 1;
   }
 
-  return count > 0
+  return count
     ? total / count / 255
     : 0;
-}
-
-function smoothEnergy(current, target) {
-  return current +
-    (target - current) *
-    CONFIG.visualSmoothing;
 }
 
 function startElectricAnimation() {
@@ -909,60 +835,45 @@ function startElectricAnimation() {
         ? CONFIG.reducedMotionStrength
         : 1;
 
-    visualEnergy.bass = smoothEnergy(
-      visualEnergy.bass,
-      getBandEnergy(35, 170)
-    );
+    visualEnergy.bass +=
+      (getBandEnergy(35, 170) - visualEnergy.bass) *
+      CONFIG.visualSmoothing;
 
-    visualEnergy.middle = smoothEnergy(
-      visualEnergy.middle,
-      getBandEnergy(170, 1100)
-    );
+    visualEnergy.middle +=
+      (getBandEnergy(170, 1100) - visualEnergy.middle) *
+      CONFIG.visualSmoothing;
 
-    visualEnergy.high = smoothEnergy(
-      visualEnergy.high,
-      getBandEnergy(1800, 9000)
-    );
+    visualEnergy.high +=
+      (getBandEnergy(1800, 9000) - visualEnergy.high) *
+      CONFIG.visualSmoothing;
 
-    setElectricValue(
+    document.documentElement.style.setProperty(
       "--electric-bass",
-      visualEnergy.bass * strength
+      String(visualEnergy.bass * strength)
     );
 
-    setElectricValue(
+    document.documentElement.style.setProperty(
       "--electric-middle",
-      visualEnergy.middle * strength
+      String(visualEnergy.middle * strength)
     );
 
-    setElectricValue(
+    document.documentElement.style.setProperty(
       "--electric-high",
-      visualEnergy.high * strength
+      String(visualEnergy.high * strength)
     );
 
     electricAnimationId =
-      window.requestAnimationFrame(animate);
+      requestAnimationFrame(animate);
   }
 
   electricAnimationId =
-    window.requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
 }
 
 /* ==================================================
-   盤面・接続計算
+   盤面
 ================================================== */
 
-function getRowPieces(row) {
-  return state.board[row]
-    .map((piece, col) => ({
-      piece,
-      col
-    }))
-    .filter(({ piece }) => piece);
-}
-
-/*
-  通常の8消去を探すためのグループ一覧。
-*/
 function getGroups() {
   const groups = [];
 
@@ -976,14 +887,12 @@ function getGroups() {
     while (col < CONFIG.cols) {
       const first = state.board[row][col];
 
-      if (!first) {
-        col += 1;
-        continue;
-      }
-
       if (
-        first.type !== "orb" &&
-        first.type !== "ring"
+        !first ||
+        (
+          first.type !== "orb" &&
+          first.type !== "ring"
+        )
       ) {
         col += 1;
         continue;
@@ -994,46 +903,38 @@ function getGroups() {
       let scan = col;
 
       while (scan < CONFIG.cols) {
-        const current = state.board[row][scan];
-
-        if (!current) {
-          break;
-        }
+        const piece = state.board[row][scan];
 
         if (
-          scan !== col &&
-          current.type === "orb"
+          !piece ||
+          piece.type === "star" ||
+          (
+            scan !== col &&
+            piece.type === "orb"
+          )
         ) {
-          break;
-        }
-
-        if (current.type === "star") {
           break;
         }
 
         cells.push({
           row,
           col: scan,
-          piece: current
+          piece
         });
 
         scan += 1;
       }
 
-      if (cells.length > 0) {
-        const total = cells.reduce(
+      groups.push({
+        row,
+        hasOrb,
+        total: cells.reduce(
           (sum, item) =>
             sum + (item.piece.number || 0),
           0
-        );
-
-        groups.push({
-          row,
-          hasOrb,
-          total,
-          cells
-        });
-      }
+        ),
+        cells
+      });
 
       col = Math.max(scan, col + 1);
     }
@@ -1043,33 +944,21 @@ function getGroups() {
 }
 
 /*
-  新しく固定したリングだけを起点に、
-  左方向へ連結をたどる。
-
-  これがオーバーゲージ不具合の修正の核心。
-  盤面全体の曖昧なグループではなく、
-  今置いたリングがオーブへつながっているかを
-  毎回確実に判定する。
+  新リングから左へたどる。
+  これにより同一レーンの連続オーバーも
+  必ず正しくゲージへ反映する。
 */
 function getConnectionFromNewRing(row, col) {
   const cells = [];
   let scan = col;
-  let foundOrb = false;
+  let hasOrb = false;
 
   while (scan >= 0) {
     const piece = state.board[row][scan];
 
-    if (!piece) {
-      break;
-    }
-
-    if (piece.type === "star") {
-      break;
-    }
-
     if (
-      piece.type !== "ring" &&
-      piece.type !== "orb"
+      !piece ||
+      piece.type === "star"
     ) {
       break;
     }
@@ -1081,22 +970,20 @@ function getConnectionFromNewRing(row, col) {
     });
 
     if (piece.type === "orb") {
-      foundOrb = true;
+      hasOrb = true;
       break;
     }
 
     scan -= 1;
   }
 
-  const total = cells.reduce(
-    (sum, item) =>
-      sum + (item.piece.number || 0),
-    0
-  );
-
   return {
-    hasOrb: foundOrb,
-    total,
+    hasOrb,
+    total: cells.reduce(
+      (sum, item) =>
+        sum + (item.piece.number || 0),
+      0
+    ),
     cells
   };
 }
@@ -1150,29 +1037,19 @@ function settleBoard() {
     ];
 
     for (
-      let section = 0;
-      section < boundaries.length - 1;
-      section += 1
+      let i = 0;
+      i < boundaries.length - 1;
+      i += 1
     ) {
-      const start = boundaries[section] + 1;
-      const end = boundaries[section + 1];
+      const start = boundaries[i] + 1;
+      const end = boundaries[i + 1];
 
-      const rings = [];
-
-      for (
-        let col = start;
-        col < end;
-        col += 1
-      ) {
-        const piece = oldRow[col];
-
-        if (
+      const rings = oldRow
+        .slice(start, end)
+        .filter((piece) =>
           piece &&
           piece.type !== "orb"
-        ) {
-          rings.push(piece);
-        }
-      }
+        );
 
       rings.forEach((ring, index) => {
         nextRow[start + index] = ring;
@@ -1186,15 +1063,11 @@ function settleBoard() {
 function getLandingColumn(row) {
   let rightmost = -1;
 
-  for (
-    let col = 0;
-    col < CONFIG.cols;
-    col += 1
-  ) {
-    if (state.board[row][col]) {
+  state.board[row].forEach((piece, col) => {
+    if (piece) {
       rightmost = col;
     }
-  }
+  });
 
   return rightmost + 1;
 }
@@ -1205,35 +1078,23 @@ function hasAnyOrb() {
   );
 }
 
-function isRowCompletelyEmpty(row) {
-  return state.board[row].every((piece) => !piece);
-}
-
 function respawnOrbsInEmptyRows() {
-  for (
-    let row = 0;
-    row < CONFIG.rows;
-    row += 1
-  ) {
-    if (isRowCompletelyEmpty(row)) {
-      state.board[row][0] = makePiece(
+  state.board.forEach((row, rowIndex) => {
+    if (row.every((piece) => !piece)) {
+      state.board[rowIndex][0] = makePiece(
         "orb",
         randomNumber(),
-        row
+        rowIndex
       );
     }
-  }
+  });
 }
 
 /* ==================================================
-   経験値・LEVEL・フィーバー
+   得点・消去
 ================================================== */
 
 function addExperience(amount) {
-  if (!state || amount <= 0) {
-    return;
-  }
-
   const multiplier =
     isFever()
       ? CONFIG.feverMultiplier
@@ -1250,10 +1111,6 @@ function addExperience(amount) {
 }
 
 function checkLevelProgress() {
-  if (!state || state.isEnded) {
-    return;
-  }
-
   if (state.stageScore < getStageTarget()) {
     return;
   }
@@ -1271,23 +1128,9 @@ function checkLevelProgress() {
 
   changeBgmForLevel();
   renderGame();
-
-  window.setTimeout(() => {
-    if (
-      state &&
-      !state.isEnded &&
-      !state.isPaused
-    ) {
-      setStatus("READY");
-    }
-  }, 1500);
 }
 
 async function startFeverAndRespawn() {
-  if (!state || state.isEnded) {
-    return;
-  }
-
   state.feverUntil =
     Date.now() + CONFIG.feverDuration;
 
@@ -1306,43 +1149,35 @@ async function startFeverAndRespawn() {
   renderGame();
 
   window.setTimeout(() => {
-    if (!state || state.isEnded) {
-      return;
-    }
-
     el.app?.classList.remove("is-fever");
 
-    if (!state.isPaused) {
+    if (
+      state &&
+      !state.isEnded &&
+      !state.isPaused
+    ) {
       setStatus("READY");
     }
   }, CONFIG.feverDuration);
 }
 
 function showOverNumber(total) {
-  if (!el.overPopup) {
-    return;
-  }
-
   el.overPopup.textContent = String(total);
 
   el.overPopup.classList.remove("hidden");
   el.overPopup.classList.remove("show");
 
-  window.requestAnimationFrame(() => {
-    el.overPopup?.classList.add("show");
+  requestAnimationFrame(() => {
+    el.overPopup.classList.add("show");
   });
 
   window.setTimeout(() => {
-    el.overPopup?.classList.remove("show");
-    el.overPopup?.classList.add("hidden");
+    el.overPopup.classList.remove("show");
+    el.overPopup.classList.add("hidden");
   }, 980);
 }
 
 function increaseOverGauge(total) {
-  if (!state || state.isEnded) {
-    return;
-  }
-
   state.over += 1;
 
   showOverNumber(total);
@@ -1364,16 +1199,6 @@ function increaseOverGauge(total) {
   setStatus("OVER");
 }
 
-/* ==================================================
-   消去・オーバー判定
-================================================== */
-
-function removeCells(cells) {
-  cells.forEach(({ row, col }) => {
-    state.board[row][col] = null;
-  });
-}
-
 async function resolveClearChains() {
   let chain = 0;
 
@@ -1381,36 +1206,35 @@ async function resolveClearChains() {
     state &&
     !state.isEnded
   ) {
-    const clearGroups = getGroups()
+    const clears = getGroups()
       .filter((group) => group.total === 8);
 
-    if (clearGroups.length === 0) {
+    if (clears.length === 0) {
       break;
     }
 
     chain += 1;
 
-    const orbGroups = clearGroups.filter(
+    const orbGroups = clears.filter(
       (group) => group.hasOrb
     );
 
-    clearGroups.forEach((group) => {
-      removeCells(group.cells);
+    clears.forEach((group) => {
+      group.cells.forEach(({ row, col }) => {
+        state.board[row][col] = null;
+      });
     });
 
     settleBoard();
 
     if (orbGroups.length > 0) {
-      const base =
+      addExperience(
         orbGroups.length *
         CONFIG.clearScore *
-        chain;
-
-      const simultaneous =
+        chain +
         Math.max(0, orbGroups.length - 1) *
-        CONFIG.simultaneousBonus;
-
-      addExperience(base + simultaneous);
+        CONFIG.simultaneousBonus
+      );
 
       playClearSound(
         chain === 1
@@ -1431,29 +1255,23 @@ async function resolveClearChains() {
     !state.isEnded &&
     !hasAnyOrb()
   ) {
-    await startFeverAndRespawn();
+    startFeverAndRespawn();
   }
 }
 
 async function resolveStar(row) {
-  if (!state || state.isEnded) {
-    return;
-  }
-
-  const existingPieces = getRowPieces(row)
-    .filter(({ piece }) => piece.type !== "star");
-
-  const clearCount = Math.max(
+  const count = Math.max(
     1,
-    existingPieces.length
+    state.board[row].filter(
+      (piece) =>
+        piece &&
+        piece.type !== "star"
+    ).length
   );
 
   state.board[row] = Array(CONFIG.cols).fill(null);
 
-  addExperience(
-    CONFIG.clearScore * clearCount
-  );
-
+  addExperience(CONFIG.clearScore * count);
   playStarSound();
 
   settleBoard();
@@ -1461,39 +1279,21 @@ async function resolveStar(row) {
 
   await wait(240);
 
-  if (
-    state &&
-    !state.isEnded &&
-    !hasAnyOrb()
-  ) {
-    await startFeverAndRespawn();
+  if (!hasAnyOrb()) {
+    startFeverAndRespawn();
   }
 }
 
 async function evaluatePlacedRing(row, col) {
-  /*
-    新規リングから左方向だけを確認する。
-  */
   const connection =
     getConnectionFromNewRing(row, col);
 
   if (connection.total > 8) {
-    /*
-      新しく置いたリングだけを消す。
-    */
     state.board[row][col] = null;
 
-    /*
-      オーブまでつながっている場合だけ、
-      必ずオーバーゲージを増加させる。
-    */
     if (connection.hasOrb) {
       increaseOverGauge(connection.total);
     } else {
-      /*
-        白リングだけの列は数値のみ表示。
-        ゲージ増加なし。
-      */
       showOverNumber(connection.total);
       setStatus("TOO HIGH");
     }
@@ -1508,7 +1308,7 @@ async function evaluatePlacedRing(row, col) {
 }
 
 /* ==================================================
-   リング移動・固定
+   リング
 ================================================== */
 
 function spawnActiveRing() {
@@ -1562,9 +1362,8 @@ async function lockActiveRing(row, col) {
       !state.isEnded &&
       !state.isPaused
     ) {
-      spawnActiveRing();
       state.isBusy = false;
-      renderGame();
+      spawnActiveRing();
     }
 
     return;
@@ -1587,11 +1386,8 @@ async function lockActiveRing(row, col) {
     !state.isEnded &&
     !state.isPaused
   ) {
-    spawnActiveRing();
-
     state.isBusy = false;
-
-    renderGame();
+    spawnActiveRing();
   }
 }
 
@@ -1664,16 +1460,11 @@ function handleBoardTap(row) {
 ================================================== */
 
 function getPreparationClasses(row, col, piece) {
-  if (
-    !piece ||
-    piece.type === "star"
-  ) {
+  if (!piece || piece.type === "star") {
     return [];
   }
 
-  const groups = getGroups();
-
-  const group = groups.find((item) =>
+  const group = getGroups().find((item) =>
     item.cells.some(
       (cell) =>
         cell.row === row &&
@@ -1749,10 +1540,6 @@ function makePieceElement(
 }
 
 function renderBoard() {
-  if (!el.board || !state) {
-    return;
-  }
-
   el.board.innerHTML = "";
 
   for (
@@ -1819,10 +1606,6 @@ function renderBoard() {
 }
 
 function renderQueue() {
-  if (!el.queueList || !state) {
-    return;
-  }
-
   el.queueList.innerHTML = "";
 
   state.queue.forEach((ring) => {
@@ -1842,10 +1625,6 @@ function renderQueue() {
 }
 
 function renderOverGauge() {
-  if (!el.over || !state) {
-    return;
-  }
-
   el.over.className = "";
 
   if (state.over > 0) {
@@ -1868,31 +1647,20 @@ function renderGame() {
     return;
   }
 
-  if (el.score) {
-    el.score.textContent =
-      state.score.toLocaleString("ja-JP");
-  }
+  el.score.textContent =
+    state.score.toLocaleString("ja-JP");
 
-  if (el.level) {
-    el.level.textContent =
-      String(state.level);
-  }
+  el.level.textContent = String(state.level);
 
-  if (el.stageScore) {
-    el.stageScore.textContent =
-      state.stageScore.toLocaleString("ja-JP");
-  }
+  el.stageScore.textContent =
+    state.stageScore.toLocaleString("ja-JP");
 
-  if (el.stageTarget) {
-    el.stageTarget.textContent =
-      getStageTarget().toLocaleString("ja-JP");
-  }
+  el.stageTarget.textContent =
+    getStageTarget().toLocaleString("ja-JP");
 
-  if (el.time) {
-    el.time.textContent = String(
-      Math.max(0, state.time)
-    );
-  }
+  el.time.textContent = String(
+    Math.max(0, state.time)
+  );
 
   renderOverGauge();
   renderBoard();
@@ -1900,7 +1668,7 @@ function renderGame() {
 }
 
 /* ==================================================
-   縦横画面の制御
+   縦横画面
 ================================================== */
 
 function pauseForPortrait() {
@@ -1927,10 +1695,6 @@ function handleOrientationChange() {
   }
 
   if (!isLandscape()) {
-    if (state.isWaitingForLandscape) {
-      return;
-    }
-
     pauseForPortrait();
     return;
   }
@@ -1952,15 +1716,29 @@ function handleOrientationChange() {
   }
 }
 
+async function requestLandscapeLock() {
+  try {
+    if (document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    }
+
+    if (screen.orientation?.lock) {
+      await screen.orientation.lock("landscape");
+    }
+  } catch (error) {
+    /*
+      iPhone Safariなどで失敗する場合。
+      注意書きを表示したまま、
+      ユーザーによる物理的な横回転を待つ。
+    */
+  }
+}
+
 /* ==================================================
    開始・終了
 ================================================== */
 
 async function runCountdown() {
-  if (!el.countdown || !el.countdownText) {
-    return;
-  }
-
   const messages = [
     ["READY?", 850],
     ["3", 720],
@@ -2078,7 +1856,6 @@ function startNewGame() {
   state = createGameState();
 
   showScreen(el.game);
-
   renderGame();
 
   if (!isLandscape()) {
@@ -2121,7 +1898,6 @@ function resumeGame() {
   }
 
   if (!isLandscape()) {
-    state.pausedByOrientation = true;
     setStatus("TURN DEVICE");
     return;
   }
@@ -2146,11 +1922,6 @@ function returnToTitle() {
 
   state = null;
 
-  el.app?.classList.remove(
-    "is-fever",
-    "is-over-flash"
-  );
-
   closeAllModals();
 
   showScreen(el.title);
@@ -2166,16 +1937,10 @@ function gameOver(reason) {
   clearGameTimers();
   stopBgm();
 
-  el.app?.classList.remove("is-fever");
+  el.gameOverReason.textContent = reason;
 
-  if (el.gameOverReason) {
-    el.gameOverReason.textContent = reason;
-  }
-
-  if (el.finalScore) {
-    el.finalScore.textContent =
-      state.score.toLocaleString("ja-JP");
-  }
+  el.finalScore.textContent =
+    state.score.toLocaleString("ja-JP");
 
   el.gameOver?.classList.add("open");
 
@@ -2192,12 +1957,8 @@ function gameClear() {
   clearGameTimers();
   stopBgm();
 
-  el.app?.classList.remove("is-fever");
-
-  if (el.clearScore) {
-    el.clearScore.textContent =
-      state.score.toLocaleString("ja-JP");
-  }
+  el.clearScore.textContent =
+    state.score.toLocaleString("ja-JP");
 
   el.gameClear?.classList.add("open");
 
@@ -2209,33 +1970,25 @@ function gameClear() {
 ================================================== */
 
 function renderTutorial() {
-  if (el.tutorialStep) {
-    el.tutorialStep.textContent =
-      `${tutorialIndex + 1} / ${TUTORIAL_TEXTS.length}`;
-  }
+  el.tutorialStep.textContent =
+    `${tutorialIndex + 1} / ${TUTORIAL_TEXTS.length}`;
 
-  if (el.tutorialText) {
-    el.tutorialText.textContent =
-      TUTORIAL_TEXTS[tutorialIndex];
-  }
+  el.tutorialText.textContent =
+    TUTORIAL_TEXTS[tutorialIndex];
 
-  if (el.tutorialNext) {
-    const isLast =
-      tutorialIndex ===
-      TUTORIAL_TEXTS.length - 1;
+  const isLast =
+    tutorialIndex ===
+    TUTORIAL_TEXTS.length - 1;
 
-    el.tutorialNext.innerHTML = isLast
-      ? "<strong>完了</strong><small>FINISH</small>"
-      : "<strong>つぎへ</strong><small>NEXT</small>";
-  }
+  el.tutorialNext.innerHTML = isLast
+    ? "<strong>完了</strong><small>FINISH</small>"
+    : "<strong>つぎへ</strong><small>NEXT</small>";
 }
 
 function openTutorial() {
   clearGameTimers();
   stopBgm();
   stopEndMusic();
-
-  hideSoundEnableButton();
   closeAllModals();
 
   tutorialIndex = 0;
@@ -2266,11 +2019,9 @@ el.board?.addEventListener("click", (event) => {
 
   const row = Number(cell.dataset.row);
 
-  if (Number.isNaN(row)) {
-    return;
+  if (!Number.isNaN(row)) {
+    handleBoardTap(row);
   }
-
-  handleBoardTap(row);
 });
 
 el.soundEnable?.addEventListener("click", () => {
@@ -2344,6 +2095,10 @@ el.tutorialTitle?.addEventListener("click", () => {
   returnToTitle();
 });
 
+el.landscapeButton?.addEventListener("click", () => {
+  requestLandscapeLock();
+});
+
 document.addEventListener("visibilitychange", () => {
   if (
     document.hidden &&
@@ -2370,18 +2125,6 @@ window.addEventListener(
       handleOrientationChange,
       120
     );
-  }
-);
-
-reducedMotionQuery.addEventListener?.(
-  "change",
-  () => {
-    if (
-      currentBgm?.audio &&
-      !currentBgm.audio.paused
-    ) {
-      startElectricAnimation();
-    }
   }
 );
 

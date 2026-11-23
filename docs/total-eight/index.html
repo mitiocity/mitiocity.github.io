@@ -7,7 +7,7 @@
     content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
   >
   <title>とーたるえいと❣️</title>
-  <link rel="stylesheet" href="style.css?v=20261118-18">
+  <link rel="stylesheet" href="style.css?v=20261118-19">
 </head>
 
 <body>
@@ -51,17 +51,29 @@
         </p>
 
         <div class="title-menu">
-          <button id="start-button" class="menu-button primary" type="button">
+          <button
+            id="start-button"
+            class="menu-button primary"
+            type="button"
+          >
             <strong>スタート</strong>
             <small>START</small>
           </button>
 
-          <button id="tutorial-button" class="menu-button" type="button">
+          <button
+            id="tutorial-button"
+            class="menu-button"
+            type="button"
+          >
             <strong>チュートリアル</strong>
             <small>TUTORIAL</small>
           </button>
 
-          <button id="update-button" class="menu-button" type="button">
+          <button
+            id="update-button"
+            class="menu-button"
+            type="button"
+          >
             <strong>更新</strong>
             <small>RELOAD LATEST</small>
           </button>
@@ -83,6 +95,7 @@
 
         <div class="hud-stage">
           <span>ステージ経験値</span>
+
           <strong>
             <b id="stage-score-value">0</b>
             <em>/</em>
@@ -97,8 +110,13 @@
 
         <div class="hud-over">
           <span>オーバー</span>
+
           <p id="over-gauge">
-            <i></i><i></i><i></i><i></i><i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
           </p>
         </div>
       </header>
@@ -125,6 +143,7 @@
 
         <aside class="queue" aria-label="控えリング">
           <b>控え</b>
+
           <div id="ring-queue-list"></div>
 
           <button
@@ -147,7 +166,9 @@
         class="overlay hidden"
         aria-live="assertive"
       >
-        <strong id="countdown-text">READY?</strong>
+        <strong id="countdown-text">
+          READY?
+        </strong>
       </div>
 
       <div
@@ -167,7 +188,10 @@
       </button>
 
       <div class="tutorial-card">
-        <strong id="tutorial-step">1 / 5</strong>
+        <strong id="tutorial-step">
+          1 / 5
+        </strong>
+
         <p id="tutorial-text"></p>
       </div>
 
@@ -348,28 +372,36 @@
           横画面で、広い盤面を使って<br>
           プレイできます。
         </p>
+
+        <button
+          id="landscape-button"
+          class="landscape-button"
+          type="button"
+        >
+          <strong>横画面にする</strong>
+          <small>ROTATE TO LANDSCAPE</small>
+        </button>
+
+        <p class="orientation-note">
+          ※一部iPhone Safariなど非対応端末があるので<br>
+          その場合は、お手数ですが横画面に変更してください。
+        </p>
       </div>
     </section>
   </main>
 
-  <!--
-    更新ボタン専用。
-    GitHubへファイルを作成したり保存したりはしない。
-    その時刻の番号をURLに付けて、最新HTMLを読み直す。
-  -->
   <script>
     "use strict";
 
     document
       .getElementById("update-button")
       ?.addEventListener("click", () => {
-        const latestUrl =
-          `${location.pathname}?reload=${Date.now()}`;
-
-        location.replace(latestUrl);
+        location.replace(
+          `${location.pathname}?reload=${Date.now()}`
+        );
       });
   </script>
 
-  <script src="script.js?v=20261118-18"></script>
+  <script src="script.js?v=20261118-19"></script>
 </body>
 </html>
