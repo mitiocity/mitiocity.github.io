@@ -6,182 +6,137 @@
     name="viewport"
     content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
   >
-  <meta
-    name="description"
-    content="数字をつないで合計8を作るパズルゲーム、とーたるえいと❣️"
-  >
   <title>とーたるえいと❣️</title>
-<<<<<<< HEAD
-
-  <script>
-    /*
-      古いキャッシュ型Service Workerを、
-      今回の「常に最新版を読む」Service Workerへ即時更新する。
-
-      最初の1回だけ自動再読み込みされる場合がある。
-      ユーザーがSafariやChromeの履歴・Webサイトデータを
-      削除する必要はない。
-    */
-    (() => {
-      if (!("serviceWorker" in navigator)) {
-        return;
-      }
-
-      const reloadKey = "total-eight-network-only-worker-installed";
-
-      navigator.serviceWorker
-        .register("/service-worker.js?rev=network-only-20261118-v1", {
-          scope: "/"
-        })
-        .then((registration) => {
-          navigator.serviceWorker.addEventListener("controllerchange", () => {
-            if (sessionStorage.getItem(reloadKey) === "done") {
-              return;
-            }
-
-            sessionStorage.setItem(reloadKey, "done");
-            window.location.reload();
-          });
-
-          return registration.update();
-        })
-        .catch(() => {
-          /*
-            Service Workerが使えない環境でも、
-            通常のブラウザページとしてゲームを動かす。
-          */
-        });
-    })();
-  </script>
-
-=======
->>>>>>> 83972afd5b83761fde4d7aff6cef1388ff269aa5
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <main class="app-shell">
+  <main class="app">
 
     <section id="title-screen" class="screen is-active">
       <div class="title-content">
         <p class="eyebrow">CONNECT · CALCULATE · CLEAR</p>
         <h1>とーたるえいと<span>❣️</span></h1>
-        <p class="lead">すべてを、8にしろ。</p>
+        <p class="lead">合計8にして高スコアを狙え🫰</p>
 
         <div class="title-menu">
-          <button id="start-button" class="main-button main-button--primary" type="button">
-            <strong>START</strong>
-            <small>ゲームを始める</small>
+          <button id="start-button" class="menu-button menu-button--main" type="button">
+            <strong>スタート</strong>
+            <small>START</small>
           </button>
 
-          <button id="tutorial-button" class="main-button" type="button">
-            <strong>TUTORIAL</strong>
-            <small>遊び方を確認する</small>
-          </button>
-
-          <button id="ranking-button" class="main-button" type="button">
-            <strong>LOCAL RANKING</strong>
-            <small>この端末のランキング</small>
+          <button id="tutorial-button" class="menu-button" type="button">
+            <strong>チュートリアル</strong>
+            <small>TUTORIAL</small>
           </button>
         </div>
+
+        <p class="title-note">残り400秒。すべてを8にしろ。</p>
       </div>
     </section>
 
     <section id="game-screen" class="screen">
-      <header class="game-header">
+      <header class="hud">
         <div class="hud-box">
-          <span>SCORE</span>
+          <span>経験値</span>
           <strong id="score-value">0</strong>
         </div>
 
         <div class="hud-box">
-          <span>LEVEL</span>
+          <span>レベル</span>
           <strong id="level-value">1</strong>
         </div>
 
+        <div class="hud-box">
+          <span>残り時間</span>
+          <strong id="time-value">400</strong>
+        </div>
+
         <div class="hud-box hud-box--over">
-          <span>OVER</span>
-          <div id="over-gauge" class="over-gauge" aria-label="オーバーゲージ">
+          <span>オーバー</span>
+          <div id="over-gauge" class="over-gauge">
             <i></i><i></i><i></i>
           </div>
         </div>
       </header>
 
-      <div class="game-status">
-        <strong id="combo-label">READY</strong>
-        <strong id="fever-label" class="is-hidden">FEVER!</strong>
+      <div id="status-label" class="status-label">READY</div>
+
+      <div class="play-area">
+        <div id="game-board" class="game-board" aria-label="ゲーム盤面"></div>
+
+        <aside class="ring-queue" aria-label="控えリング">
+          <p>控えリング</p>
+          <div id="ring-queue-list" class="ring-queue-list"></div>
+        </aside>
       </div>
 
-      <div id="game-board" class="game-board" aria-label="ゲーム盤面"></div>
+      <p class="game-hint">
+        オーブまたは空白レーンをタップ<br>
+        同じレーンをもう一度タップで即固定
+      </p>
 
-      <section class="next-area" aria-label="次のリング">
-        <span>NEXT RING</span>
-        <div id="next-ring" class="next-ring">
-          <b id="next-ring-number">1</b>
-        </div>
-        <p>オーブか空白レーンをタップ</p>
-      </section>
+      <button id="menu-button" class="corner-button" type="button">メニュー</button>
 
-      <button id="game-menu-button" class="corner-button" type="button">MENU</button>
+      <div id="countdown-overlay" class="countdown-overlay is-hidden">
+        <strong id="countdown-text">READY?</strong>
+      </div>
     </section>
 
     <section id="tutorial-screen" class="screen">
-      <header class="simple-header">
-        <button id="tutorial-exit-button" class="corner-button" type="button">終了</button>
-        <h2>TUTORIAL</h2>
+      <header class="tutorial-header">
+        <button id="tutorial-exit-button" class="corner-button" type="button">メニュー</button>
+        <h2>チュートリアル</h2>
       </header>
 
-      <div id="tutorial-board" class="tutorial-board"></div>
-
-      <section class="tutorial-message">
-        <strong id="tutorial-step-label">STEP 1 / 6</strong>
+      <div class="tutorial-card">
+        <strong id="tutorial-step">1 / 5</strong>
         <p id="tutorial-text"></p>
-      </section>
+      </div>
 
-      <button id="tutorial-next-button" class="main-button main-button--primary tutorial-next" type="button">
-        <strong>次へ</strong>
+      <button id="tutorial-next-button" class="menu-button menu-button--main" type="button">
+        <strong>つぎへ</strong>
+        <small>NEXT</small>
       </button>
     </section>
 
-    <section id="ranking-screen" class="screen">
-      <header class="simple-header">
-        <button class="corner-button return-title-button" type="button">戻る</button>
-        <h2>LOCAL RANKING</h2>
-      </header>
-
-      <ol id="ranking-list" class="ranking-list"></ol>
-      <p class="ranking-note">この端末内に保存されるランキングです。</p>
-    </section>
-
-    <section id="game-over-modal" class="modal" aria-hidden="true">
+    <section id="tutorial-complete-modal" class="modal">
       <div class="modal-card">
-        <p class="eyebrow">GAME OVER</p>
-        <h2>オーブ領域が限界です</h2>
-        <p>FINAL SCORE</p>
-        <strong id="final-score-value" class="final-score">0</strong>
+        <p class="eyebrow">TUTORIAL COMPLETE</p>
+        <h2>準備完了。</h2>
 
-        <button id="retry-button" class="main-button main-button--primary" type="button">
-          <strong>RETRY</strong>
+        <button id="tutorial-start-button" class="menu-button menu-button--main" type="button">
+          <strong>スタート</strong>
+          <small>START</small>
         </button>
 
-        <button id="return-title-button" class="main-button" type="button">
-          <strong>TITLE</strong>
+        <button id="tutorial-restart-button" class="menu-button" type="button">
+          <strong>もう一度</strong>
+          <small>RETRY TUTORIAL</small>
+        </button>
+
+        <button id="tutorial-title-button" class="menu-button" type="button">
+          <strong>メニューへ戻る</strong>
+          <small>RETURN TO MENU</small>
         </button>
       </div>
     </section>
 
-    <section id="tutorial-complete-modal" class="modal" aria-hidden="true">
+    <section id="game-over-modal" class="modal">
       <div class="modal-card">
-        <p class="eyebrow">TUTORIAL COMPLETE</p>
-        <h2>準備完了。</h2>
-        <p>すべてを、8にしろ。</p>
+        <p class="eyebrow">TIME UP</p>
+        <h2>ゲーム終了</h2>
+        <p>今回の獲得経験値</p>
+        <strong id="final-score-value" class="final-score">0</strong>
 
-        <button id="tutorial-start-game-button" class="main-button main-button--primary" type="button">
-          <strong>START</strong>
+        <button id="retry-button" class="menu-button menu-button--main" type="button">
+          <strong>もう一度</strong>
+          <small>RETRY</small>
         </button>
 
-        <button id="tutorial-restart-button" class="main-button" type="button">
-          <strong>もう一度</strong>
+        <button id="title-button" class="menu-button" type="button">
+          <strong>メニューへ戻る</strong>
+          <small>RETURN TO MENU</small>
         </button>
       </div>
     </section>
