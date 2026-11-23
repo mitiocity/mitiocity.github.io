@@ -3,8 +3,9 @@
 :root {
   --bg: #050914;
   --bg-deep: #02040b;
-  --panel: rgba(14, 24, 48, 0.9);
+  --panel: rgba(14, 24, 48, 0.92);
   --panel-solid: #101a31;
+
   --line: rgba(158, 210, 255, 0.28);
   --line-strong: rgba(128, 223, 255, 0.72);
 
@@ -59,19 +60,40 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
+/* ==================================================
+   全体
+================================================== */
+
 .app {
   position: relative;
   min-height: 100dvh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 83% 5%, rgba(54, 119, 255, 0.28), transparent 29%),
-    radial-gradient(circle at 7% 93%, rgba(126, 71, 214, 0.2), transparent 40%),
-    linear-gradient(145deg, #101b35 0%, #050914 57%, #02040b 100%);
+    radial-gradient(
+      circle at 83% 5%,
+      rgba(54, 119, 255, 0.28),
+      transparent 29%
+    ),
+    radial-gradient(
+      circle at 7% 93%,
+      rgba(126, 71, 214, 0.2),
+      transparent 40%
+    ),
+    linear-gradient(
+      145deg,
+      #101b35 0%,
+      #050914 57%,
+      #02040b 100%
+    );
 }
 
-/* --------------------------------------------------
-   ステージライト
--------------------------------------------------- */
+.hidden {
+  display: none !important;
+}
+
+/* ==================================================
+   周波数反応ステージライト
+================================================== */
 
 .stage-lights {
   position: fixed;
@@ -81,80 +103,89 @@ button:focus-visible {
   pointer-events: none;
 }
 
+/*
+  HTMLのクラス名と完全に一致させる。
+  stage-light--left / right / center
+*/
 .stage-light {
   position: absolute;
+  display: block;
   width: 78vw;
   height: 105vh;
   opacity: 0.12;
   filter: blur(16px);
   transform-origin: 50% 100%;
   transition:
-    opacity 0.08s linear,
-    transform 0.08s linear,
-    filter 0.08s linear;
+    opacity 0.055s linear,
+    transform 0.055s linear,
+    filter 0.055s linear;
 }
 
-.stage-light.left {
+.stage-light--left {
   bottom: -48vh;
   left: -48vw;
   background: linear-gradient(
     0deg,
     rgba(73, 112, 255, 0),
-    rgba(73, 112, 255, 0.78)
+    rgba(73, 112, 255, 0.86)
   );
   transform: rotate(-24deg);
 }
 
-.stage-light.right {
+.stage-light--right {
   right: -48vw;
   bottom: -48vh;
   background: linear-gradient(
     0deg,
-    rgba(157, 94, 255, 0),
-    rgba(157, 94, 255, 0.76)
+    rgba(165, 88, 255, 0),
+    rgba(165, 88, 255, 0.83)
   );
   transform: rotate(24deg);
 }
 
-.stage-light.center {
+.stage-light--center {
   bottom: -53vh;
   left: 50%;
   width: 56vw;
   background: linear-gradient(
     0deg,
     rgba(74, 229, 255, 0),
-    rgba(74, 229, 255, 0.58)
+    rgba(74, 229, 255, 0.72)
   );
   transform: translateX(-50%);
 }
 
 .stage-laser {
   position: absolute;
-  top: -10%;
-  width: 1px;
-  height: 120%;
-  opacity: 0.14;
+  top: -12%;
+  display: block;
+  width: 2px;
+  height: 124%;
+  opacity: 0.12;
   background: linear-gradient(
     to bottom,
     transparent,
-    var(--cyan),
+    var(--cyan) 24%,
+    rgba(214, 251, 255, 0.95) 50%,
+    var(--cyan) 76%,
     transparent
   );
   box-shadow:
-    0 0 7px var(--cyan),
-    0 0 19px rgba(93, 228, 255, 0.65);
+    0 0 8px var(--cyan),
+    0 0 21px rgba(93, 228, 255, 0.78),
+    0 0 45px rgba(93, 228, 255, 0.32);
   transform-origin: center;
   transition:
-    opacity 0.08s linear,
-    transform 0.08s linear;
+    opacity 0.055s linear,
+    transform 0.055s linear;
 }
 
-.stage-laser.laser-a {
+.stage-laser--left {
   left: 25%;
   transform: rotate(25deg);
 }
 
-.stage-laser.laser-b {
+.stage-laser--right {
   right: 25%;
   transform: rotate(-25deg);
 }
@@ -162,13 +193,33 @@ button:focus-visible {
 .stage-particles {
   position: absolute;
   inset: 0;
-  opacity: 0.18;
+  opacity: 0.23;
   background-image:
-    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.4px),
-    radial-gradient(circle at 78% 11%, rgba(93, 228, 255, 0.8) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 89% 64%, rgba(164, 113, 255, 0.75) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 18% 78%, rgba(93, 228, 255, 0.75) 0 1px, transparent 1.4px),
-    radial-gradient(circle at 48% 39%, rgba(255, 255, 255, 0.6) 0 1px, transparent 1.3px);
+    radial-gradient(
+      circle at 14% 18%,
+      rgba(255, 255, 255, 0.92) 0 1px,
+      transparent 1.4px
+    ),
+    radial-gradient(
+      circle at 78% 11%,
+      rgba(93, 228, 255, 0.9) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle at 89% 64%,
+      rgba(164, 113, 255, 0.8) 0 1px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 18% 78%,
+      rgba(93, 228, 255, 0.8) 0 1px,
+      transparent 1.4px
+    ),
+    radial-gradient(
+      circle at 48% 39%,
+      rgba(255, 255, 255, 0.7) 0 1px,
+      transparent 1.3px
+    );
   background-size:
     117px 137px,
     163px 187px,
@@ -179,21 +230,26 @@ button:focus-visible {
 }
 
 .app.is-fever .stage-light {
-  opacity: 0.31;
-  filter: blur(10px) saturate(1.35);
+  opacity: 0.42 !important;
+  filter: blur(10px) saturate(1.55);
 }
 
 .app.is-fever .stage-laser {
-  opacity: 0.38;
+  opacity: 0.52 !important;
+}
+
+.app.is-fever .stage-particles {
+  opacity: 0.48;
+  animation-duration: 3.7s;
 }
 
 .app.is-over-flash .stage-lights {
-  animation: over-screen-flash 0.52s ease-out;
+  animation: over-screen-flash 0.58s ease-out;
 }
 
-/* --------------------------------------------------
-   共通画面
--------------------------------------------------- */
+/* ==================================================
+   画面共通
+================================================== */
 
 .screen {
   position: relative;
@@ -210,13 +266,9 @@ button:focus-visible {
   display: flex;
 }
 
-.hidden {
-  display: none !important;
-}
-
-/* --------------------------------------------------
+/* ==================================================
    タイトル
--------------------------------------------------- */
+================================================== */
 
 #title-screen {
   align-items: center;
@@ -313,7 +365,11 @@ h1 span {
 
 .menu-button.primary {
   border-color: rgba(93, 228, 255, 0.85);
-  background: linear-gradient(135deg, #2785df, #5a64ed);
+  background: linear-gradient(
+    135deg,
+    #2785df,
+    #5a64ed
+  );
   box-shadow:
     0 0 25px rgba(79, 164, 255, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
@@ -323,9 +379,9 @@ h1 span {
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* --------------------------------------------------
+/* ==================================================
    ゲーム画面
--------------------------------------------------- */
+================================================== */
 
 #game-screen {
   flex-direction: column;
@@ -333,54 +389,86 @@ h1 span {
   padding-inline: 9px;
 }
 
+/*
+  スマホでは3列＋2列。
+  1段目：
+  経験値 / LEVEL / 残り時間
+
+  2段目：
+  ステージ経験値 / オーバー
+*/
 .hud {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1.28fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   width: min(100%, 640px);
   gap: 5px;
 }
 
 .hud > div {
-  min-height: 52px;
+  min-width: 0;
+  min-height: 49px;
   padding: 7px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  background: rgba(9, 17, 36, 0.87);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: rgba(9, 17, 36, 0.89);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.hud-stage {
+  grid-column: span 2;
+}
+
+.hud-over {
+  grid-column: span 1;
 }
 
 .hud span {
   display: block;
+  overflow: hidden;
   color: var(--muted);
   font-family: Orbitron, sans-serif;
-  font-size: 0.46rem;
+  font-size: 0.42rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.055em;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .hud strong {
   display: block;
+  overflow: hidden;
   margin-top: 2px;
   font-family: Orbitron, sans-serif;
-  font-size: clamp(0.78rem, 4vw, 1.05rem);
+  font-size: clamp(0.73rem, 4vw, 1.02rem);
   font-weight: 800;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.over-label {
-  color: var(--pink) !important;
+.hud-stage strong {
+  color: var(--cyan);
+  font-size: clamp(0.68rem, 3.5vw, 0.96rem);
 }
 
-.hud p,
-.over-gauge {
+.hud-stage em {
+  margin-inline: 2px;
+  color: var(--muted);
+  font-style: normal;
+}
+
+.hud-stage b {
+  font: inherit;
+}
+
+#over-gauge {
   display: flex;
   gap: 3px;
   margin: 9px 0 0;
 }
 
-.hud i,
-.over-gauge i {
+#over-gauge i {
   display: block;
   flex: 1;
   height: 6px;
@@ -388,32 +476,31 @@ h1 span {
   background: rgba(255, 255, 255, 0.14);
 }
 
-.hud i.on,
-.over-gauge i.on {
+#over-gauge i.on {
   background: var(--pink);
   box-shadow:
     0 0 7px var(--pink),
     0 0 14px rgba(255, 113, 148, 0.45);
 }
 
-.over-gauge.over-1 i.on {
+#over-gauge.over-1 i.on {
   animation: over-pulse 1.2s infinite;
 }
 
-.over-gauge.over-2 i.on {
+#over-gauge.over-2 i.on {
   animation: over-pulse 0.87s infinite;
 }
 
-.over-gauge.over-3 i.on {
+#over-gauge.over-3 i.on {
   animation: over-pulse 0.61s infinite;
 }
 
-.over-gauge.over-4 i.on {
+#over-gauge.over-4 i.on {
   animation: over-pulse 0.34s infinite;
 }
 
 .status {
-  min-height: 30px;
+  min-height: 29px;
   padding-top: 8px;
   color: var(--cyan);
   font-family: Orbitron, sans-serif;
@@ -439,8 +526,15 @@ h1 span {
   border: 1px solid var(--line-strong);
   border-radius: 14px;
   background:
-    linear-gradient(rgba(164, 203, 255, 0.085) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(164, 203, 255, 0.085) 1px, transparent 1px),
+    linear-gradient(
+      rgba(164, 203, 255, 0.085) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(164, 203, 255, 0.085) 1px,
+      transparent 1px
+    ),
     rgba(4, 11, 25, 0.81);
   background-size: 12.5% 25%;
   box-shadow:
@@ -477,6 +571,7 @@ h1 span {
   animation: target-pulse 0.75s ease-in-out infinite alternate;
 }
 
+/* 合計5・6・7の接続列 */
 .cell.prep-5,
 .cell.prep-6,
 .cell.prep-7 {
@@ -502,6 +597,10 @@ h1 span {
   animation: prepared-row-7 0.31s ease-in-out infinite alternate;
 }
 
+/* ==================================================
+   オーブ・リング
+================================================== */
+
 .piece {
   position: relative;
   z-index: 2;
@@ -510,7 +609,7 @@ h1 span {
   aspect-ratio: 1;
   place-items: center;
   border-radius: 50%;
-  color: white;
+  color: #fff;
   font-family: Orbitron, sans-serif;
   font-size: clamp(0.7rem, 3.7vw, 1.25rem);
   font-weight: 800;
@@ -521,8 +620,17 @@ h1 span {
 .orb {
   border: 2px solid rgba(239, 250, 255, 0.86);
   background:
-    radial-gradient(circle at 29% 23%, white 0 6%, transparent 18%),
-    radial-gradient(circle at 37% 35%, #9aeaff, #4074ec 55%, #20246e);
+    radial-gradient(
+      circle at 29% 23%,
+      #ffffff 0 6%,
+      transparent 18%
+    ),
+    radial-gradient(
+      circle at 37% 35%,
+      #9aeaff,
+      #4074ec 55%,
+      #20246e
+    );
   box-shadow:
     inset -7px -9px 13px rgba(0, 0, 0, 0.48),
     0 0 13px rgba(86, 191, 255, 0.55);
@@ -531,7 +639,12 @@ h1 span {
 .ring {
   border: 4px solid rgba(248, 252, 255, 0.95);
   background:
-    radial-gradient(circle, transparent 35%, rgba(255, 255, 255, 0.14) 43%, transparent 66%);
+    radial-gradient(
+      circle,
+      transparent 35%,
+      rgba(255, 255, 255, 0.14) 43%,
+      transparent 66%
+    );
   box-shadow:
     0 0 10px rgba(255, 255, 255, 0.3),
     inset 0 0 7px rgba(255, 255, 255, 0.16);
@@ -541,8 +654,17 @@ h1 span {
   border-color: var(--yellow);
   color: var(--yellow);
   background:
-    radial-gradient(circle, rgba(255, 224, 117, 0.24) 0 27%, transparent 28%),
-    radial-gradient(circle, transparent 39%, rgba(255, 224, 117, 0.22) 45%, transparent 67%);
+    radial-gradient(
+      circle,
+      rgba(255, 224, 117, 0.24) 0 27%,
+      transparent 28%
+    ),
+    radial-gradient(
+      circle,
+      transparent 39%,
+      rgba(255, 224, 117, 0.22) 45%,
+      transparent 67%
+    );
   box-shadow:
     0 0 10px var(--yellow),
     0 0 24px rgba(255, 224, 117, 0.52);
@@ -597,9 +719,9 @@ h1 span {
   animation: prepared-piece-7 0.29s ease-in-out infinite alternate;
 }
 
-/* --------------------------------------------------
-   控えリングと中断
--------------------------------------------------- */
+/* ==================================================
+   控えリング・中断
+================================================== */
 
 .queue {
   display: flex;
@@ -614,8 +736,7 @@ h1 span {
   text-align: center;
 }
 
-.queue > b,
-.queue-label {
+.queue > b {
   display: block;
   margin-bottom: 3px;
   color: var(--muted);
@@ -623,6 +744,10 @@ h1 span {
   font-size: 0.45rem;
   font-weight: 800;
   letter-spacing: 0.05em;
+}
+
+#ring-queue-list {
+  width: 100%;
 }
 
 .queue-ring {
@@ -637,11 +762,11 @@ h1 span {
   font-family: Orbitron, sans-serif;
   font-size: 0.85rem;
   font-weight: 800;
-  text-shadow: 0 2px 4px black;
+  text-shadow: 0 2px 4px #000;
   box-shadow: 0 0 7px rgba(255, 255, 255, 0.23);
 }
 
-.queue-ring:first-of-type {
+.queue-ring:first-child {
   border-color: var(--cyan);
   box-shadow:
     0 0 10px var(--cyan),
@@ -653,8 +778,7 @@ h1 span {
   border-color: var(--yellow);
 }
 
-.queue-abort,
-.abort {
+.queue-abort {
   width: 100%;
   margin-top: auto;
   padding: 8px 2px;
@@ -668,8 +792,7 @@ h1 span {
   text-align: center;
 }
 
-.queue-abort:active,
-.abort:active {
+.queue-abort:active {
   background: rgba(255, 113, 148, 0.24);
   transform: scale(0.96);
 }
@@ -684,40 +807,40 @@ h1 span {
   text-align: center;
 }
 
-/* --------------------------------------------------
+/* ==================================================
    オーバー数値
--------------------------------------------------- */
+================================================== */
 
 .over-popup {
   position: fixed;
-  z-index: 31;
+  z-index: 70;
   top: 50%;
   left: 50%;
-  display: none;
   color: var(--pink);
   font-family: "Mochiy Pop One", "Noto Sans JP", sans-serif;
-  font-size: clamp(4.2rem, 25vw, 8rem);
+  font-size: clamp(6rem, 34vw, 13rem);
   line-height: 1;
   text-shadow:
-    0 0 9px rgba(255, 113, 148, 0.94),
-    0 0 25px rgba(255, 113, 148, 0.7),
-    0 4px 0 rgba(96, 13, 36, 0.82);
+    0 0 9px rgba(255, 113, 148, 0.95),
+    0 0 25px rgba(255, 113, 148, 0.78),
+    0 0 55px rgba(255, 113, 148, 0.47),
+    0 5px 0 rgba(96, 13, 36, 0.88);
   pointer-events: none;
   transform: translate(-50%, -50%);
 }
 
 .over-popup.show {
   display: block;
-  animation: over-number 0.76s cubic-bezier(0.18, 0.74, 0.24, 1) forwards;
+  animation: over-number 1s cubic-bezier(0.18, 0.74, 0.24, 1) forwards;
 }
 
-/* --------------------------------------------------
+/* ==================================================
    カウントダウン
--------------------------------------------------- */
+================================================== */
 
 .overlay {
   position: fixed;
-  z-index: 40;
+  z-index: 60;
   inset: 0;
   display: grid;
   place-items: center;
@@ -738,13 +861,13 @@ h1 span {
   animation: countdown-pop 0.64s ease-out;
 }
 
-/* --------------------------------------------------
+/* ==================================================
    モーダル
--------------------------------------------------- */
+================================================== */
 
 .modal {
   position: fixed;
-  z-index: 50;
+  z-index: 80;
   inset: 0;
   display: none;
   place-items: center;
@@ -763,7 +886,11 @@ h1 span {
   border: 1px solid var(--line-strong);
   border-radius: 17px;
   background:
-    linear-gradient(135deg, rgba(25, 42, 77, 0.98), rgba(11, 18, 38, 0.98));
+    linear-gradient(
+      135deg,
+      rgba(25, 42, 77, 0.98),
+      rgba(11, 18, 38, 0.98)
+    );
   box-shadow:
     0 18px 50px rgba(0, 0, 0, 0.52),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -799,9 +926,35 @@ h1 span {
   text-shadow: 0 0 15px rgba(255, 224, 117, 0.48);
 }
 
-/* --------------------------------------------------
+/* CLEAR画面 */
+.clear-card {
+  border-color: rgba(255, 224, 117, 0.85);
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(255, 224, 117, 0.2),
+      transparent 48%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(49, 48, 78, 0.98),
+      rgba(13, 23, 44, 0.98)
+    );
+  box-shadow:
+    0 0 38px rgba(255, 224, 117, 0.19),
+    0 18px 50px rgba(0, 0, 0, 0.52);
+}
+
+.clear-card h2 {
+  color: var(--yellow);
+  text-shadow:
+    0 0 12px rgba(255, 224, 117, 0.6),
+    0 0 28px rgba(255, 224, 117, 0.3);
+}
+
+/* ==================================================
    チュートリアル
--------------------------------------------------- */
+================================================== */
 
 .tutorial {
   flex-direction: column;
@@ -825,8 +978,8 @@ h1 span {
   line-height: 2;
 }
 
-.tutorial-step {
-  margin: 0;
+#tutorial-step {
+  display: block;
   color: var(--cyan);
   font-family: Orbitron, sans-serif;
   font-size: 0.7rem;
@@ -853,9 +1006,9 @@ h1 span {
   font-weight: 900;
 }
 
-/* --------------------------------------------------
+/* ==================================================
    アニメーション
--------------------------------------------------- */
+================================================== */
 
 @keyframes particles-drift {
   from {
@@ -959,22 +1112,22 @@ h1 span {
 @keyframes over-number {
   0% {
     opacity: 0;
-    transform: translate(-50%, -37%) scale(0.48) rotate(-7deg);
+    transform: translate(-50%, -35%) scale(0.35) rotate(-8deg);
   }
 
-  20% {
+  18% {
     opacity: 1;
-    transform: translate(-50%, -52%) scale(1.16) rotate(4deg);
+    transform: translate(-50%, -53%) scale(1.25) rotate(4deg);
   }
 
-  45% {
+  43% {
     opacity: 1;
-    transform: translate(-50%, -62%) scale(1) rotate(-2deg);
+    transform: translate(-50%, -61%) scale(1) rotate(-2deg);
   }
 
   100% {
     opacity: 0;
-    transform: translate(-50%, -118%) scale(0.87) rotate(2deg);
+    transform: translate(-50%, -125%) scale(0.84) rotate(2deg);
   }
 }
 
@@ -984,7 +1137,7 @@ h1 span {
   }
 
   30% {
-    background-color: rgba(255, 77, 124, 0.2);
+    background-color: rgba(255, 77, 124, 0.24);
   }
 
   100% {
@@ -1009,18 +1162,36 @@ h1 span {
   }
 }
 
-/* --------------------------------------------------
-   横幅が広い端末
--------------------------------------------------- */
+/* ==================================================
+   PC・タブレット
+================================================== */
 
 @media (min-width: 620px) {
   .screen {
-    width: min(100%, 600px);
+    width: min(100%, 680px);
     margin-inline: auto;
   }
 
   #game-screen {
-    width: min(100%, 680px);
+    width: min(100%, 700px);
+  }
+
+  .hud {
+    grid-template-columns:
+      0.85fr
+      0.62fr
+      1.18fr
+      0.8fr
+      1fr;
+  }
+
+  .hud-stage,
+  .hud-over {
+    grid-column: auto;
+  }
+
+  .hud span {
+    font-size: 0.46rem;
   }
 
   .board {
@@ -1028,14 +1199,19 @@ h1 span {
   }
 }
 
-/* --------------------------------------------------
+/* ==================================================
    高さが低い端末
--------------------------------------------------- */
+================================================== */
 
 @media (max-height: 680px) {
   .screen {
     padding-top: max(10px, var(--safe-top));
     padding-bottom: max(10px, var(--safe-bottom));
+  }
+
+  .hud > div {
+    min-height: 45px;
+    padding: 5px;
   }
 
   .status {

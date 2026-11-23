@@ -1,19 +1,41 @@
 "use strict";
 
+/* ==================================================
+   とーたるえいと❣️
+================================================== */
+
 const CONFIG = {
   rows: 4,
   cols: 8,
+
   startTime: 300,
   maxLevel: 5,
-  levelScoreStep: 900,
+
+  /*
+    各LEVEL内で必要な経験値。
+    総経験値とは別に、LEVELごとに0から数える。
+  */
+  stageTargets: [
+    4500,
+    6000,
+    7500,
+    9000,
+    10500
+  ],
+
   ringStepMs: 950,
+
   clearScore: 100,
   simultaneousBonus: 80,
+
   feverDuration: 8000,
   feverMultiplier: 2,
+
   starRate: 0.05,
+
   bgmVolume: 0.38,
-  bgmFadeMs: 900
+  bgmFadeMs: 900,
+  endMusicVolume: 0.48
 };
 
 const TUTORIAL_TEXTS = [
@@ -28,39 +50,58 @@ const $ = (selector) => document.querySelector(selector);
 
 const el = {
   app: $(".app"),
+
   title: $("#title-screen"),
   game: $("#game-screen"),
   tutorial: $("#tutorial-screen"),
+
   start: $("#start-button"),
   tutorialButton: $("#tutorial-button"),
+
   board: $("#game-board"),
   queueList: $("#ring-queue-list"),
+
   score: $("#score-value"),
   level: $("#level-value"),
+  stageScore: $("#stage-score-value"),
+  stageTarget: $("#stage-target-value"),
   time: $("#time-value"),
   over: $("#over-gauge"),
   status: $("#status-label"),
+
   abort: $("#abort-button"),
+
   countdown: $("#countdown-overlay"),
   countdownText: $("#countdown-text"),
+
   overPopup: $("#over-popup"),
+
   tutorialStep: $("#tutorial-step"),
   tutorialText: $("#tutorial-text"),
   tutorialNext: $("#tutorial-next-button"),
   tutorialExit: $("#tutorial-exit-button"),
+
   tutorialModal: $("#tutorial-complete-modal"),
   tutorialStart: $("#tutorial-start-button"),
   tutorialRestart: $("#tutorial-restart-button"),
   tutorialTitle: $("#tutorial-title-button"),
+
   abortModal: $("#abort-modal"),
   abortResume: $("#abort-resume-button"),
   abortRetry: $("#abort-retry-button"),
   abortTitle: $("#abort-title-button"),
+
   gameOver: $("#game-over-modal"),
   gameOverReason: $("#game-over-reason"),
   finalScore: $("#final-score-value"),
   retry: $("#retry-button"),
   titleButton: $("#title-button"),
+
+  gameClear: $("#game-clear-modal"),
+  clearScore: $("#clear-score-value"),
+  clearRetry: $("#clear-retry-button"),
+  clearTitle: $("#clear-title-button"),
+
   stageLeft: $(".stage-light--left"),
   stageRight: $(".stage-light--right"),
   stageCenter: $(".stage-light--center"),
@@ -69,19 +110,24 @@ const el = {
 };
 
 let state = null;
+
 let moveTimer = null;
 let clockTimer = null;
+
 let tutorialIndex = 0;
 let pieceId = 0;
 
 let audioContext = null;
+
 let currentBgm = null;
 let currentAnalyser = null;
 let analyserData = null;
 let stageAnimationId = null;
 
+let endMusic = null;
+
 /* ==================================================
-   基本処理
+   基本データ
 ================================================== */
 
 function randomNumber() {
@@ -130,27 +176,65 @@ function createInitialBoard() {
 function createGameState() {
   return {
     board: createInitialBoard(),
+
     queue: [
       createRingData(),
       createRingData(),
       createRingData()
     ],
+
     activeRing: null,
     selectedRow: null,
+
+    /*
+      score:
+      今回のプレイ全体で獲得した経験値
+
+      stageScore:
+      現在のLEVEL内だけで獲得した経験値
+    */
     score: 0,
+    stageScore: 0,
+
     level: 1,
     time: CONFIG.startTime,
+
+    /*
+      オーバーゲージ。
+      0〜5。
+      回復手段は一切なし。
+    */
     over: 0,
+
     feverUntil: 0,
+
     isBusy: true,
     isPaused: false,
     isEnded: false,
+
     bgmPaths: {}
   };
 }
 
+function getStageTarget() {
+  if (!state) {
+    return CONFIG.stageTargets[0];
+  }
+
+  return CONFIG.stageTargets[
+    Math.min(
+      state.level - 1,
+      CONFIG.stageTargets.length - 1
+    )
+  ];
+}
+
 function showScreen(screen) {
-  [el.title, el.game, el.tutorial].forEach((item) => {
+  [
+    el.title,
+    el.game,
+    el.tutorial
+  ].forEach((item) => {
     item?.classList.remove("is-active");
   });
 
@@ -161,7 +245,8 @@ function closeAllModals() {
   [
     el.tutorialModal,
     el.abortModal,
-    el.gameOver
+    el.gameOver,
+    el.gameClear
   ].forEach((modal) => {
     modal?.classList.remove("open");
   });
@@ -194,14 +279,12 @@ function unlockAudio() {
     const AudioContextClass =
       window.AudioContext || window.webkitAudioContext;
 
-    if (!AudioContextClass) {
-      return;
+    if (AudioContextClass) {
+      audioContext = new AudioContextClass();
     }
-
-    audioContext = new AudioContextClass();
   }
 
-  audioContext.resume().catch(() => {});
+  audioContext?.resume().catch(() => {});
 }
 
 function playTone(frequency, time, duration, volume) {
@@ -216,10 +299,12 @@ function playTone(frequency, time, duration, volume) {
   oscillator.frequency.value = frequency;
 
   gain.gain.setValueAtTime(0.001, time);
+
   gain.gain.exponentialRampToValueAtTime(
     volume,
     time + 0.012
   );
+
   gain.gain.exponentialRampToValueAtTime(
     0.001,
     time + duration
@@ -237,8 +322,13 @@ function playClearSound(chainSpeed = 1) {
     return;
   }
 
-  const notes = [0, 2, 4, 5, 7, 9, 11, 12];
-  const root = 261.63 * (2 ** (((state.level - 1) * 2) / 12));
+  const notes = [
+    0, 2, 4, 5, 7, 9, 11, 12
+  ];
+
+  const keyShift = (state.level - 1) * 2;
+  const root = 261.63 * (2 ** (keyShift / 12));
+
   const now = audioContext.currentTime;
   const interval = 0.078 / chainSpeed;
 
@@ -257,6 +347,10 @@ function playOverSound() {
     return;
   }
 
+  /*
+    ド → ソ → レ → ド
+    低い方向へ落ちる警告音
+  */
   const notes = [
     261.63,
     196.0,
@@ -352,24 +446,20 @@ function disconnectBgm(bgm) {
   }
 
   try {
-    bgm.source.disconnect();
+    bgm.source?.disconnect();
   } catch (error) {
     /* 接続解除済み */
   }
 
   try {
-    bgm.analyser.disconnect();
+    bgm.analyser?.disconnect();
   } catch (error) {
     /* 接続解除済み */
   }
 }
 
 function createBgmForCurrentLevel() {
-  if (
-    !audioContext ||
-    !state ||
-    state.isEnded
-  ) {
+  if (!state || state.isEnded) {
     return;
   }
 
@@ -385,26 +475,44 @@ function createBgmForCurrentLevel() {
   audio.preload = "auto";
   audio.volume = 0;
 
-  const analyser = audioContext.createAnalyser();
+  /*
+    AudioContextが使える時は周波数解析を接続。
+    万一使えない環境でも、BGM自体は再生できる。
+  */
+  if (audioContext) {
+    const analyser = audioContext.createAnalyser();
 
-  analyser.fftSize = 2048;
-  analyser.smoothingTimeConstant = 0.78;
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.78;
 
-  const source = audioContext.createMediaElementSource(audio);
+    const source =
+      audioContext.createMediaElementSource(audio);
 
-  source.connect(analyser);
-  analyser.connect(audioContext.destination);
+    source.connect(analyser);
+    analyser.connect(audioContext.destination);
+
+    currentBgm = {
+      audio,
+      source,
+      analyser
+    };
+
+    currentAnalyser = analyser;
+    analyserData = new Uint8Array(
+      analyser.frequencyBinCount
+    );
+
+    return;
+  }
 
   currentBgm = {
     audio,
-    source,
-    analyser
+    source: null,
+    analyser: null
   };
 
-  currentAnalyser = analyser;
-  analyserData = new Uint8Array(
-    analyser.frequencyBinCount
-  );
+  currentAnalyser = null;
+  analyserData = null;
 }
 
 function prepareBgmForStart() {
@@ -412,28 +520,23 @@ function prepareBgmForStart() {
     return;
   }
 
+  /*
+    STARTを押したユーザー操作の中で、
+    音声再生を一度だけ許可させる。
+    READY?中は音量0のまま。
+  */
   currentBgm.audio.volume = 0;
 
   currentBgm.audio.play()
-    .then(() => {
-      currentBgm.audio.pause();
-      currentBgm.audio.currentTime = 0;
-    })
     .catch(() => {});
 }
 
-function startBgm() {
-  if (
-    !currentBgm?.audio ||
-    !state ||
-    state.isEnded
-  ) {
+function fadeInCurrentBgm() {
+  if (!currentBgm?.audio) {
     return;
   }
 
   const audio = currentBgm.audio;
-
-  audio.play().catch(() => {});
 
   let step = 0;
   const steps = 18;
@@ -451,14 +554,27 @@ function startBgm() {
       clearInterval(fadeTimer);
     }
   }, interval);
+}
 
+function startBgm() {
+  if (
+    !currentBgm?.audio ||
+    !state ||
+    state.isEnded
+  ) {
+    return;
+  }
+
+  currentBgm.audio.play()
+    .catch(() => {});
+
+  fadeInCurrentBgm();
   startStageLights();
 }
 
 function changeBgmForLevel() {
   if (
     !state ||
-    !audioContext ||
     state.isEnded
   ) {
     return;
@@ -468,13 +584,14 @@ function changeBgmForLevel() {
 
   createBgmForCurrentLevel();
 
-  if (!currentBgm) {
+  if (!currentBgm?.audio) {
     return;
   }
 
   const next = currentBgm;
 
-  next.audio.play().catch(() => {});
+  next.audio.play()
+    .catch(() => {});
 
   let step = 0;
   const steps = 18;
@@ -490,7 +607,7 @@ function changeBgmForLevel() {
       CONFIG.bgmVolume * progress
     );
 
-    if (previous) {
+    if (previous?.audio) {
       previous.audio.volume = Math.max(
         0,
         CONFIG.bgmVolume * (1 - progress)
@@ -500,7 +617,7 @@ function changeBgmForLevel() {
     if (step >= steps) {
       clearInterval(fadeTimer);
 
-      if (previous) {
+      if (previous?.audio) {
         previous.audio.pause();
         previous.audio.currentTime = 0;
         disconnectBgm(previous);
@@ -514,17 +631,23 @@ function pauseBgm() {
 }
 
 function resumeBgm() {
-  if (currentBgm?.audio && !state?.isEnded) {
-    currentBgm.audio.play().catch(() => {});
+  if (
+    currentBgm?.audio &&
+    state &&
+    !state.isEnded
+  ) {
+    currentBgm.audio.play()
+      .catch(() => {});
   }
 }
 
 function stopBgm() {
-  if (currentBgm) {
+  if (currentBgm?.audio) {
     currentBgm.audio.pause();
     currentBgm.audio.currentTime = 0;
-    disconnectBgm(currentBgm);
   }
+
+  disconnectBgm(currentBgm);
 
   currentBgm = null;
   currentAnalyser = null;
@@ -533,8 +656,32 @@ function stopBgm() {
   stopStageLights();
 }
 
+function stopEndMusic() {
+  if (!endMusic) {
+    return;
+  }
+
+  endMusic.pause();
+  endMusic.currentTime = 0;
+  endMusic = null;
+}
+
+function playEndMusic(fileName) {
+  stopEndMusic();
+
+  endMusic = new Audio(
+    `assets/audio/bgm/${fileName}`
+  );
+
+  endMusic.loop = false;
+  endMusic.volume = CONFIG.endMusicVolume;
+
+  endMusic.play()
+    .catch(() => {});
+}
+
 /* ==================================================
-   周波数反応ライト
+   周波数反応ステージライト
 ================================================== */
 
 function getFrequencyAverage(fromHz, toHz) {
@@ -552,18 +699,26 @@ function getFrequencyAverage(fromHz, toHz) {
 
   const fromIndex = Math.max(
     0,
-    Math.floor((fromHz / nyquist) * analyserData.length)
+    Math.floor(
+      (fromHz / nyquist) * analyserData.length
+    )
   );
 
   const toIndex = Math.min(
     analyserData.length - 1,
-    Math.ceil((toHz / nyquist) * analyserData.length)
+    Math.ceil(
+      (toHz / nyquist) * analyserData.length
+    )
   );
 
   let total = 0;
   let count = 0;
 
-  for (let index = fromIndex; index <= toIndex; index += 1) {
+  for (
+    let index = fromIndex;
+    index <= toIndex;
+    index += 1
+  ) {
     total += analyserData[index];
     count += 1;
   }
@@ -575,42 +730,52 @@ function updateStageLights() {
   const bass = getFrequencyAverage(40, 160);
   const middle = getFrequencyAverage(160, 800);
   const high = getFrequencyAverage(2000, 8000);
+
   const feverBoost = isFever() ? 0.15 : 0;
 
   if (el.stageLeft) {
     el.stageLeft.style.opacity = String(
-      0.08 + middle * 0.28 + feverBoost
+      0.12 + middle * 0.42 + feverBoost
     );
+
     el.stageLeft.style.transform =
-      `rotate(${-24 + middle * 11}deg) scale(${1 + bass * 0.28})`;
+      `rotate(${-24 + middle * 13}deg) scale(${1 + bass * 0.35})`;
   }
 
   if (el.stageRight) {
     el.stageRight.style.opacity = String(
-      0.08 + middle * 0.28 + feverBoost
+      0.12 + middle * 0.42 + feverBoost
     );
+
     el.stageRight.style.transform =
-      `rotate(${24 - middle * 11}deg) scale(${1 + bass * 0.28})`;
+      `rotate(${24 - middle * 13}deg) scale(${1 + bass * 0.35})`;
   }
 
   if (el.stageCenter) {
     el.stageCenter.style.opacity = String(
-      0.06 + bass * 0.35 + feverBoost
+      0.08 + bass * 0.55 + feverBoost
     );
+
     el.stageCenter.style.transform =
-      `translateX(-50%) scale(${1 + bass * 0.34})`;
+      `translateX(-50%) scale(${1 + bass * 0.44})`;
   }
 
   if (el.laserLeft) {
-    el.laserLeft.style.opacity = String(0.05 + high * 0.4);
+    el.laserLeft.style.opacity = String(
+      0.08 + high * 0.58
+    );
+
     el.laserLeft.style.transform =
-      `rotate(${25 + high * 18}deg)`;
+      `rotate(${25 + high * 21}deg)`;
   }
 
   if (el.laserRight) {
-    el.laserRight.style.opacity = String(0.05 + high * 0.4);
+    el.laserRight.style.opacity = String(
+      0.08 + high * 0.58
+    );
+
     el.laserRight.style.transform =
-      `rotate(${-25 - high * 18}deg)`;
+      `rotate(${-25 - high * 21}deg)`;
   }
 
   stageAnimationId = requestAnimationFrame(
@@ -619,9 +784,11 @@ function updateStageLights() {
 }
 
 function startStageLights() {
-  if (!stageAnimationId) {
-    updateStageLights();
+  if (stageAnimationId) {
+    return;
   }
+
+  updateStageLights();
 }
 
 function stopStageLights() {
@@ -639,6 +806,8 @@ function stopStageLights() {
 function startGame() {
   clearGameTimers();
   stopBgm();
+  stopEndMusic();
+
   unlockAudio();
 
   state = createGameState();
@@ -740,7 +909,7 @@ function startClock() {
 }
 
 /* ==================================================
-   リング操作
+   リング出現・操作
 ================================================== */
 
 function spawnRing() {
@@ -813,16 +982,24 @@ function chooseRow(row) {
     return;
   }
 
+  /*
+    1回目：
+    流れているリングをレーンへ移動
+  */
   if (state.selectedRow !== row) {
     state.selectedRow = row;
     state.activeRing.row = row;
 
     setStatus("TARGET LOCK");
-    renderGame();
 
+    renderGame();
     return;
   }
 
+  /*
+    同じレーンを2回目：
+    左端の接続位置へ即固定
+  */
   let landingCol = state.activeRing.col;
 
   while (
@@ -867,6 +1044,11 @@ function landActiveRing(col) {
 
   const group = getGroup(row);
 
+  /*
+    合計9以上：
+    新しいリングだけを消す。
+    オーブ列のみオーバーゲージが増える。
+  */
   if (group.total > 8) {
     state.board[row][col] = null;
 
@@ -882,7 +1064,6 @@ function landActiveRing(col) {
     renderGame();
 
     setTimeout(finishTurn, 280);
-
     return;
   }
 
@@ -891,7 +1072,7 @@ function landActiveRing(col) {
 }
 
 /* ==================================================
-   盤面
+   盤面・グループ計算
 ================================================== */
 
 function compactRow(row) {
@@ -921,8 +1102,16 @@ function compactRow(row) {
     }
   });
 
+  /*
+    オーブに接続したリングへオーブ色を伝播。
+    オーブがない白リング列は白いまま。
+  */
   if (orb) {
-    for (let col = 1; col < CONFIG.cols; col += 1) {
+    for (
+      let col = 1;
+      col < CONFIG.cols;
+      col += 1
+    ) {
       const ring = nextRow[col];
 
       if (!ring) {
@@ -943,7 +1132,11 @@ function compactRow(row) {
 }
 
 function compactBoard() {
-  for (let row = 0; row < CONFIG.rows; row += 1) {
+  for (
+    let row = 0;
+    row < CONFIG.rows;
+    row += 1
+  ) {
     compactRow(row);
   }
 }
@@ -968,7 +1161,11 @@ function getGroup(row) {
     startCol = 1;
   }
 
-  for (let col = startCol; col < CONFIG.cols; col += 1) {
+  for (
+    let col = startCol;
+    col < CONFIG.cols;
+    col += 1
+  ) {
     const piece = cells[col];
 
     if (!piece || piece.type !== "ring") {
@@ -990,7 +1187,65 @@ function getGroup(row) {
 }
 
 /* ==================================================
-   消去
+   経験値・LEVEL進行
+================================================== */
+
+function addExperience(amount) {
+  if (!state || amount <= 0) {
+    return false;
+  }
+
+  state.score += amount;
+  state.stageScore += amount;
+
+  renderGame();
+
+  return checkStageClear();
+}
+
+function checkStageClear() {
+  if (!state || state.isEnded) {
+    return false;
+  }
+
+  const target = getStageTarget();
+
+  if (state.stageScore < target) {
+    return false;
+  }
+
+  /*
+    LEVEL 5の目標を達成したらGAME CLEAR
+  */
+  if (state.level >= CONFIG.maxLevel) {
+    gameClear();
+    return true;
+  }
+
+  /*
+    LEVEL 1〜4の目標達成：
+    次のLEVELへ。
+    ステージ経験値だけ0へ戻す。
+    総経験値とオーバーゲージは維持。
+  */
+  state.level += 1;
+  state.stageScore = 0;
+
+  /*
+    レベルアップ時だけ残り時間を300へ完全回復
+  */
+  state.time = CONFIG.startTime;
+
+  setStatus("LEVEL UP! TIME RESET");
+
+  changeBgmForLevel();
+  renderGame();
+
+  return false;
+}
+
+/* ==================================================
+   通常消去・連鎖
 ================================================== */
 
 function resolveClears(chainCount) {
@@ -1019,7 +1274,8 @@ function resolveClears(chainCount) {
     return Boolean(group.orb);
   });
 
-  let gainedScore = orbGroups.length * CONFIG.clearScore;
+  let gainedScore =
+    orbGroups.length * CONFIG.clearScore;
 
   if (orbGroups.length >= 2) {
     gainedScore +=
@@ -1051,12 +1307,16 @@ function resolveClears(chainCount) {
   });
 
   if (orbGroups.length > 0) {
-    state.score += gainedScore;
+    /*
+      重要：
+      オーバーゲージは減らさない。
+      合計8消去でも、★でも、LEVEL UPでも回復しない。
+    */
+    const gameCleared = addExperience(gainedScore);
 
-    state.over = Math.max(
-      0,
-      state.over - orbGroups.length
-    );
+    if (gameCleared) {
+      return;
+    }
 
     if (orbGroups.length >= 2) {
       setStatus("SIMULTANEOUS!");
@@ -1078,7 +1338,6 @@ function resolveClears(chainCount) {
   }
 
   compactBoard();
-  checkLevelUp();
   renderGame();
 
   setTimeout(() => {
@@ -1109,12 +1368,21 @@ function resolveClears(chainCount) {
   }, 280);
 }
 
+/* ==================================================
+   ★リング
+================================================== */
+
 function resolveStar(row) {
   if (!state || state.isEnded) {
     return;
   }
 
   const pieces = state.board[row].filter(Boolean);
+
+  /*
+    空白レーンへ★を置いても
+    合計8を1回作った扱い。
+  */
   const clearCount = Math.max(1, pieces.length);
 
   const feverMultiplier = isFever()
@@ -1126,17 +1394,18 @@ function resolveStar(row) {
     CONFIG.clearScore *
     feverMultiplier;
 
-  const hadOrb = pieces.some((piece) => {
-    return piece.type === "orb";
-  });
-
   state.board[row] = Array(CONFIG.cols).fill(null);
 
-  if (hadOrb) {
-    state.over = Math.max(0, state.over - 1);
-  }
+  /*
+    重要：
+    ★で消してもオーバーゲージは回復させない。
+  */
 
-  state.score += gainedScore;
+  const gameCleared = addExperience(gainedScore);
+
+  if (gameCleared) {
+    return;
+  }
 
   setStatus(
     clearCount >= 2
@@ -1147,7 +1416,6 @@ function resolveStar(row) {
   playStarSound();
 
   compactBoard();
-  checkLevelUp();
   renderGame();
 
   setTimeout(() => {
@@ -1191,7 +1459,7 @@ function addOver(total) {
   if (state.over >= 5) {
     setTimeout(() => {
       endGame("OVER LIMIT");
-    }, 800);
+    }, 900);
   }
 }
 
@@ -1216,7 +1484,7 @@ function showOverNumber(total) {
 }
 
 /* ==================================================
-   フィーバーとオーブ再配置
+   フィーバー・オーブ再配置
 ================================================== */
 
 function hasAnyOrb() {
@@ -1247,19 +1515,21 @@ function startFeverAndRespawn() {
     }
 
     /*
-      重要な修正：
+      オーブもリングもない完全な空白レーンだけに
+      新しいオーブを追加する。
 
-      全オーブを消した後、
-      「オーブもリングもない完全な空白レーン」だけに
-      新しいオーブを出す。
-
-      白リングが1個でも残っているレーンには、
-      オーブを追加しない。
+      白リングが1つでも残っているレーンには
+      オーブを出さない。
     */
-    for (let row = 0; row < CONFIG.rows; row += 1) {
-      const isCompletelyEmpty = state.board[row].every((piece) => {
-        return piece === null;
-      });
+    for (
+      let row = 0;
+      row < CONFIG.rows;
+      row += 1
+    ) {
+      const isCompletelyEmpty =
+        state.board[row].every((piece) => {
+          return piece === null;
+        });
 
       if (isCompletelyEmpty) {
         state.board[row][0] = makePiece(
@@ -1285,38 +1555,7 @@ function startFeverAndRespawn() {
 }
 
 /* ==================================================
-   レベルアップ
-================================================== */
-
-function checkLevelUp() {
-  if (
-    !state ||
-    state.level >= CONFIG.maxLevel
-  ) {
-    return;
-  }
-
-  const targetLevel = Math.min(
-    CONFIG.maxLevel,
-    Math.floor(
-      state.score / CONFIG.levelScoreStep
-    ) + 1
-  );
-
-  if (targetLevel <= state.level) {
-    return;
-  }
-
-  state.level = targetLevel;
-  state.time = CONFIG.startTime;
-
-  setStatus("LEVEL UP! TIME RESET");
-
-  changeBgmForLevel();
-}
-
-/* ==================================================
-   ターン終了
+   ターン完了
 ================================================== */
 
 function finishTurn() {
@@ -1337,7 +1576,7 @@ function finishTurn() {
 }
 
 /* ==================================================
-   中断・終了
+   中断・ゲームオーバー・ゲームクリア
 ================================================== */
 
 function pauseGame() {
@@ -1402,12 +1641,43 @@ function endGame(reason) {
     el.finalScore.textContent = String(state.score);
   }
 
+  /*
+    GAMEOVER.mp3を1回だけ再生
+  */
+  playEndMusic("GAMEOVER.mp3");
+
   el.gameOver?.classList.add("open");
+}
+
+function gameClear() {
+  if (!state || state.isEnded) {
+    return;
+  }
+
+  state.isEnded = true;
+  state.isBusy = true;
+
+  clearGameTimers();
+  stopBgm();
+
+  el.app?.classList.remove("is-fever");
+
+  if (el.clearScore) {
+    el.clearScore.textContent = String(state.score);
+  }
+
+  /*
+    OvercameHardships.mp3を1回だけ再生
+  */
+  playEndMusic("OvercameHardships.mp3");
+
+  el.gameClear?.classList.add("open");
 }
 
 function returnTitle() {
   clearGameTimers();
   stopBgm();
+  stopEndMusic();
 
   state = null;
 
@@ -1456,6 +1726,10 @@ function createPieceElement(piece, active, total) {
     node.classList.add(`c${piece.color}`);
   }
 
+  /*
+    合計値そのものは表示しない。
+    合計5 / 6 / 7の状態だけ光り方で伝える。
+  */
   if (total >= 5 && total <= 7) {
     node.classList.add(`t${total}`);
   }
@@ -1487,17 +1761,28 @@ function renderGame() {
 
   el.board.innerHTML = "";
 
-  for (let row = 0; row < CONFIG.rows; row += 1) {
+  for (
+    let row = 0;
+    row < CONFIG.rows;
+    row += 1
+  ) {
     const group = getGroup(row);
 
-    for (let col = 0; col < CONFIG.cols; col += 1) {
+    for (
+      let col = 0;
+      col < CONFIG.cols;
+      col += 1
+    ) {
       const cell = document.createElement("button");
 
       cell.type = "button";
       cell.className = "cell";
       cell.dataset.row = String(row);
 
-      const preparedClass = getPreparedClass(group, col);
+      const preparedClass = getPreparedClass(
+        group,
+        col
+      );
 
       if (preparedClass) {
         cell.classList.add(preparedClass);
@@ -1579,6 +1864,18 @@ function renderHud() {
 
   if (el.level) {
     el.level.textContent = String(state.level);
+  }
+
+  if (el.stageScore) {
+    el.stageScore.textContent = String(
+      state.stageScore
+    );
+  }
+
+  if (el.stageTarget) {
+    el.stageTarget.textContent = String(
+      getStageTarget()
+    );
   }
 
   if (el.time) {
@@ -1740,6 +2037,19 @@ el.titleButton?.addEventListener(
   returnTitle
 );
 
+el.clearRetry?.addEventListener(
+  "click",
+  startGame
+);
+
+el.clearTitle?.addEventListener(
+  "click",
+  returnTitle
+);
+
+/*
+  別のタブ・アプリへ移動したら自動中断。
+*/
 document.addEventListener("visibilitychange", () => {
   if (
     document.hidden &&
