@@ -2,25 +2,42 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+  >
   <title>とーたるえいと❣️</title>
-  <link rel="stylesheet" href="style.css?v=20261118-04">
+  <link rel="stylesheet" href="style.css?v=20261118-07">
 </head>
+
 <body>
   <main class="app">
+
+    <!-- BGM周波数へ反応する背景照明 -->
+    <div class="stage-lights" aria-hidden="true">
+      <i class="stage-light stage-light--left"></i>
+      <i class="stage-light stage-light--right"></i>
+      <i class="stage-light stage-light--center"></i>
+      <i class="stage-laser stage-laser--left"></i>
+      <i class="stage-laser stage-laser--right"></i>
+      <div class="stage-particles"></div>
+    </div>
 
     <section id="title-screen" class="screen is-active">
       <div class="title-content">
         <p class="eyebrow">CONNECT · CALCULATE · CLEAR</p>
         <h1>とーたるえいと<span>❣️</span></h1>
-        <p class="lead">合計8にして高スコアを狙え！</p>
+        <p class="lead">合計8にして高スコアを狙え</p>
 
         <div class="title-menu">
           <button id="start-button" class="menu-button primary" type="button">
-            <strong>スタート</strong><small>START</small>
+            <strong>スタート</strong>
+            <small>START</small>
           </button>
+
           <button id="tutorial-button" class="menu-button" type="button">
-            <strong>チュートリアル</strong><small>TUTORIAL</small>
+            <strong>チュートリアル</strong>
+            <small>TUTORIAL</small>
           </button>
         </div>
       </div>
@@ -28,74 +45,136 @@
 
     <section id="game-screen" class="screen">
       <header class="hud">
-        <div><span>経験値</span><strong id="score-value">0</strong></div>
-        <div><span>レベル</span><strong id="level-value">1</strong></div>
-        <div><span>残り時間</span><strong id="time-value">400</strong></div>
-        <div><span>オーバー</span><p id="over-gauge"><i></i><i></i><i></i></p></div>
+        <div>
+          <span>経験値</span>
+          <strong id="score-value">0</strong>
+        </div>
+
+        <div>
+          <span>レベル</span>
+          <strong id="level-value">1</strong>
+        </div>
+
+        <div>
+          <span>残り時間</span>
+          <strong id="time-value">300</strong>
+        </div>
+
+        <div>
+          <span>オーバー</span>
+          <p id="over-gauge">
+            <i></i><i></i><i></i><i></i><i></i>
+          </p>
+        </div>
       </header>
 
       <strong id="status-label" class="status">READY</strong>
 
       <div class="play-area">
         <div id="game-board" class="board"></div>
+
         <aside class="queue">
           <b>控え</b>
+
           <div id="ring-queue-list"></div>
+
+          <button id="abort-button" class="queue-abort" type="button">
+            中断
+          </button>
         </aside>
       </div>
 
-      <p class="hint">オーブまたは空白レーンをタップ<br>同じレーンをもう一度タップで即固定</p>
-
-      <button id="abort-button" class="abort" type="button">
-        <strong>中断</strong><small>ABORT</small>
-      </button>
+      <p class="hint">
+        オーブまたは空白レーンをタップ<br>
+        同じレーンをもう一度タップで即固定
+      </p>
 
       <div id="countdown-overlay" class="overlay hidden">
         <strong id="countdown-text">READY?</strong>
       </div>
+
+      <div id="over-popup" class="over-popup hidden"></div>
     </section>
 
     <section id="tutorial-screen" class="screen tutorial">
-      <button id="tutorial-exit-button" class="abort" type="button">メニュー</button>
+      <button id="tutorial-exit-button" class="tutorial-exit" type="button">
+        メニュー
+      </button>
+
       <div class="tutorial-card">
         <strong id="tutorial-step">1 / 5</strong>
         <p id="tutorial-text"></p>
       </div>
+
       <button id="tutorial-next-button" class="menu-button primary" type="button">
-        <strong>つぎへ</strong><small>NEXT</small>
+        <strong>つぎへ</strong>
+        <small>NEXT</small>
       </button>
     </section>
 
     <section id="tutorial-complete-modal" class="modal">
       <div class="modal-card">
         <h2>準備完了。</h2>
-        <button id="tutorial-start-button" class="menu-button primary" type="button"><strong>スタート</strong><small>START</small></button>
-        <button id="tutorial-restart-button" class="menu-button" type="button"><strong>もう一度</strong><small>RETRY</small></button>
-        <button id="tutorial-title-button" class="menu-button" type="button"><strong>メニューへ戻る</strong><small>MENU</small></button>
+
+        <button id="tutorial-start-button" class="menu-button primary" type="button">
+          <strong>スタート</strong>
+          <small>START</small>
+        </button>
+
+        <button id="tutorial-restart-button" class="menu-button" type="button">
+          <strong>もう一度</strong>
+          <small>RETRY</small>
+        </button>
+
+        <button id="tutorial-title-button" class="menu-button" type="button">
+          <strong>メニューへ戻る</strong>
+          <small>MENU</small>
+        </button>
       </div>
     </section>
 
     <section id="abort-modal" class="modal">
       <div class="modal-card">
-        <h2>ゲームを中断しますか？</h2>
-        <p>今回の獲得経験値は記録されません。</p>
-        <button id="abort-resume-button" class="menu-button primary" type="button"><strong>つづける</strong><small>RESUME</small></button>
-        <button id="abort-title-button" class="menu-button" type="button"><strong>中断してメニューへ</strong><small>ABORT TO MENU</small></button>
+        <h2>ゲームを中断しました</h2>
+
+        <button id="abort-resume-button" class="menu-button primary" type="button">
+          <strong>つづける</strong>
+          <small>RESUME</small>
+        </button>
+
+        <button id="abort-retry-button" class="menu-button" type="button">
+          <strong>リトライ</strong>
+          <small>RETRY</small>
+        </button>
+
+        <button id="abort-title-button" class="menu-button" type="button">
+          <strong>メニューへ戻る</strong>
+          <small>MENU</small>
+        </button>
       </div>
     </section>
 
     <section id="game-over-modal" class="modal">
       <div class="modal-card">
-        <p class="eyebrow">TIME UP</p>
+        <p id="game-over-reason" class="eyebrow">TIME UP</p>
         <h2>ゲーム終了</h2>
         <p>今回の獲得経験値</p>
         <strong id="final-score-value" class="final-score">0</strong>
-        <button id="retry-button" class="menu-button primary" type="button"><strong>もう一度</strong><small>RETRY</small></button>
-        <button id="title-button" class="menu-button" type="button"><strong>メニューへ戻る</strong><small>MENU</small></button>
+
+        <button id="retry-button" class="menu-button primary" type="button">
+          <strong>もう一度</strong>
+          <small>RETRY</small>
+        </button>
+
+        <button id="title-button" class="menu-button" type="button">
+          <strong>メニューへ戻る</strong>
+          <small>MENU</small>
+        </button>
       </div>
     </section>
+
   </main>
 
-  <script src="script.js?v=20261118-04"></script>
+  <script src="script.js?v=20261118-07"></script>
 </body>
 </html>
