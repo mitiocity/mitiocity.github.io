@@ -3,9 +3,12 @@
 /*
   みちを市ポータルサイトのGAMEページ専用処理。
 
-  既存の assets/js/site.js は変更しない。
   #page/games が開かれた時だけ、
   とーたるえいと❣️の専用カードを表示する。
+
+  site.js がページ本文を再描画しても、
+  MutationObserver・hashchange・load・短時間の再確認により
+  GAMEカードを必ず復元する。
 */
 
 (() => {
@@ -15,43 +18,22 @@
     return;
   }
 
-  function isGamesPage() {
-    const hash = decodeURIComponent(
+  function currentRoute() {
+    return decodeURIComponent(
       location.hash.replace(/^#/, "")
-    ).trim();
-
-    return (
-      hash === "page/games" ||
-      hash === "games"
-    );
+    )
+      .trim()
+      .toLowerCase();
   }
 
-  function makeGamesPage() {
-    if (!isGamesPage()) {
-      return;
-    }
+  function isGamesPage() {
+    const route = currentRoute();
 
-    const entry = main.querySelector(
-      ".page-article .entry-content"
-    );
+    return route === "page/games" || route === "games";
+  }
 
-    /*
-      site.js が本文を描画し終えるまでは何もしない。
-    */
-    if (!entry) {
-      return;
-    }
-
-    /*
-      同じカードを何度も追加しない。
-    */
-    if (entry.dataset.gamesPageReady === "true") {
-      return;
-    }
-
-    entry.dataset.gamesPageReady = "true";
-
-    entry.innerHTML = `
+  function createGamesMarkup() {
+    return `
       <p class="mitiocity-games-intro">
         みちを市から生まれた、オリジナルゲームの入口です。
       </p>
@@ -62,7 +44,7 @@
       >
         <a
           class="mitiocity-game-card"
-          href="./total-eight/"
+          href="/total-eight/"
           aria-label="とーたるえいと❣️をはじめる"
         >
           <div class="mitiocity-game-card__inner">
@@ -119,12 +101,48 @@
     `;
   }
 
-  /*
-    site.js がページ本文を作り直すたびに監視する。
-    GAME以外のページには何もしない。
-  */
+  function getGamesEntry() {
+    return main.querySelector(
+      ".page-article .entry-content"
+    );
+  }
+
+  function makeGamesPage() {
+    if (!isGamesPage()) {
+      return;
+    }
+
+    const entry = getGamesEntry();
+
+    if (!entry) {
+      return;
+    }
+
+    const existingCard = entry.querySelector(
+      ".mitiocity-game-card"
+    );
+
+    if (existingCard) {
+      entry.dataset.gamesPageReady = "true";
+      return;
+    }
+
+    entry.dataset.gamesPageReady = "true";
+    entry.innerHTML = createGamesMarkup();
+  }
+
+  function scheduleGamesPage() {
+    requestAnimationFrame(() => {
+      makeGamesPage();
+
+      requestAnimationFrame(() => {
+        makeGamesPage();
+      });
+    });
+  }
+
   const observer = new MutationObserver(() => {
-    makeGamesPage();
+    scheduleGamesPage();
   });
 
   observer.observe(main, {
@@ -132,9 +150,19 @@
     subtree: true
   });
 
-  window.addEventListener("hashchange", () => {
-    requestAnimationFrame(makeGamesPage);
-  });
+  window.addEventListener("hashchange", scheduleGamesPage);
+  window.addEventListener("load", scheduleGamesPage);
 
-  requestAnimationFrame(makeGamesPage);
+  let retryCount = 0;
+
+  const retryTimer = window.setInterval(() => {
+    retryCount += 1;
+    makeGamesPage();
+
+    if (retryCount >= 24) {
+      window.clearInterval(retryTimer);
+    }
+  }, 250);
+
+  scheduleGamesPage();
 })();

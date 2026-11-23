@@ -8,22 +8,18 @@
   >
 
   <title>みちを市ポータルサイト</title>
-
   <meta
     name="description"
     content="アリウスゲートからつながる、みちを市のポータルサイト。"
   >
-
   <meta name="theme-color" content="#101a38">
 
   <link rel="manifest" href="manifest.webmanifest">
-
   <link
     rel="icon"
     href="assets/images/icons/icon-192.png"
     type="image/png"
   >
-
   <link
     rel="apple-touch-icon"
     href="assets/images/icons/apple-touch-icon.png"
@@ -31,11 +27,9 @@
 
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/link-buttons.css">
-
-  <!-- ゲーム一覧専用の見た目 -->
   <link
     rel="stylesheet"
-    href="assets/css/games-page.css?v=20261118-01"
+    href="assets/css/games-page.css?v=20261123-02"
   >
 </head>
 
@@ -82,7 +76,7 @@
       <a href="#page/music">MUSIC</a>
       <a href="#page/games">GAME</a>
       <a href="#page/apps">APP</a>
-      <a href="#page/video">VIDEO</a>
+      <a href="#page/video">MOVIE</a>
       <a href="#page/blog">BLOG</a>
       <a
         class="quick-menu__blackbox"
@@ -97,7 +91,11 @@
         LATEST NEWS
       </span>
 
-      <a class="header-news__ticker" id="news-ticker" href="#news">
+      <a
+        class="header-news__ticker"
+        id="news-ticker"
+        href="#news"
+      >
         <span id="news-ticker-text">
           現在、お知らせはありません
         </span>
@@ -201,8 +199,15 @@
     </div>
   </section>
 
-  <main id="main-content" tabindex="-1" aria-live="polite">
-    <section class="loading-screen" aria-label="読み込み中">
+  <main
+    id="main-content"
+    tabindex="-1"
+    aria-live="polite"
+  >
+    <section
+      class="loading-screen"
+      aria-label="読み込み中"
+    >
       <p>ARYUS GATE CONNECTING...</p>
     </section>
   </main>
@@ -238,9 +243,8 @@
     defer
   ></script>
 
-  <!-- GAMEページへ専用ゲームカードを追加 -->
   <script
-    src="assets/js/games-page.js?v=20261118-01"
+    src="assets/js/games-page.js?v=20261123-02"
     defer
   ></script>
 
