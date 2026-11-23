@@ -1,9 +1,5 @@
 "use strict";
 
-/* ==================================================
-   とーたるえいと❣️
-================================================== */
-
 const CONFIG = {
   rows: 4,
   cols: 8,
@@ -11,10 +7,6 @@ const CONFIG = {
   startTime: 300,
   maxLevel: 5,
 
-  /*
-    各LEVEL内で必要な経験値。
-    総経験値とは別に、LEVELごとに0から数える。
-  */
   stageTargets: [
     4500,
     6000,
@@ -118,16 +110,14 @@ let tutorialIndex = 0;
 let pieceId = 0;
 
 let audioContext = null;
-
 let currentBgm = null;
 let currentAnalyser = null;
 let analyserData = null;
 let stageAnimationId = null;
-
 let endMusic = null;
 
 /* ==================================================
-   基本データ
+   基本処理
 ================================================== */
 
 function randomNumber() {
@@ -161,15 +151,15 @@ function makePiece(type, number = null, color = null) {
 
 function createInitialBoard() {
   return Array.from({ length: CONFIG.rows }, (_, row) => {
-    const boardRow = Array(CONFIG.cols).fill(null);
+    const rowData = Array(CONFIG.cols).fill(null);
 
-    boardRow[0] = makePiece(
+    rowData[0] = makePiece(
       "orb",
       randomNumber(),
       row
     );
 
-    return boardRow;
+    return rowData;
   });
 }
 
@@ -186,13 +176,6 @@ function createGameState() {
     activeRing: null,
     selectedRow: null,
 
-    /*
-      score:
-      今回のプレイ全体で獲得した経験値
-
-      stageScore:
-      現在のLEVEL内だけで獲得した経験値
-    */
     score: 0,
     stageScore: 0,
 
@@ -200,9 +183,8 @@ function createGameState() {
     time: CONFIG.startTime,
 
     /*
-      オーバーゲージ。
       0〜5。
-      回復手段は一切なし。
+      回復手段なし。
     */
     over: 0,
 
@@ -326,8 +308,9 @@ function playClearSound(chainSpeed = 1) {
     0, 2, 4, 5, 7, 9, 11, 12
   ];
 
-  const keyShift = (state.level - 1) * 2;
-  const root = 261.63 * (2 ** (keyShift / 12));
+  const root =
+    261.63 *
+    (2 ** (((state.level - 1) * 2) / 12));
 
   const now = audioContext.currentTime;
   const interval = 0.078 / chainSpeed;
@@ -347,10 +330,6 @@ function playOverSound() {
     return;
   }
 
-  /*
-    ド → ソ → レ → ド
-    低い方向へ落ちる警告音
-  */
   const notes = [
     261.63,
     196.0,
@@ -463,27 +442,19 @@ function createBgmForCurrentLevel() {
     return;
   }
 
-  const path = getBgmPath(state.level);
-
-  if (!path) {
-    return;
-  }
-
-  const audio = new Audio(path);
+  const audio = new Audio(
+    getBgmPath(state.level)
+  );
 
   audio.loop = true;
   audio.preload = "auto";
   audio.volume = 0;
 
-  /*
-    AudioContextが使える時は周波数解析を接続。
-    万一使えない環境でも、BGM自体は再生できる。
-  */
   if (audioContext) {
     const analyser = audioContext.createAnalyser();
 
     analyser.fftSize = 2048;
-    analyser.smoothingTimeConstant = 0.78;
+    analyser.smoothingTimeConstant = 0.72;
 
     const source =
       audioContext.createMediaElementSource(audio);
@@ -521,39 +492,13 @@ function prepareBgmForStart() {
   }
 
   /*
-    STARTを押したユーザー操作の中で、
-    音声再生を一度だけ許可させる。
-    READY?中は音量0のまま。
+    STARTボタンのユーザー操作中に再生許可を取る。
+    READY?中は音量0。
   */
   currentBgm.audio.volume = 0;
 
   currentBgm.audio.play()
     .catch(() => {});
-}
-
-function fadeInCurrentBgm() {
-  if (!currentBgm?.audio) {
-    return;
-  }
-
-  const audio = currentBgm.audio;
-
-  let step = 0;
-  const steps = 18;
-  const interval = CONFIG.bgmFadeMs / steps;
-
-  const fadeTimer = setInterval(() => {
-    step += 1;
-
-    audio.volume = Math.min(
-      CONFIG.bgmVolume,
-      CONFIG.bgmVolume * (step / steps)
-    );
-
-    if (step >= steps) {
-      clearInterval(fadeTimer);
-    }
-  }, interval);
 }
 
 function startBgm() {
@@ -565,18 +510,36 @@ function startBgm() {
     return;
   }
 
+  /*
+    GO!開始時に曲の先頭から流す。
+  */
+  currentBgm.audio.currentTime = 0;
+
   currentBgm.audio.play()
     .catch(() => {});
 
-  fadeInCurrentBgm();
+  let step = 0;
+  const steps = 18;
+  const interval = CONFIG.bgmFadeMs / steps;
+
+  const fadeTimer = setInterval(() => {
+    step += 1;
+
+    currentBgm.audio.volume = Math.min(
+      CONFIG.bgmVolume,
+      CONFIG.bgmVolume * (step / steps)
+    );
+
+    if (step >= steps) {
+      clearInterval(fadeTimer);
+    }
+  }, interval);
+
   startStageLights();
 }
 
 function changeBgmForLevel() {
-  if (
-    !state ||
-    state.isEnded
-  ) {
+  if (!state || state.isEnded) {
     return;
   }
 
@@ -620,6 +583,7 @@ function changeBgmForLevel() {
       if (previous?.audio) {
         previous.audio.pause();
         previous.audio.currentTime = 0;
+
         disconnectBgm(previous);
       }
     }
@@ -631,11 +595,7 @@ function pauseBgm() {
 }
 
 function resumeBgm() {
-  if (
-    currentBgm?.audio &&
-    state &&
-    !state.isEnded
-  ) {
+  if (currentBgm?.audio && !state?.isEnded) {
     currentBgm.audio.play()
       .catch(() => {});
   }
@@ -681,7 +641,7 @@ function playEndMusic(fileName) {
 }
 
 /* ==================================================
-   周波数反応ステージライト
+   音反応・万華鏡
 ================================================== */
 
 function getFrequencyAverage(fromHz, toHz) {
@@ -726,56 +686,121 @@ function getFrequencyAverage(fromHz, toHz) {
   return count ? total / count / 255 : 0;
 }
 
-function updateStageLights() {
-  const bass = getFrequencyAverage(40, 160);
-  const middle = getFrequencyAverage(160, 800);
-  const high = getFrequencyAverage(2000, 8000);
+function updateStageLights(timestamp) {
+  const bass = getFrequencyAverage(35, 170);
+  const middle = getFrequencyAverage(170, 1100);
+  const high = getFrequencyAverage(1800, 9000);
 
+  const time = timestamp / 1000;
   const feverBoost = isFever() ? 0.15 : 0;
 
-  if (el.stageLeft) {
-    el.stageLeft.style.opacity = String(
-      0.12 + middle * 0.42 + feverBoost
-    );
-
-    el.stageLeft.style.transform =
-      `rotate(${-24 + middle * 13}deg) scale(${1 + bass * 0.35})`;
-  }
-
-  if (el.stageRight) {
-    el.stageRight.style.opacity = String(
-      0.12 + middle * 0.42 + feverBoost
-    );
-
-    el.stageRight.style.transform =
-      `rotate(${24 - middle * 13}deg) scale(${1 + bass * 0.35})`;
-  }
-
+  /*
+    低音：
+    中央万華鏡を拡大・縮小。
+  */
   if (el.stageCenter) {
+    const centerRotation =
+      time * (4 + bass * 18);
+
+    const centerScale =
+      0.78 +
+      bass * 0.62 +
+      Math.sin(time * 2.4) * 0.025;
+
     el.stageCenter.style.opacity = String(
-      0.08 + bass * 0.55 + feverBoost
+      0.1 +
+      bass * 0.58 +
+      feverBoost
     );
 
     el.stageCenter.style.transform =
-      `translateX(-50%) scale(${1 + bass * 0.44})`;
+      `translate(-50%, -50%) rotate(${centerRotation}deg) scale(${centerScale})`;
   }
 
+  /*
+    中音：
+    左右の多角形を逆方向へ回す。
+  */
+  if (el.stageLeft) {
+    const leftRotation =
+      -18 +
+      Math.sin(time * 1.1) * 14 +
+      middle * 58;
+
+    const leftScale =
+      0.8 +
+      middle * 0.56 +
+      bass * 0.16;
+
+    el.stageLeft.style.opacity = String(
+      0.08 +
+      middle * 0.54 +
+      feverBoost
+    );
+
+    el.stageLeft.style.transform =
+      `translateY(-50%) rotate(${leftRotation}deg) scale(${leftScale})`;
+  }
+
+  if (el.stageRight) {
+    const rightRotation =
+      18 +
+      Math.cos(time * 1.05) * 14 -
+      middle * 58;
+
+    const rightScale =
+      0.8 +
+      middle * 0.56 +
+      bass * 0.16;
+
+    el.stageRight.style.opacity = String(
+      0.08 +
+      middle * 0.54 +
+      feverBoost
+    );
+
+    el.stageRight.style.transform =
+      `translateY(-50%) rotate(${rightRotation}deg) scale(${rightScale})`;
+  }
+
+  /*
+    高音：
+    細かい幾何学線を高速回転。
+  */
   if (el.laserLeft) {
+    const rotation =
+      time * (12 + high * 115);
+
+    const scale =
+      0.74 +
+      high * 0.64;
+
     el.laserLeft.style.opacity = String(
-      0.08 + high * 0.58
+      0.06 +
+      high * 0.72 +
+      feverBoost
     );
 
     el.laserLeft.style.transform =
-      `rotate(${25 + high * 21}deg)`;
+      `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
   }
 
   if (el.laserRight) {
+    const rotation =
+      -time * (15 + high * 128);
+
+    const scale =
+      0.74 +
+      high * 0.64;
+
     el.laserRight.style.opacity = String(
-      0.08 + high * 0.58
+      0.06 +
+      high * 0.72 +
+      feverBoost
     );
 
     el.laserRight.style.transform =
-      `rotate(${-25 - high * 21}deg)`;
+      `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
   }
 
   stageAnimationId = requestAnimationFrame(
@@ -788,7 +813,9 @@ function startStageLights() {
     return;
   }
 
-  updateStageLights();
+  stageAnimationId = requestAnimationFrame(
+    updateStageLights
+  );
 }
 
 function stopStageLights() {
@@ -909,7 +936,7 @@ function startClock() {
 }
 
 /* ==================================================
-   リング出現・操作
+   リング
 ================================================== */
 
 function spawnRing() {
@@ -982,24 +1009,16 @@ function chooseRow(row) {
     return;
   }
 
-  /*
-    1回目：
-    流れているリングをレーンへ移動
-  */
   if (state.selectedRow !== row) {
     state.selectedRow = row;
     state.activeRing.row = row;
 
     setStatus("TARGET LOCK");
-
     renderGame();
+
     return;
   }
 
-  /*
-    同じレーンを2回目：
-    左端の接続位置へ即固定
-  */
   let landingCol = state.activeRing.col;
 
   while (
@@ -1044,11 +1063,6 @@ function landActiveRing(col) {
 
   const group = getGroup(row);
 
-  /*
-    合計9以上：
-    新しいリングだけを消す。
-    オーブ列のみオーバーゲージが増える。
-  */
   if (group.total > 8) {
     state.board[row][col] = null;
 
@@ -1072,7 +1086,7 @@ function landActiveRing(col) {
 }
 
 /* ==================================================
-   盤面・グループ計算
+   盤面
 ================================================== */
 
 function compactRow(row) {
@@ -1102,10 +1116,6 @@ function compactRow(row) {
     }
   });
 
-  /*
-    オーブに接続したリングへオーブ色を伝播。
-    オーブがない白リング列は白いまま。
-  */
   if (orb) {
     for (
       let col = 1;
@@ -1187,7 +1197,7 @@ function getGroup(row) {
 }
 
 /* ==================================================
-   経験値・LEVEL進行
+   経験値とLEVEL
 ================================================== */
 
 function addExperience(amount) {
@@ -1208,32 +1218,24 @@ function checkStageClear() {
     return false;
   }
 
-  const target = getStageTarget();
-
-  if (state.stageScore < target) {
+  if (state.stageScore < getStageTarget()) {
     return false;
   }
 
-  /*
-    LEVEL 5の目標を達成したらGAME CLEAR
-  */
   if (state.level >= CONFIG.maxLevel) {
     gameClear();
     return true;
   }
 
   /*
-    LEVEL 1〜4の目標達成：
-    次のLEVELへ。
-    ステージ経験値だけ0へ戻す。
-    総経験値とオーバーゲージは維持。
+    LEVEL UP：
+    総経験値は維持。
+    ステージ経験値のみ0。
+    残り時間だけ300へ回復。
+    オーバーゲージは絶対に減らさない。
   */
   state.level += 1;
   state.stageScore = 0;
-
-  /*
-    レベルアップ時だけ残り時間を300へ完全回復
-  */
   state.time = CONFIG.startTime;
 
   setStatus("LEVEL UP! TIME RESET");
@@ -1245,7 +1247,7 @@ function checkStageClear() {
 }
 
 /* ==================================================
-   通常消去・連鎖
+   消去・連鎖
 ================================================== */
 
 function resolveClears(chainCount) {
@@ -1307,11 +1309,6 @@ function resolveClears(chainCount) {
   });
 
   if (orbGroups.length > 0) {
-    /*
-      重要：
-      オーバーゲージは減らさない。
-      合計8消去でも、★でも、LEVEL UPでも回復しない。
-    */
     const gameCleared = addExperience(gainedScore);
 
     if (gameCleared) {
@@ -1380,7 +1377,7 @@ function resolveStar(row) {
   const pieces = state.board[row].filter(Boolean);
 
   /*
-    空白レーンへ★を置いても
+    空白レーンの★も、
     合計8を1回作った扱い。
   */
   const clearCount = Math.max(1, pieces.length);
@@ -1397,8 +1394,7 @@ function resolveStar(row) {
   state.board[row] = Array(CONFIG.cols).fill(null);
 
   /*
-    重要：
-    ★で消してもオーバーゲージは回復させない。
+    ★でもオーバーゲージは回復しない。
   */
 
   const gameCleared = addExperience(gainedScore);
@@ -1484,7 +1480,7 @@ function showOverNumber(total) {
 }
 
 /* ==================================================
-   フィーバー・オーブ再配置
+   フィーバー
 ================================================== */
 
 function hasAnyOrb() {
@@ -1515,11 +1511,8 @@ function startFeverAndRespawn() {
     }
 
     /*
-      オーブもリングもない完全な空白レーンだけに
+      オーブもリングもないレーンだけに
       新しいオーブを追加する。
-
-      白リングが1つでも残っているレーンには
-      オーブを出さない。
     */
     for (
       let row = 0;
@@ -1555,7 +1548,7 @@ function startFeverAndRespawn() {
 }
 
 /* ==================================================
-   ターン完了
+   中断・終了
 ================================================== */
 
 function finishTurn() {
@@ -1574,10 +1567,6 @@ function finishTurn() {
     spawnRing();
   }, 280);
 }
-
-/* ==================================================
-   中断・ゲームオーバー・ゲームクリア
-================================================== */
 
 function pauseGame() {
   if (
@@ -1641,9 +1630,6 @@ function endGame(reason) {
     el.finalScore.textContent = String(state.score);
   }
 
-  /*
-    GAMEOVER.mp3を1回だけ再生
-  */
   playEndMusic("GAMEOVER.mp3");
 
   el.gameOver?.classList.add("open");
@@ -1666,9 +1652,6 @@ function gameClear() {
     el.clearScore.textContent = String(state.score);
   }
 
-  /*
-    OvercameHardships.mp3を1回だけ再生
-  */
   playEndMusic("OvercameHardships.mp3");
 
   el.gameClear?.classList.add("open");
@@ -1726,10 +1709,6 @@ function createPieceElement(piece, active, total) {
     node.classList.add(`c${piece.color}`);
   }
 
-  /*
-    合計値そのものは表示しない。
-    合計5 / 6 / 7の状態だけ光り方で伝える。
-  */
   if (total >= 5 && total <= 7) {
     node.classList.add(`t${total}`);
   }
@@ -2047,9 +2026,6 @@ el.clearTitle?.addEventListener(
   returnTitle
 );
 
-/*
-  別のタブ・アプリへ移動したら自動中断。
-*/
 document.addEventListener("visibilitychange", () => {
   if (
     document.hidden &&

@@ -2,24 +2,17 @@
 
 :root {
   --bg: #050914;
-  --bg-deep: #02040b;
   --panel: rgba(14, 24, 48, 0.92);
-  --panel-solid: #101a31;
-
   --line: rgba(158, 210, 255, 0.28);
   --line-strong: rgba(128, 223, 255, 0.72);
-
   --text: #f5f8ff;
   --muted: #9caaca;
-
   --cyan: #5de4ff;
   --blue: #5b83ff;
   --purple: #a471ff;
   --green: #65ff9a;
   --yellow: #ffe075;
   --pink: #ff7194;
-  --danger: #ff5079;
-
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -34,7 +27,7 @@ body {
   width: 100%;
   min-height: 100%;
   margin: 0;
-  background: var(--bg-deep);
+  background: #02040b;
   color: var(--text);
   font-family: "Noto Sans JP", sans-serif;
   overscroll-behavior: none;
@@ -60,31 +53,22 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-/* ==================================================
-   全体
-================================================== */
-
 .app {
   position: relative;
   min-height: 100dvh;
   overflow: hidden;
   background:
     radial-gradient(
-      circle at 83% 5%,
-      rgba(54, 119, 255, 0.28),
-      transparent 29%
+      circle at 50% 50%,
+      rgba(23, 52, 111, 0.32),
+      transparent 34%
     ),
     radial-gradient(
-      circle at 7% 93%,
-      rgba(126, 71, 214, 0.2),
-      transparent 40%
+      circle at 82% 5%,
+      rgba(53, 102, 234, 0.22),
+      transparent 31%
     ),
-    linear-gradient(
-      145deg,
-      #101b35 0%,
-      #050914 57%,
-      #02040b 100%
-    );
+    linear-gradient(145deg, #101b35 0%, #050914 58%, #02040b 100%);
 }
 
 .hidden {
@@ -92,7 +76,7 @@ button:focus-visible {
 }
 
 /* ==================================================
-   周波数反応ステージライト
+   音反応・万華鏡／幾何学模様
 ================================================== */
 
 .stage-lights {
@@ -100,126 +84,253 @@ button:focus-visible {
   z-index: 0;
   inset: 0;
   overflow: hidden;
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(59, 104, 203, 0.1),
+      transparent 53%
+    );
   pointer-events: none;
 }
 
 /*
-  HTMLのクラス名と完全に一致させる。
-  stage-light--left / right / center
+  中央：
+  低音に合わせて大きく脈動する万華鏡の中心。
+  JavaScriptが scale と opacity を変える。
 */
-.stage-light {
+.stage-light--center {
   position: absolute;
+  top: 50%;
+  left: 50%;
   display: block;
-  width: 78vw;
-  height: 105vh;
+  width: 122vmax;
+  height: 122vmax;
+  border-radius: 50%;
   opacity: 0.12;
-  filter: blur(16px);
-  transform-origin: 50% 100%;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(93, 228, 255, 0.48) 0deg 2deg,
+      transparent 2deg 16deg,
+      rgba(164, 113, 255, 0.36) 16deg 19deg,
+      transparent 19deg 30deg
+    ),
+    repeating-radial-gradient(
+      circle at center,
+      transparent 0 6%,
+      rgba(93, 228, 255, 0.22) 6.1% 6.5%,
+      transparent 6.6% 12%
+    );
+  filter: blur(1px) saturate(1.25);
+  mix-blend-mode: screen;
+  transform: translateX(-50%) rotate(0deg);
+  transform-origin: center;
   transition:
     opacity 0.055s linear,
     transform 0.055s linear,
     filter 0.055s linear;
+  animation: kaleido-spin-center 26s linear infinite;
 }
 
-.stage-light--left {
-  bottom: -48vh;
-  left: -48vw;
-  background: linear-gradient(
-    0deg,
-    rgba(73, 112, 255, 0),
-    rgba(73, 112, 255, 0.86)
-  );
-  transform: rotate(-24deg);
-}
-
-.stage-light--right {
-  right: -48vw;
-  bottom: -48vh;
-  background: linear-gradient(
-    0deg,
-    rgba(165, 88, 255, 0),
-    rgba(165, 88, 255, 0.83)
-  );
-  transform: rotate(24deg);
-}
-
-.stage-light--center {
-  bottom: -53vh;
-  left: 50%;
-  width: 56vw;
-  background: linear-gradient(
-    0deg,
-    rgba(74, 229, 255, 0),
-    rgba(74, 229, 255, 0.72)
-  );
-  transform: translateX(-50%);
-}
-
-.stage-laser {
+.stage-light--center::before {
   position: absolute;
-  top: -12%;
-  display: block;
-  width: 2px;
-  height: 124%;
-  opacity: 0.12;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    var(--cyan) 24%,
-    rgba(214, 251, 255, 0.95) 50%,
-    var(--cyan) 76%,
-    transparent
-  );
+  content: "";
+  inset: 17%;
+  border: 1px solid rgba(155, 238, 255, 0.52);
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(
+      from 15deg,
+      transparent 0deg 9deg,
+      rgba(122, 217, 255, 0.44) 9deg 10deg,
+      transparent 10deg 18deg
+    );
   box-shadow:
-    0 0 8px var(--cyan),
-    0 0 21px rgba(93, 228, 255, 0.78),
-    0 0 45px rgba(93, 228, 255, 0.32);
+    0 0 22px rgba(93, 228, 255, 0.23),
+    inset 0 0 18px rgba(93, 228, 255, 0.19);
+}
+
+.stage-light--center::after {
+  position: absolute;
+  content: "";
+  inset: 34%;
+  border: 2px solid rgba(255, 255, 255, 0.26);
+  transform: rotate(45deg);
+  box-shadow:
+    0 0 18px rgba(164, 113, 255, 0.33),
+    inset 0 0 17px rgba(93, 228, 255, 0.26);
+}
+
+/*
+  左右：
+  中音に合わせて濃くなる多角形レイヤー。
+*/
+.stage-light--left,
+.stage-light--right {
+  position: absolute;
+  top: 50%;
+  display: block;
+  width: 98vmax;
+  height: 98vmax;
+  opacity: 0.1;
+  clip-path: polygon(
+    50% 0%,
+    93% 25%,
+    93% 75%,
+    50% 100%,
+    7% 75%,
+    7% 25%
+  );
+  filter: blur(0.5px) saturate(1.3);
+  mix-blend-mode: screen;
   transform-origin: center;
   transition:
     opacity 0.055s linear,
     transform 0.055s linear;
 }
 
+.stage-light--left {
+  left: -55vmax;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(91, 131, 255, 0.44) 0deg 4deg,
+      transparent 4deg 21deg,
+      rgba(93, 228, 255, 0.35) 21deg 24deg,
+      transparent 24deg 42deg
+    );
+  box-shadow:
+    0 0 60px rgba(91, 131, 255, 0.27),
+    inset 0 0 70px rgba(93, 228, 255, 0.22);
+  animation: kaleido-spin-left 18s linear infinite;
+}
+
+.stage-light--right {
+  right: -55vmax;
+  background:
+    repeating-conic-gradient(
+      from 12deg,
+      rgba(164, 113, 255, 0.43) 0deg 4deg,
+      transparent 4deg 20deg,
+      rgba(93, 228, 255, 0.27) 20deg 23deg,
+      transparent 23deg 40deg
+    );
+  box-shadow:
+    0 0 60px rgba(164, 113, 255, 0.27),
+    inset 0 0 70px rgba(164, 113, 255, 0.22);
+  animation: kaleido-spin-right 21s linear infinite;
+}
+
+.stage-light--left::before,
+.stage-light--right::before {
+  position: absolute;
+  content: "";
+  inset: 19%;
+  border: 1px solid rgba(222, 247, 255, 0.44);
+  clip-path: polygon(
+    50% 0%,
+    100% 50%,
+    50% 100%,
+    0% 50%
+  );
+  box-shadow:
+    0 0 20px rgba(93, 228, 255, 0.33),
+    inset 0 0 20px rgba(93, 228, 255, 0.2);
+}
+
+.stage-light--left::after,
+.stage-light--right::after {
+  position: absolute;
+  content: "";
+  inset: 38%;
+  border: 2px solid rgba(255, 255, 255, 0.26);
+  border-radius: 50%;
+  box-shadow:
+    0 0 20px rgba(164, 113, 255, 0.28),
+    inset 0 0 12px rgba(164, 113, 255, 0.22);
+}
+
+/*
+  高音：
+  以前のレーザー2本を、細い幾何学線・破片のレイヤーへ置換。
+*/
+.stage-laser--left,
+.stage-laser--right {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 118vmax;
+  height: 118vmax;
+  opacity: 0.08;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(216, 253, 255, 0.9) 0deg 0.55deg,
+      transparent 0.55deg 8deg,
+      rgba(93, 228, 255, 0.58) 8deg 1deg,
+      transparent 1deg 17deg
+    );
+  filter: drop-shadow(0 0 4px rgba(93, 228, 255, 0.78));
+  mix-blend-mode: screen;
+  transform-origin: center;
+  transition:
+    opacity 0.045s linear,
+    transform 0.045s linear;
+}
+
 .stage-laser--left {
-  left: 25%;
-  transform: rotate(25deg);
+  clip-path: polygon(
+    0 0,
+    100% 42%,
+    74% 50%,
+    100% 58%,
+    0 100%
+  );
 }
 
 .stage-laser--right {
-  right: 25%;
-  transform: rotate(-25deg);
+  clip-path: polygon(
+    100% 0,
+    0 42%,
+    26% 50%,
+    0 58%,
+    100% 100%
+  );
+}
+
+.stage-laser--left::before,
+.stage-laser--right::before {
+  position: absolute;
+  content: "";
+  inset: 23%;
+  border: 1px solid rgba(93, 228, 255, 0.66);
+  transform: rotate(45deg);
+  box-shadow:
+    0 0 14px rgba(93, 228, 255, 0.38),
+    inset 0 0 11px rgba(93, 228, 255, 0.22);
+}
+
+.stage-laser--left::after,
+.stage-laser--right::after {
+  position: absolute;
+  content: "";
+  inset: 39%;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  box-shadow: 0 0 17px rgba(93, 228, 255, 0.55);
 }
 
 .stage-particles {
   position: absolute;
   inset: 0;
-  opacity: 0.23;
+  opacity: 0.28;
   background-image:
-    radial-gradient(
-      circle at 14% 18%,
-      rgba(255, 255, 255, 0.92) 0 1px,
-      transparent 1.4px
-    ),
-    radial-gradient(
-      circle at 78% 11%,
-      rgba(93, 228, 255, 0.9) 0 1px,
-      transparent 1.6px
-    ),
-    radial-gradient(
-      circle at 89% 64%,
-      rgba(164, 113, 255, 0.8) 0 1px,
-      transparent 1.5px
-    ),
-    radial-gradient(
-      circle at 18% 78%,
-      rgba(93, 228, 255, 0.8) 0 1px,
-      transparent 1.4px
-    ),
-    radial-gradient(
-      circle at 48% 39%,
-      rgba(255, 255, 255, 0.7) 0 1px,
-      transparent 1.3px
-    );
+    radial-gradient(circle at 12% 17%, #fff 0 1px, transparent 1.5px),
+    radial-gradient(circle at 78% 12%, var(--cyan) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 89% 64%, var(--purple) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 19% 78%, var(--cyan) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 48% 39%, #fff 0 1px, transparent 1.4px);
   background-size:
     117px 137px,
     163px 187px,
@@ -229,22 +340,37 @@ button:focus-visible {
   animation: particles-drift 9s linear infinite;
 }
 
-.app.is-fever .stage-light {
-  opacity: 0.42 !important;
-  filter: blur(10px) saturate(1.55);
+.app.is-fever .stage-light--center {
+  opacity: 0.62 !important;
+  filter: blur(0) saturate(1.8) hue-rotate(52deg);
+  animation-duration: 6s;
 }
 
-.app.is-fever .stage-laser {
-  opacity: 0.52 !important;
+.app.is-fever .stage-light--left,
+.app.is-fever .stage-light--right {
+  opacity: 0.45 !important;
+  filter: saturate(1.8) hue-rotate(45deg);
+  animation-duration: 5s;
+}
+
+.app.is-fever .stage-laser--left,
+.app.is-fever .stage-laser--right {
+  opacity: 0.65 !important;
 }
 
 .app.is-fever .stage-particles {
-  opacity: 0.48;
-  animation-duration: 3.7s;
+  opacity: 0.55;
+  animation-duration: 3.5s;
 }
 
 .app.is-over-flash .stage-lights {
   animation: over-screen-flash 0.58s ease-out;
+}
+
+.app.is-over-flash .stage-light,
+.app.is-over-flash .stage-laser--left,
+.app.is-over-flash .stage-laser--right {
+  filter: hue-rotate(285deg) saturate(1.8);
 }
 
 /* ==================================================
@@ -323,19 +449,13 @@ h1 span {
 }
 
 .menu-button {
-  position: relative;
   width: 100%;
-  overflow: hidden;
   padding: 15px 18px;
   border: 1px solid var(--line);
   border-radius: 15px;
   background: rgba(18, 31, 57, 0.88);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.17);
   text-align: left;
-  transition:
-    transform 0.15s ease,
-    border-color 0.15s ease,
-    background 0.15s ease;
 }
 
 .menu-button:active {
@@ -343,8 +463,6 @@ h1 span {
 }
 
 .menu-button strong {
-  position: relative;
-  z-index: 1;
   display: block;
   font-size: 1.05rem;
   font-weight: 900;
@@ -352,8 +470,6 @@ h1 span {
 }
 
 .menu-button small {
-  position: relative;
-  z-index: 1;
   display: block;
   margin-top: 2px;
   color: var(--muted);
@@ -365,11 +481,7 @@ h1 span {
 
 .menu-button.primary {
   border-color: rgba(93, 228, 255, 0.85);
-  background: linear-gradient(
-    135deg,
-    #2785df,
-    #5a64ed
-  );
+  background: linear-gradient(135deg, #2785df, #5a64ed);
   box-shadow:
     0 0 25px rgba(79, 164, 255, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
@@ -380,7 +492,7 @@ h1 span {
 }
 
 /* ==================================================
-   ゲーム画面
+   ゲーム画面とHUD
 ================================================== */
 
 #game-screen {
@@ -389,14 +501,6 @@ h1 span {
   padding-inline: 9px;
 }
 
-/*
-  スマホでは3列＋2列。
-  1段目：
-  経験値 / LEVEL / 残り時間
-
-  2段目：
-  ステージ経験値 / オーバー
-*/
 .hud {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -410,18 +514,11 @@ h1 span {
   padding: 7px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  background: rgba(9, 17, 36, 0.89);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 4px 10px rgba(0, 0, 0, 0.08);
+  background: rgba(9, 17, 36, 0.9);
 }
 
 .hud-stage {
   grid-column: span 2;
-}
-
-.hud-over {
-  grid-column: span 1;
 }
 
 .hud span {
@@ -449,7 +546,6 @@ h1 span {
 
 .hud-stage strong {
   color: var(--cyan);
-  font-size: clamp(0.68rem, 3.5vw, 0.96rem);
 }
 
 .hud-stage em {
@@ -526,16 +622,9 @@ h1 span {
   border: 1px solid var(--line-strong);
   border-radius: 14px;
   background:
-    linear-gradient(
-      rgba(164, 203, 255, 0.085) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      rgba(164, 203, 255, 0.085) 1px,
-      transparent 1px
-    ),
-    rgba(4, 11, 25, 0.81);
+    linear-gradient(rgba(164, 203, 255, 0.085) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(164, 203, 255, 0.085) 1px, transparent 1px),
+    rgba(4, 11, 25, 0.84);
   background-size: 12.5% 25%;
   box-shadow:
     0 0 30px rgba(71, 154, 255, 0.1),
@@ -563,19 +652,11 @@ h1 span {
   opacity: 0;
   background: rgba(93, 228, 255, 0.12);
   pointer-events: none;
-  transition: opacity 0.13s ease;
 }
 
 .cell.target::after {
   opacity: 1;
   animation: target-pulse 0.75s ease-in-out infinite alternate;
-}
-
-/* 合計5・6・7の接続列 */
-.cell.prep-5,
-.cell.prep-6,
-.cell.prep-7 {
-  z-index: 1;
 }
 
 .cell.prep-5 {
@@ -620,17 +701,8 @@ h1 span {
 .orb {
   border: 2px solid rgba(239, 250, 255, 0.86);
   background:
-    radial-gradient(
-      circle at 29% 23%,
-      #ffffff 0 6%,
-      transparent 18%
-    ),
-    radial-gradient(
-      circle at 37% 35%,
-      #9aeaff,
-      #4074ec 55%,
-      #20246e
-    );
+    radial-gradient(circle at 29% 23%, #fff 0 6%, transparent 18%),
+    radial-gradient(circle at 37% 35%, #9aeaff, #4074ec 55%, #20246e);
   box-shadow:
     inset -7px -9px 13px rgba(0, 0, 0, 0.48),
     0 0 13px rgba(86, 191, 255, 0.55);
@@ -639,12 +711,7 @@ h1 span {
 .ring {
   border: 4px solid rgba(248, 252, 255, 0.95);
   background:
-    radial-gradient(
-      circle,
-      transparent 35%,
-      rgba(255, 255, 255, 0.14) 43%,
-      transparent 66%
-    );
+    radial-gradient(circle, transparent 35%, rgba(255, 255, 255, 0.14) 43%, transparent 66%);
   box-shadow:
     0 0 10px rgba(255, 255, 255, 0.3),
     inset 0 0 7px rgba(255, 255, 255, 0.16);
@@ -654,17 +721,8 @@ h1 span {
   border-color: var(--yellow);
   color: var(--yellow);
   background:
-    radial-gradient(
-      circle,
-      rgba(255, 224, 117, 0.24) 0 27%,
-      transparent 28%
-    ),
-    radial-gradient(
-      circle,
-      transparent 39%,
-      rgba(255, 224, 117, 0.22) 45%,
-      transparent 67%
-    );
+    radial-gradient(circle, rgba(255, 224, 117, 0.24) 0 27%, transparent 28%),
+    radial-gradient(circle, transparent 39%, rgba(255, 224, 117, 0.22) 45%, transparent 67%);
   box-shadow:
     0 0 10px var(--yellow),
     0 0 24px rgba(255, 224, 117, 0.52);
@@ -697,7 +755,6 @@ h1 span {
 
 .t5 {
   color: var(--green);
-  transform: scale(1.035);
   box-shadow:
     0 0 13px rgba(101, 255, 154, 0.72),
     0 0 25px rgba(101, 255, 154, 0.22);
@@ -705,22 +762,16 @@ h1 span {
 
 .t6 {
   color: var(--green);
-  box-shadow:
-    0 0 16px rgba(101, 255, 154, 0.9),
-    0 0 29px rgba(101, 255, 154, 0.34);
   animation: prepared-piece-6 0.7s ease-in-out infinite alternate;
 }
 
 .t7 {
   color: var(--yellow);
-  box-shadow:
-    0 0 17px rgba(255, 224, 117, 0.98),
-    0 0 35px rgba(255, 224, 117, 0.54);
   animation: prepared-piece-7 0.29s ease-in-out infinite alternate;
 }
 
 /* ==================================================
-   控えリング・中断
+   控えリング
 ================================================== */
 
 .queue {
@@ -730,7 +781,6 @@ h1 span {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(9, 17, 36, 0.83);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   flex-direction: column;
   align-items: center;
   text-align: center;
@@ -743,7 +793,6 @@ h1 span {
   font-family: Orbitron, sans-serif;
   font-size: 0.45rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
 }
 
 #ring-queue-list {
@@ -758,12 +807,10 @@ h1 span {
   margin: 6px auto;
   border: 3px solid rgba(248, 252, 255, 0.95);
   border-radius: 50%;
-  color: var(--text);
   font-family: Orbitron, sans-serif;
   font-size: 0.85rem;
   font-weight: 800;
   text-shadow: 0 2px 4px #000;
-  box-shadow: 0 0 7px rgba(255, 255, 255, 0.23);
 }
 
 .queue-ring:first-child {
@@ -774,8 +821,8 @@ h1 span {
 }
 
 .queue-ring.star-ring {
-  color: var(--yellow);
   border-color: var(--yellow);
+  color: var(--yellow);
 }
 
 .queue-abort {
@@ -785,16 +832,8 @@ h1 span {
   border: 1px solid rgba(255, 255, 255, 0.19);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.07);
-  color: var(--text);
   font-size: 0.65rem;
   font-weight: 900;
-  letter-spacing: 0.04em;
-  text-align: center;
-}
-
-.queue-abort:active {
-  background: rgba(255, 113, 148, 0.24);
-  transform: scale(0.96);
 }
 
 .hint {
@@ -808,7 +847,7 @@ h1 span {
 }
 
 /* ==================================================
-   オーバー数値
+   オーバー数値・カウントダウン
 ================================================== */
 
 .over-popup {
@@ -834,10 +873,6 @@ h1 span {
   animation: over-number 1s cubic-bezier(0.18, 0.74, 0.24, 1) forwards;
 }
 
-/* ==================================================
-   カウントダウン
-================================================== */
-
 .overlay {
   position: fixed;
   z-index: 60;
@@ -853,16 +888,13 @@ h1 span {
   font-family: Orbitron, sans-serif;
   font-size: clamp(3rem, 18vw, 7rem);
   font-weight: 900;
-  letter-spacing: -0.06em;
   text-shadow:
     0 0 12px rgba(93, 228, 255, 0.95),
-    0 0 32px rgba(93, 228, 255, 0.8),
-    0 0 62px rgba(93, 228, 255, 0.43);
-  animation: countdown-pop 0.64s ease-out;
+    0 0 32px rgba(93, 228, 255, 0.8);
 }
 
 /* ==================================================
-   モーダル
+   モーダル・チュートリアル
 ================================================== */
 
 .modal {
@@ -885,22 +917,12 @@ h1 span {
   padding: 25px;
   border: 1px solid var(--line-strong);
   border-radius: 17px;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(25, 42, 77, 0.98),
-      rgba(11, 18, 38, 0.98)
-    );
-  box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.52),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(25, 42, 77, 0.98), rgba(11, 18, 38, 0.98));
   text-align: center;
 }
 
 .modal-card h2 {
-  color: var(--text);
   font-size: clamp(1.22rem, 6vw, 1.7rem);
-  letter-spacing: 0.01em;
 }
 
 .modal-card p {
@@ -923,26 +945,13 @@ h1 span {
   font-family: Orbitron, sans-serif;
   font-size: clamp(2.2rem, 12vw, 3.2rem);
   font-weight: 900;
-  text-shadow: 0 0 15px rgba(255, 224, 117, 0.48);
 }
 
-/* CLEAR画面 */
 .clear-card {
   border-color: rgba(255, 224, 117, 0.85);
   background:
-    radial-gradient(
-      circle at 50% 0%,
-      rgba(255, 224, 117, 0.2),
-      transparent 48%
-    ),
-    linear-gradient(
-      135deg,
-      rgba(49, 48, 78, 0.98),
-      rgba(13, 23, 44, 0.98)
-    );
-  box-shadow:
-    0 0 38px rgba(255, 224, 117, 0.19),
-    0 18px 50px rgba(0, 0, 0, 0.52);
+    radial-gradient(circle at 50% 0%, rgba(255, 224, 117, 0.2), transparent 48%),
+    linear-gradient(135deg, rgba(49, 48, 78, 0.98), rgba(13, 23, 44, 0.98));
 }
 
 .clear-card h2 {
@@ -951,10 +960,6 @@ h1 span {
     0 0 12px rgba(255, 224, 117, 0.6),
     0 0 28px rgba(255, 224, 117, 0.3);
 }
-
-/* ==================================================
-   チュートリアル
-================================================== */
 
 .tutorial {
   flex-direction: column;
@@ -968,23 +973,19 @@ h1 span {
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--panel);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
 }
 
 .tutorial-card p {
-  color: var(--text);
   font-size: 0.94rem;
   font-weight: 700;
   line-height: 2;
 }
 
 #tutorial-step {
-  display: block;
   color: var(--cyan);
   font-family: Orbitron, sans-serif;
   font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
 }
 
 .tutorial > .menu-button {
@@ -996,7 +997,6 @@ h1 span {
   position: absolute;
   top: max(13px, calc(var(--safe-top) + 4px));
   right: 13px;
-  z-index: 2;
   padding: 9px 11px;
   border: 1px solid var(--line);
   border-radius: 9px;
@@ -1010,23 +1010,43 @@ h1 span {
    アニメーション
 ================================================== */
 
-@keyframes particles-drift {
+@keyframes kaleido-spin-center {
   from {
-    background-position:
-      0 0,
-      0 0,
-      0 0,
-      0 0,
-      0 0;
+    transform: translateX(-50%) rotate(0deg);
   }
 
   to {
-    background-position:
-      25px 160px,
-      -32px 210px,
-      42px 190px,
-      -18px 240px,
-      34px 220px;
+    transform: translateX(-50%) rotate(360deg);
+  }
+}
+
+@keyframes kaleido-spin-left {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes kaleido-spin-right {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes particles-drift {
+  from {
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+  }
+
+  to {
+    background-position: 25px 160px, -32px 210px, 42px 190px, -18px 240px, 34px 220px;
   }
 }
 
@@ -1137,28 +1157,11 @@ h1 span {
   }
 
   30% {
-    background-color: rgba(255, 77, 124, 0.24);
+    background-color: rgba(255, 77, 124, 0.26);
   }
 
   100% {
     background-color: rgba(255, 77, 124, 0);
-  }
-}
-
-@keyframes countdown-pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.38);
-  }
-
-  35% {
-    opacity: 1;
-    transform: scale(1.14);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1);
   }
 }
 
@@ -1185,23 +1188,14 @@ h1 span {
       1fr;
   }
 
-  .hud-stage,
-  .hud-over {
+  .hud-stage {
     grid-column: auto;
-  }
-
-  .hud span {
-    font-size: 0.46rem;
   }
 
   .board {
     max-height: 510px;
   }
 }
-
-/* ==================================================
-   高さが低い端末
-================================================== */
 
 @media (max-height: 680px) {
   .screen {
