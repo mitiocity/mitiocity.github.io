@@ -27,7 +27,18 @@ const CONFIG = {
 
   bgmVolume: 0.38,
   bgmFadeMs: 900,
-  endMusicVolume: 0.48
+  endMusicVolume: 0.48,
+
+  /*
+    音反応のなめらかさ。
+    小さいほど、急な音量変化を抑えられる。
+  */
+  visualSmoothing: 0.055,
+
+  /*
+    端末が「動きを減らす」を希望している場合の強さ。
+  */
+  reducedMotionStrength: 0.32
 };
 
 const TUTORIAL_TEXTS = [
@@ -116,6 +127,21 @@ let analyserData = null;
 let stageAnimationId = null;
 let endMusic = null;
 
+/*
+  表示用に音量を滑らかに保持する。
+  生の音量をそのまま使わないので、
+  細かいチカチカを防げる。
+*/
+const visualEnergy = {
+  bass: 0,
+  middle: 0,
+  high: 0
+};
+
+const reducedMotionQuery = window.matchMedia(
+  "(prefers-reduced-motion: reduce)"
+);
+
 /* ==================================================
    基本処理
 ================================================== */
@@ -151,15 +177,15 @@ function makePiece(type, number = null, color = null) {
 
 function createInitialBoard() {
   return Array.from({ length: CONFIG.rows }, (_, row) => {
-    const rowData = Array(CONFIG.cols).fill(null);
+    const boardRow = Array(CONFIG.cols).fill(null);
 
-    rowData[0] = makePiece(
+    boardRow[0] = makePiece(
       "orb",
       randomNumber(),
       row
     );
 
-    return rowData;
+    return boardRow;
   });
 }
 
@@ -183,8 +209,8 @@ function createGameState() {
     time: CONFIG.startTime,
 
     /*
-      0〜5。
-      回復手段なし。
+      オーバーゲージ。
+      回復手段はなし。
     */
     over: 0,
 
@@ -454,7 +480,11 @@ function createBgmForCurrentLevel() {
     const analyser = audioContext.createAnalyser();
 
     analyser.fftSize = 2048;
-    analyser.smoothingTimeConstant = 0.72;
+
+    /*
+      ブラウザ内の解析段階でも少し平均化する。
+    */
+    analyser.smoothingTimeConstant = 0.84;
 
     const source =
       audioContext.createMediaElementSource(audio);
@@ -491,10 +521,6 @@ function prepareBgmForStart() {
     return;
   }
 
-  /*
-    STARTボタンのユーザー操作中に再生許可を取る。
-    READY?中は音量0。
-  */
   currentBgm.audio.volume = 0;
 
   currentBgm.audio.play()
@@ -510,9 +536,6 @@ function startBgm() {
     return;
   }
 
-  /*
-    GO!開始時に曲の先頭から流す。
-  */
   currentBgm.audio.currentTime = 0;
 
   currentBgm.audio.play()
@@ -583,7 +606,6 @@ function changeBgmForLevel() {
       if (previous?.audio) {
         previous.audio.pause();
         previous.audio.currentTime = 0;
-
         disconnectBgm(previous);
       }
     }
@@ -641,7 +663,7 @@ function playEndMusic(fileName) {
 }
 
 /* ==================================================
-   音反応・万華鏡
+   音反応：なめらかな多層万華鏡
 ================================================== */
 
 function getFrequencyAverage(fromHz, toHz) {
@@ -686,98 +708,137 @@ function getFrequencyAverage(fromHz, toHz) {
   return count ? total / count / 255 : 0;
 }
 
+function smoothValue(current, target) {
+  return current +
+    (target - current) * CONFIG.visualSmoothing;
+}
+
 function updateStageLights(timestamp) {
-  const bass = getFrequencyAverage(35, 170);
-  const middle = getFrequencyAverage(170, 1100);
-  const high = getFrequencyAverage(1800, 9000);
+  const rawBass = getFrequencyAverage(35, 170);
+  const rawMiddle = getFrequencyAverage(170, 1100);
+  const rawHigh = getFrequencyAverage(1800, 9000);
+
+  /*
+    生の音量をそのまま画面へ反映しない。
+    滑らかに追いつかせる。
+  */
+  visualEnergy.bass = smoothValue(
+    visualEnergy.bass,
+    rawBass
+  );
+
+  visualEnergy.middle = smoothValue(
+    visualEnergy.middle,
+    rawMiddle
+  );
+
+  visualEnergy.high = smoothValue(
+    visualEnergy.high,
+    rawHigh
+  );
 
   const time = timestamp / 1000;
-  const feverBoost = isFever() ? 0.15 : 0;
+
+  const strength = reducedMotionQuery.matches
+    ? CONFIG.reducedMotionStrength
+    : 1;
+
+  const bass = visualEnergy.bass * strength;
+  const middle = visualEnergy.middle * strength;
+  const high = visualEnergy.high * strength;
+
+  const feverBoost = isFever()
+    ? 0.1 * strength
+    : 0;
 
   /*
     低音：
-    中央万華鏡を拡大・縮小。
+    中央万華鏡が呼吸するように広がる。
+    細かい振動は加えない。
   */
   if (el.stageCenter) {
-    const centerRotation =
-      time * (4 + bass * 18);
+    const rotation =
+      time * (2.4 + bass * 4.5);
 
-    const centerScale =
+    const scale =
       0.78 +
-      bass * 0.62 +
-      Math.sin(time * 2.4) * 0.025;
+      bass * 0.42 +
+      feverBoost;
 
     el.stageCenter.style.opacity = String(
-      0.1 +
-      bass * 0.58 +
+      0.09 +
+      bass * 0.42 +
       feverBoost
     );
 
     el.stageCenter.style.transform =
-      `translate(-50%, -50%) rotate(${centerRotation}deg) scale(${centerScale})`;
+      `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
   }
 
   /*
     中音：
-    左右の多角形を逆方向へ回す。
+    左右の多角形をゆっくり逆方向へ動かす。
   */
   if (el.stageLeft) {
-    const leftRotation =
-      -18 +
-      Math.sin(time * 1.1) * 14 +
-      middle * 58;
+    const rotation =
+      -12 +
+      Math.sin(time * 0.56) * 7 +
+      middle * 18;
 
-    const leftScale =
-      0.8 +
-      middle * 0.56 +
-      bass * 0.16;
+    const scale =
+      0.82 +
+      middle * 0.3 +
+      bass * 0.08 +
+      feverBoost;
 
     el.stageLeft.style.opacity = String(
-      0.08 +
-      middle * 0.54 +
+      0.07 +
+      middle * 0.35 +
       feverBoost
     );
 
     el.stageLeft.style.transform =
-      `translateY(-50%) rotate(${leftRotation}deg) scale(${leftScale})`;
+      `translateY(-50%) rotate(${rotation}deg) scale(${scale})`;
   }
 
   if (el.stageRight) {
-    const rightRotation =
-      18 +
-      Math.cos(time * 1.05) * 14 -
-      middle * 58;
+    const rotation =
+      12 +
+      Math.cos(time * 0.52) * 7 -
+      middle * 18;
 
-    const rightScale =
-      0.8 +
-      middle * 0.56 +
-      bass * 0.16;
+    const scale =
+      0.82 +
+      middle * 0.3 +
+      bass * 0.08 +
+      feverBoost;
 
     el.stageRight.style.opacity = String(
-      0.08 +
-      middle * 0.54 +
+      0.07 +
+      middle * 0.35 +
       feverBoost
     );
 
     el.stageRight.style.transform =
-      `translateY(-50%) rotate(${rightRotation}deg) scale(${rightScale})`;
+      `translateY(-50%) rotate(${rotation}deg) scale(${scale})`;
   }
 
   /*
     高音：
-    細かい幾何学線を高速回転。
+    点滅させず、細かい幾何学線の回転速度と濃さで見せる。
   */
   if (el.laserLeft) {
     const rotation =
-      time * (12 + high * 115);
+      time * (5 + high * 18);
 
     const scale =
-      0.74 +
-      high * 0.64;
+      0.78 +
+      high * 0.24 +
+      bass * 0.05;
 
     el.laserLeft.style.opacity = String(
-      0.06 +
-      high * 0.72 +
+      0.04 +
+      high * 0.32 +
       feverBoost
     );
 
@@ -787,15 +848,16 @@ function updateStageLights(timestamp) {
 
   if (el.laserRight) {
     const rotation =
-      -time * (15 + high * 128);
+      -time * (5.8 + high * 18);
 
     const scale =
-      0.74 +
-      high * 0.64;
+      0.78 +
+      high * 0.24 +
+      bass * 0.05;
 
     el.laserRight.style.opacity = String(
-      0.06 +
-      high * 0.72 +
+      0.04 +
+      high * 0.32 +
       feverBoost
     );
 
@@ -824,6 +886,10 @@ function stopStageLights() {
   }
 
   stageAnimationId = null;
+
+  visualEnergy.bass = 0;
+  visualEnergy.middle = 0;
+  visualEnergy.high = 0;
 }
 
 /* ==================================================
@@ -936,7 +1002,7 @@ function startClock() {
 }
 
 /* ==================================================
-   リング
+   リング操作
 ================================================== */
 
 function spawnRing() {
@@ -1227,17 +1293,13 @@ function checkStageClear() {
     return true;
   }
 
-  /*
-    LEVEL UP：
-    総経験値は維持。
-    ステージ経験値のみ0。
-    残り時間だけ300へ回復。
-    オーバーゲージは絶対に減らさない。
-  */
   state.level += 1;
   state.stageScore = 0;
   state.time = CONFIG.startTime;
 
+  /*
+    LEVEL UPでもオーバーゲージは維持。
+  */
   setStatus("LEVEL UP! TIME RESET");
 
   changeBgmForLevel();
@@ -1375,11 +1437,6 @@ function resolveStar(row) {
   }
 
   const pieces = state.board[row].filter(Boolean);
-
-  /*
-    空白レーンの★も、
-    合計8を1回作った扱い。
-  */
   const clearCount = Math.max(1, pieces.length);
 
   const feverMultiplier = isFever()
@@ -1511,7 +1568,7 @@ function startFeverAndRespawn() {
     }
 
     /*
-      オーブもリングもないレーンだけに
+      オーブもリングもない完全な空白レーンだけに
       新しいオーブを追加する。
     */
     for (
