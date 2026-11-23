@@ -7,12 +7,14 @@
   --line-strong: rgba(128, 223, 255, 0.72);
   --text: #f5f8ff;
   --muted: #9caaca;
+
   --cyan: #5de4ff;
   --blue: #5b83ff;
   --purple: #a471ff;
   --green: #65ff9a;
   --yellow: #ffe075;
   --pink: #ff7194;
+
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -57,9 +59,22 @@ button:focus-visible {
   min-height: 100dvh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 50%, rgba(28, 62, 129, 0.27), transparent 40%),
-    radial-gradient(circle at 82% 5%, rgba(53, 102, 234, 0.2), transparent 31%),
-    linear-gradient(145deg, #101b35 0%, #050914 58%, #02040b 100%);
+    radial-gradient(
+      ellipse at 50% 45%,
+      rgba(33, 76, 149, 0.24),
+      transparent 51%
+    ),
+    radial-gradient(
+      ellipse at 83% 4%,
+      rgba(81, 56, 173, 0.17),
+      transparent 33%
+    ),
+    linear-gradient(
+      145deg,
+      #101b35 0%,
+      #050914 58%,
+      #02040b 100%
+    );
 }
 
 .hidden {
@@ -67,8 +82,8 @@ button:focus-visible {
 }
 
 /* ==================================================
-   音反応：多層万華鏡・幾何学空間
-   点滅ではなく、ゆるい回転・奥行き・拡縮で見せる
+   音反応：カラフルな円と楕円
+   白フラッシュや放射線状の線は使わない
 ================================================== */
 
 .stage-lights {
@@ -76,234 +91,350 @@ button:focus-visible {
   z-index: 0;
   inset: 0;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse at center, rgba(59, 104, 203, 0.1), transparent 56%);
   pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(59, 104, 203, 0.1),
+      transparent 56%
+    );
 }
 
-/* オーバー時だけ1回広がるピンクの衝撃波 */
+/*
+  オーバー時だけ一度だけ広がるピンクの衝撃波。
+  常時の点滅ではない。
+*/
 .stage-lights::after {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 14vmax;
-  height: 14vmax;
+  width: 12vmax;
+  height: 12vmax;
   border: 2px solid transparent;
   border-radius: 50%;
   content: "";
   opacity: 0;
-  pointer-events: none;
   transform: translate(-50%, -50%) scale(0.2);
 }
 
 .app.is-over-flash .stage-lights::after {
-  border-color: rgba(255, 113, 148, 0.92);
+  border-color: rgba(255, 113, 148, 0.88);
   box-shadow:
-    0 0 22px rgba(255, 113, 148, 0.84),
-    inset 0 0 18px rgba(255, 113, 148, 0.44);
-  animation: over-shockwave 0.72s ease-out forwards;
+    0 0 26px rgba(255, 113, 148, 0.74),
+    inset 0 0 20px rgba(255, 113, 148, 0.32);
+  animation: over-shockwave 0.78s ease-out forwards;
 }
 
-/* 低音：中央の大きな万華鏡 */
+/*
+  低音担当。
+  一番大きい楕円で、音に合わせてゆっくり拡縮する。
+*/
 .stage-light--center {
   position: absolute;
   top: 50%;
   left: 50%;
   display: block;
   width: 118vmax;
-  height: 118vmax;
+  height: 82vmax;
   border-radius: 50%;
-  opacity: 0.12;
+  opacity: 0.16;
   background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgba(93, 228, 255, 0.44) 0deg 1deg,
-      transparent 1deg 14deg,
-      rgba(164, 113, 255, 0.3) 14deg 16deg,
-      transparent 16deg 30deg
+    radial-gradient(
+      ellipse at 30% 38%,
+      rgba(93, 228, 255, 0.48),
+      rgba(93, 228, 255, 0.12) 29%,
+      transparent 61%
     ),
-    repeating-radial-gradient(
-      circle at center,
-      transparent 0 7%,
-      rgba(93, 228, 255, 0.2) 7.1% 7.55%,
-      transparent 7.65% 14%
+    radial-gradient(
+      ellipse at 70% 63%,
+      rgba(164, 113, 255, 0.44),
+      rgba(164, 113, 255, 0.11) 31%,
+      transparent 63%
+    ),
+    radial-gradient(
+      ellipse at 52% 49%,
+      rgba(91, 131, 255, 0.34),
+      transparent 58%
     );
-  filter: blur(1px) saturate(1.2);
+  filter: blur(7px) saturate(1.2);
   mix-blend-mode: screen;
-  transform: translate(-50%, -50%) scale(0.8);
+  transform: translate(-50%, -50%) scale(0.82);
   transform-origin: center;
   transition:
-    opacity 0.18s ease-out,
-    transform 0.18s ease-out;
+    opacity 0.25s ease-out,
+    transform 0.25s ease-out;
 }
 
+/* 中心に浮かぶ柔らかい円 */
 .stage-light--center::before {
   position: absolute;
-  content: "";
-  inset: 18%;
-  border: 1px solid rgba(155, 238, 255, 0.48);
+  top: 50%;
+  left: 50%;
+  width: 33%;
+  height: 46%;
+  border: 1px solid rgba(192, 241, 255, 0.34);
   border-radius: 50%;
   background:
-    repeating-conic-gradient(
-      from 15deg,
-      transparent 0deg 10deg,
-      rgba(122, 217, 255, 0.4) 10deg 11deg,
-      transparent 11deg 20deg
+    radial-gradient(
+      ellipse at 38% 36%,
+      rgba(93, 228, 255, 0.24),
+      transparent 53%
+    ),
+    radial-gradient(
+      ellipse at 66% 68%,
+      rgba(164, 113, 255, 0.22),
+      transparent 55%
     );
   box-shadow:
-    0 0 24px rgba(93, 228, 255, 0.2),
-    inset 0 0 18px rgba(93, 228, 255, 0.16);
+    0 0 25px rgba(93, 228, 255, 0.18),
+    inset 0 0 22px rgba(93, 228, 255, 0.12);
+  content: "";
+  transform: translate(-50%, -50%);
 }
 
+/* 中心の小さなカラー球 */
 .stage-light--center::after {
   position: absolute;
-  content: "";
-  inset: 36%;
-  border: 2px solid rgba(255, 255, 255, 0.22);
-  transform: rotate(45deg);
+  top: 50%;
+  left: 50%;
+  width: 15%;
+  height: 21%;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 30% 28%,
+      rgba(255, 255, 255, 0.34),
+      transparent 16%
+    ),
+    radial-gradient(
+      circle at 48% 50%,
+      rgba(93, 228, 255, 0.48),
+      rgba(91, 131, 255, 0.24) 48%,
+      rgba(164, 113, 255, 0.1) 70%,
+      transparent 74%
+    );
   box-shadow:
-    0 0 18px rgba(164, 113, 255, 0.3),
-    inset 0 0 14px rgba(93, 228, 255, 0.18);
+    0 0 32px rgba(93, 228, 255, 0.26),
+    0 0 48px rgba(164, 113, 255, 0.16);
+  content: "";
+  transform: translate(-50%, -50%);
 }
 
-/* 中音：左右から迫る多角形レイヤー */
+/*
+  中音担当。
+  左右から重なる大きな楕円。
+  幾何学線・多角形・放射線にはしない。
+*/
 .stage-light--left,
 .stage-light--right {
   position: absolute;
   top: 50%;
   display: block;
   width: 92vmax;
-  height: 92vmax;
-  opacity: 0.08;
-  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
-  filter: saturate(1.2);
+  height: 61vmax;
+  border-radius: 50%;
+  opacity: 0.13;
+  filter: blur(5px) saturate(1.25);
   mix-blend-mode: screen;
   transform-origin: center;
   transition:
-    opacity 0.2s ease-out,
-    transform 0.2s ease-out;
+    opacity 0.24s ease-out,
+    transform 0.24s ease-out;
 }
 
 .stage-light--left {
-  left: -53vmax;
+  left: -57vmax;
   background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgba(91, 131, 255, 0.42) 0deg 4deg,
-      transparent 4deg 21deg,
-      rgba(93, 228, 255, 0.3) 21deg 24deg,
-      transparent 24deg 42deg
+    radial-gradient(
+      ellipse at 62% 48%,
+      rgba(91, 131, 255, 0.58),
+      rgba(91, 131, 255, 0.17) 38%,
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse at 72% 24%,
+      rgba(93, 228, 255, 0.31),
+      transparent 43%
     );
   box-shadow:
-    0 0 60px rgba(91, 131, 255, 0.24),
-    inset 0 0 70px rgba(93, 228, 255, 0.18);
+    0 0 65px rgba(91, 131, 255, 0.22),
+    inset 0 0 70px rgba(93, 228, 255, 0.14);
 }
 
 .stage-light--right {
-  right: -53vmax;
+  right: -57vmax;
   background:
-    repeating-conic-gradient(
-      from 12deg,
-      rgba(164, 113, 255, 0.4) 0deg 4deg,
-      transparent 4deg 20deg,
-      rgba(93, 228, 255, 0.27) 20deg 23deg,
-      transparent 23deg 40deg
+    radial-gradient(
+      ellipse at 38% 51%,
+      rgba(164, 113, 255, 0.56),
+      rgba(164, 113, 255, 0.16) 39%,
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse at 28% 75%,
+      rgba(93, 228, 255, 0.28),
+      transparent 44%
     );
   box-shadow:
-    0 0 60px rgba(164, 113, 255, 0.24),
-    inset 0 0 70px rgba(164, 113, 255, 0.18);
+    0 0 65px rgba(164, 113, 255, 0.22),
+    inset 0 0 70px rgba(164, 113, 255, 0.14);
 }
 
+/* 左右の楕円内にある淡い小円 */
 .stage-light--left::before,
 .stage-light--right::before {
   position: absolute;
-  content: "";
-  inset: 20%;
-  border: 1px solid rgba(222, 247, 255, 0.4);
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  width: 28%;
+  height: 42%;
+  border: 1px solid rgba(220, 248, 255, 0.28);
+  border-radius: 50%;
   box-shadow:
-    0 0 20px rgba(93, 228, 255, 0.28),
-    inset 0 0 20px rgba(93, 228, 255, 0.16);
+    0 0 20px rgba(93, 228, 255, 0.15),
+    inset 0 0 18px rgba(93, 228, 255, 0.1);
+  content: "";
 }
 
+.stage-light--left::before {
+  top: 27%;
+  right: 17%;
+}
+
+.stage-light--right::before {
+  top: 31%;
+  left: 17%;
+}
+
+/* 小さな色玉 */
 .stage-light--left::after,
 .stage-light--right::after {
   position: absolute;
-  content: "";
-  inset: 39%;
-  border: 2px solid rgba(255, 255, 255, 0.21);
+  width: 16%;
+  height: 23%;
   border-radius: 50%;
-  box-shadow:
-    0 0 20px rgba(164, 113, 255, 0.24),
-    inset 0 0 12px rgba(164, 113, 255, 0.17);
+  content: "";
 }
 
-/* 高音：細い幾何学線。明滅でなく線の濃さ・回転で反応 */
+.stage-light--left::after {
+  top: 51%;
+  right: 28%;
+  background:
+    radial-gradient(
+      circle at 32% 28%,
+      rgba(255, 255, 255, 0.28),
+      transparent 15%
+    ),
+    radial-gradient(
+      circle,
+      rgba(93, 228, 255, 0.37),
+      rgba(91, 131, 255, 0.16) 58%,
+      transparent 73%
+    );
+}
+
+.stage-light--right::after {
+  top: 27%;
+  left: 28%;
+  background:
+    radial-gradient(
+      circle at 32% 28%,
+      rgba(255, 255, 255, 0.25),
+      transparent 15%
+    ),
+    radial-gradient(
+      circle,
+      rgba(255, 224, 117, 0.3),
+      rgba(164, 113, 255, 0.17) 58%,
+      transparent 73%
+    );
+}
+
+/*
+  高音担当。
+  旧レーザー要素は「細い線」ではなく、
+  小さな楕円のカラー雲として使う。
+*/
 .stage-laser--left,
 .stage-laser--right {
   position: absolute;
-  top: 50%;
-  left: 50%;
   display: block;
-  width: 112vmax;
-  height: 112vmax;
-  opacity: 0.06;
-  background:
-    repeating-conic-gradient(
-      from 0deg,
-      rgba(216, 253, 255, 0.76) 0deg 0.45deg,
-      transparent 0.45deg 9deg,
-      rgba(93, 228, 255, 0.48) 9deg 1deg,
-      transparent 1deg 18deg
-    );
-  filter: drop-shadow(0 0 3px rgba(93, 228, 255, 0.65));
+  width: 53vmax;
+  height: 28vmax;
+  border-radius: 50%;
+  opacity: 0.1;
+  filter: blur(9px) saturate(1.35);
   mix-blend-mode: screen;
-  transform: translate(-50%, -50%) scale(0.8);
   transform-origin: center;
   transition:
-    opacity 0.13s ease-out,
-    transform 0.13s ease-out;
+    opacity 0.16s ease-out,
+    transform 0.16s ease-out;
 }
 
 .stage-laser--left {
-  clip-path: polygon(0 0, 100% 42%, 74% 50%, 100% 58%, 0 100%);
+  top: 9%;
+  left: -16vmax;
+  background:
+    radial-gradient(
+      ellipse at 68% 53%,
+      rgba(93, 228, 255, 0.54),
+      rgba(91, 131, 255, 0.18) 38%,
+      transparent 70%
+    );
 }
 
 .stage-laser--right {
-  clip-path: polygon(100% 0, 0 42%, 26% 50%, 0 58%, 100% 100%);
+  right: -15vmax;
+  bottom: 4%;
+  background:
+    radial-gradient(
+      ellipse at 32% 45%,
+      rgba(101, 255, 154, 0.38),
+      rgba(164, 113, 255, 0.19) 40%,
+      transparent 70%
+    );
 }
 
 .stage-laser--left::before,
 .stage-laser--right::before {
   position: absolute;
+  inset: 26%;
+  border: 1px solid rgba(223, 250, 255, 0.22);
+  border-radius: 50%;
   content: "";
-  inset: 24%;
-  border: 1px solid rgba(93, 228, 255, 0.54);
-  transform: rotate(45deg);
-  box-shadow:
-    0 0 14px rgba(93, 228, 255, 0.3),
-    inset 0 0 11px rgba(93, 228, 255, 0.17);
 }
 
 .stage-laser--left::after,
 .stage-laser--right::after {
   position: absolute;
-  content: "";
-  inset: 41%;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  width: 24%;
+  height: 42%;
   border-radius: 50%;
-  box-shadow: 0 0 17px rgba(93, 228, 255, 0.42);
+  content: "";
 }
 
+.stage-laser--left::after {
+  top: 28%;
+  right: 19%;
+  background: rgba(255, 224, 117, 0.26);
+  box-shadow: 0 0 20px rgba(255, 224, 117, 0.16);
+}
+
+.stage-laser--right::after {
+  bottom: 26%;
+  left: 20%;
+  background: rgba(93, 228, 255, 0.28);
+  box-shadow: 0 0 20px rgba(93, 228, 255, 0.16);
+}
+
+/* 背景の小さな粒子 */
 .stage-particles {
   position: absolute;
   inset: 0;
-  opacity: 0.22;
+  opacity: 0.19;
   background-image:
     radial-gradient(circle at 12% 17%, #fff 0 1px, transparent 1.5px),
     radial-gradient(circle at 78% 12%, var(--cyan) 0 1px, transparent 1.7px),
     radial-gradient(circle at 89% 64%, var(--purple) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 19% 78%, var(--cyan) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 19% 78%, var(--green) 0 1px, transparent 1.5px),
     radial-gradient(circle at 48% 39%, #fff 0 1px, transparent 1.4px);
   background-size:
     117px 137px,
@@ -314,19 +445,27 @@ button:focus-visible {
   animation: particles-drift 18s linear infinite;
 }
 
-/* フィーバー時は点滅せず、色と空間の広がりだけ強める */
+/*
+  フィーバー中も点滅ではなく、
+  色数・彩度・空間の広がりを強化する。
+*/
 .app.is-fever .stage-light--center {
-  filter: saturate(1.7) hue-rotate(48deg);
+  filter: blur(6px) saturate(1.75) hue-rotate(35deg);
 }
 
 .app.is-fever .stage-light--left,
 .app.is-fever .stage-light--right {
-  filter: saturate(1.55) hue-rotate(35deg);
+  filter: blur(4px) saturate(1.65) hue-rotate(26deg);
+}
+
+.app.is-fever .stage-laser--left,
+.app.is-fever .stage-laser--right {
+  filter: blur(7px) saturate(1.7);
 }
 
 .app.is-fever .stage-particles {
-  opacity: 0.42;
-  animation-duration: 9s;
+  opacity: 0.38;
+  animation-duration: 10s;
 }
 
 /* ==================================================
@@ -348,7 +487,9 @@ button:focus-visible {
   display: flex;
 }
 
-/* タイトル */
+/* ==================================================
+   タイトル画面
+================================================== */
 
 #title-screen {
   align-items: center;
@@ -407,7 +548,7 @@ h1 span {
   padding: 15px 18px;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: rgba(18, 31, 57, 0.88);
+  background: rgba(18, 31, 57, 0.9);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.17);
   text-align: left;
 }
@@ -442,406 +583,409 @@ h1 span {
 }
 
 .menu-button.primary small {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 /* ==================================================
-   HUD・盤面
+   ゲーム画面・HUD
 ================================================== */
 
 #game-screen {
   flex-direction: column;
-  align-items: center;
-  padding-inline: 9px;
+  gap: 9px;
+  width: min(100%, 700px);
+  margin: 0 auto;
 }
 
 .hud {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: min(100%, 640px);
-  gap: 5px;
+  gap: 6px;
 }
 
 .hud > div {
   min-width: 0;
-  min-height: 49px;
-  padding: 7px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: rgba(9, 17, 36, 0.9);
-}
-
-.hud-stage {
-  grid-column: span 2;
+  padding: 8px 7px;
+  border: 1px solid rgba(158, 210, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(7, 14, 30, 0.74);
+  text-align: center;
+  backdrop-filter: blur(8px);
 }
 
 .hud span {
   display: block;
   overflow: hidden;
   color: var(--muted);
-  font-family: Orbitron, sans-serif;
-  font-size: 0.42rem;
-  font-weight: 800;
-  letter-spacing: 0.055em;
+  font-size: 0.53rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .hud strong {
   display: block;
-  overflow: hidden;
-  margin-top: 2px;
-  font-family: Orbitron, sans-serif;
-  font-size: clamp(0.73rem, 4vw, 1.02rem);
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-top: 3px;
+  color: var(--text);
+  font-family: Orbitron, "Noto Sans JP", sans-serif;
+  font-size: clamp(0.82rem, 3.8vw, 1.12rem);
+  line-height: 1.05;
+}
+
+.hud-stage {
+  grid-column: span 2;
 }
 
 .hud-stage strong {
-  color: var(--cyan);
+  font-size: clamp(0.72rem, 3.4vw, 0.98rem);
 }
 
 .hud-stage em {
-  margin-inline: 2px;
+  margin: 0 3px;
   color: var(--muted);
   font-style: normal;
 }
 
-.hud-stage b {
-  font: inherit;
+.hud-over {
+  grid-column: span 1;
 }
 
 #over-gauge {
   display: flex;
+  justify-content: center;
   gap: 3px;
-  margin: 9px 0 0;
+  margin: 6px 0 0;
 }
 
 #over-gauge i {
-  display: block;
-  flex: 1;
-  height: 6px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.14);
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(255, 113, 148, 0.65);
+  border-radius: 50%;
+  background: rgba(255, 113, 148, 0.1);
 }
 
 #over-gauge i.on {
   background: var(--pink);
-  box-shadow:
-    0 0 7px var(--pink),
-    0 0 14px rgba(255, 113, 148, 0.45);
+  box-shadow: 0 0 10px rgba(255, 113, 148, 0.82);
 }
 
 #over-gauge.over-1 i.on {
-  animation: over-pulse 1.2s infinite;
+  animation: over-pulse 1.1s ease-in-out infinite;
 }
 
 #over-gauge.over-2 i.on {
-  animation: over-pulse 0.87s infinite;
+  animation: over-pulse 0.8s ease-in-out infinite;
 }
 
 #over-gauge.over-3 i.on {
-  animation: over-pulse 0.61s infinite;
+  animation: over-pulse 0.58s ease-in-out infinite;
 }
 
 #over-gauge.over-4 i.on {
-  animation: over-pulse 0.34s infinite;
+  animation: over-pulse 0.4s ease-in-out infinite;
 }
 
 .status {
-  min-height: 29px;
-  padding-top: 8px;
+  min-height: 19px;
   color: var(--cyan);
-  font-family: Orbitron, sans-serif;
-  font-size: 0.64rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
+  font-family: Orbitron, "Noto Sans JP", sans-serif;
+  font-size: 0.67rem;
+  letter-spacing: 0.1em;
   text-align: center;
+  text-shadow: 0 0 12px rgba(93, 228, 255, 0.6);
 }
 
 .play-area {
-  display: flex;
-  width: min(100%, 640px);
-  gap: 7px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 67px;
+  gap: 8px;
   align-items: stretch;
 }
 
 .board {
   display: grid;
-  flex: 1;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
   aspect-ratio: 1.08;
   overflow: hidden;
-  border: 1px solid var(--line-strong);
-  border-radius: 14px;
+  border: 1px solid rgba(151, 213, 255, 0.35);
+  border-radius: 15px;
   background:
-    linear-gradient(rgba(164, 203, 255, 0.085) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(164, 203, 255, 0.085) 1px, transparent 1px),
-    rgba(4, 11, 25, 0.84);
-  background-size: 12.5% 25%;
+    linear-gradient(
+      rgba(139, 211, 255, 0.11) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(139, 211, 255, 0.11) 1px,
+      transparent 1px
+    ),
+    rgba(4, 11, 26, 0.72);
+  background-size:
+    100% 25%,
+    12.5% 100%;
   box-shadow:
-    0 0 30px rgba(71, 154, 255, 0.1),
-    inset 0 0 32px rgba(36, 75, 151, 0.14);
-  touch-action: manipulation;
+    0 0 26px rgba(54, 149, 255, 0.14),
+    inset 0 0 28px rgba(9, 22, 55, 0.42);
+  backdrop-filter: blur(5px);
 }
 
 .cell {
   position: relative;
-  display: grid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
   min-height: 0;
-  place-items: center;
-  border-right: 1px solid rgba(158, 203, 255, 0.07);
-  border-bottom: 1px solid rgba(158, 203, 255, 0.07);
-  background: transparent;
-  touch-action: manipulation;
-}
-
-.cell::after {
-  position: absolute;
-  content: "";
-  inset: 2px;
-  border-radius: 7px;
-  opacity: 0;
-  background: rgba(93, 228, 255, 0.12);
-  pointer-events: none;
 }
 
 .cell.target::after {
-  opacity: 1;
-  animation: target-pulse 0.75s ease-in-out infinite alternate;
+  position: absolute;
+  inset: 8%;
+  border: 1px dashed rgba(93, 228, 255, 0.72);
+  border-radius: 12px;
+  box-shadow: 0 0 11px rgba(93, 228, 255, 0.24);
+  content: "";
+  animation: target-pulse 0.85s ease-in-out infinite;
 }
 
 .cell.prep-5 {
-  background: rgba(70, 255, 149, 0.065);
-  box-shadow: inset 0 0 10px rgba(101, 255, 154, 0.16);
+  background: rgba(101, 255, 154, 0.08);
 }
 
 .cell.prep-6 {
-  background: rgba(70, 255, 149, 0.09);
-  box-shadow: inset 0 0 15px rgba(101, 255, 154, 0.26);
-  animation: prepared-row-6 1.2s ease-in-out infinite alternate;
+  background: rgba(101, 255, 154, 0.13);
+  animation: prep-soft 1.25s ease-in-out infinite;
 }
 
 .cell.prep-7 {
-  background: rgba(255, 224, 117, 0.12);
-  box-shadow:
-    inset 0 0 21px rgba(255, 224, 117, 0.42),
-    0 0 9px rgba(255, 224, 117, 0.24);
-  animation: prepared-row-7 0.65s ease-in-out infinite alternate;
+  background: rgba(255, 224, 117, 0.15);
+  animation: prep-strong 0.72s ease-in-out infinite;
 }
-
-/* ==================================================
-   オーブ・リング
-================================================== */
 
 .piece {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   display: grid;
-  width: 76%;
-  aspect-ratio: 1;
   place-items: center;
-  border-radius: 50%;
+  width: min(78%, 52px);
+  aspect-ratio: 1;
   color: #fff;
-  font-family: Orbitron, sans-serif;
-  font-size: clamp(0.7rem, 3.7vw, 1.25rem);
-  font-weight: 800;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95);
-  pointer-events: none;
+  font-family: Orbitron, "Noto Sans JP", sans-serif;
+  font-size: clamp(0.76rem, 4vw, 1.18rem);
+  font-weight: 900;
+  line-height: 1;
+  user-select: none;
 }
 
 .orb {
-  border: 2px solid rgba(239, 250, 255, 0.86);
+  border: 2px solid currentColor;
+  border-radius: 50%;
   background:
-    radial-gradient(circle at 29% 23%, #fff 0 6%, transparent 18%),
-    radial-gradient(circle at 37% 35%, #9aeaff, #4074ec 55%, #20246e);
+    radial-gradient(
+      circle at 32% 26%,
+      rgba(255, 255, 255, 0.9),
+      rgba(255, 255, 255, 0.22) 12%,
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 55% 58%,
+      currentColor,
+      rgba(10, 22, 47, 0.92) 68%
+    );
   box-shadow:
-    inset -7px -9px 13px rgba(0, 0, 0, 0.48),
-    0 0 13px rgba(86, 191, 255, 0.55);
+    0 0 12px currentColor,
+    inset 0 0 12px rgba(255, 255, 255, 0.2);
 }
 
 .ring {
-  border: 4px solid rgba(248, 252, 255, 0.95);
-  background:
-    radial-gradient(circle, transparent 35%, rgba(255, 255, 255, 0.14) 43%, transparent 66%);
+  border: max(3px, 0.16em) solid currentColor;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
   box-shadow:
-    0 0 10px rgba(255, 255, 255, 0.3),
-    inset 0 0 7px rgba(255, 255, 255, 0.16);
+    0 0 11px currentColor,
+    inset 0 0 10px rgba(255, 255, 255, 0.11);
 }
 
 .star-ring {
-  border-color: var(--yellow);
   color: var(--yellow);
-  box-shadow:
-    0 0 10px var(--yellow),
-    0 0 24px rgba(255, 224, 117, 0.52);
-  text-shadow: 0 0 8px var(--yellow);
+  background: transparent;
+  font-family: "Mochiy Pop One", sans-serif;
+  font-size: clamp(1.25rem, 6vw, 2rem);
+  text-shadow:
+    0 0 10px rgba(255, 224, 117, 0.95),
+    0 0 23px rgba(255, 224, 117, 0.5);
 }
 
-.active {
-  border-color: var(--yellow);
-  box-shadow:
-    0 0 11px var(--yellow),
-    0 0 24px rgba(255, 224, 117, 0.43);
-  animation: active-ring 0.85s ease-in-out infinite alternate;
+.piece.c0 {
+  color: var(--cyan);
 }
 
-.c0 {
-  filter: hue-rotate(0deg);
+.piece.c1 {
+  color: var(--blue);
 }
 
-.c1 {
-  filter: hue-rotate(78deg);
+.piece.c2 {
+  color: var(--purple);
 }
 
-.c2 {
-  filter: hue-rotate(165deg);
-}
-
-.c3 {
-  filter: hue-rotate(250deg);
-}
-
-.t5 {
+.piece.c3 {
   color: var(--green);
-  box-shadow:
-    0 0 13px rgba(101, 255, 154, 0.72),
-    0 0 25px rgba(101, 255, 154, 0.22);
 }
 
-.t6 {
-  color: var(--green);
-  animation: prepared-piece-6 1.05s ease-in-out infinite alternate;
+.piece.active {
+  animation: active-ring 0.8s ease-in-out infinite;
 }
 
-.t7 {
-  color: var(--yellow);
-  animation: prepared-piece-7 0.55s ease-in-out infinite alternate;
+.piece.t5 {
+  filter:
+    brightness(1.3)
+    saturate(1.35)
+    hue-rotate(64deg);
 }
 
-/* ==================================================
-   控えリング・中断
-================================================== */
+.piece.t6 {
+  filter:
+    brightness(1.45)
+    saturate(1.5)
+    hue-rotate(64deg);
+  animation: prep-soft 1.1s ease-in-out infinite;
+}
+
+.piece.t7 {
+  filter:
+    brightness(1.55)
+    saturate(1.7)
+    hue-rotate(47deg);
+  animation: prep-strong 0.64s ease-in-out infinite;
+}
 
 .queue {
   display: flex;
-  width: 62px;
-  padding: 6px 4px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(9, 17, 36, 0.83);
   flex-direction: column;
   align-items: center;
-  text-align: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 5px;
+  border: 1px solid rgba(158, 210, 255, 0.23);
+  border-radius: 14px;
+  background: rgba(5, 13, 29, 0.74);
+  backdrop-filter: blur(8px);
 }
 
 .queue > b {
-  display: block;
-  margin-bottom: 3px;
   color: var(--muted);
-  font-family: Orbitron, sans-serif;
-  font-size: 0.45rem;
-  font-weight: 800;
+  font-size: 0.59rem;
+  letter-spacing: 0.08em;
 }
 
 #ring-queue-list {
-  width: 100%;
+  display: grid;
+  gap: 7px;
 }
 
 .queue-ring {
   display: grid;
-  width: 41px;
-  aspect-ratio: 1;
   place-items: center;
-  margin: 6px auto;
-  border: 3px solid rgba(248, 252, 255, 0.95);
+  width: 42px;
+  height: 42px;
+  border: 3px solid var(--cyan);
   border-radius: 50%;
+  color: var(--cyan);
+  background: rgba(93, 228, 255, 0.06);
+  box-shadow: 0 0 10px rgba(93, 228, 255, 0.28);
   font-family: Orbitron, sans-serif;
-  font-size: 0.85rem;
-  font-weight: 800;
-  text-shadow: 0 2px 4px #000;
+  font-size: 0.88rem;
+  font-weight: 900;
 }
 
-.queue-ring:first-child {
-  border-color: var(--cyan);
-  box-shadow:
-    0 0 10px var(--cyan),
-    0 0 18px rgba(93, 228, 255, 0.34);
-}
-
-.queue-ring.star-ring {
-  border-color: var(--yellow);
+.queue-ring.star {
+  border-color: transparent;
   color: var(--yellow);
+  background: transparent;
+  box-shadow: none;
+  font-family: "Mochiy Pop One", sans-serif;
+  font-size: 1.45rem;
+  text-shadow: 0 0 12px rgba(255, 224, 117, 0.76);
 }
 
 .queue-abort {
   width: 100%;
   margin-top: auto;
-  padding: 8px 2px;
-  border: 1px solid rgba(255, 255, 255, 0.19);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
-  font-size: 0.65rem;
+  padding: 9px 3px;
+  border: 1px solid rgba(255, 113, 148, 0.48);
+  border-radius: 9px;
+  color: #ffdce5;
+  background: rgba(255, 113, 148, 0.13);
+  font-size: 0.66rem;
   font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.queue-abort:active {
+  transform: scale(0.95);
 }
 
 .hint {
-  width: min(100%, 640px);
-  margin: 8px 0 0;
+  margin: 1px 0 0;
   color: var(--muted);
-  font-size: 0.61rem;
+  font-size: 0.68rem;
   font-weight: 700;
   line-height: 1.55;
   text-align: center;
 }
 
 /* ==================================================
-   オーバー数値・カウントダウン
+   カウントダウン・オーバー数値
 ================================================== */
+
+.overlay {
+  position: fixed;
+  z-index: 8;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2, 5, 15, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+.overlay strong {
+  color: #fff;
+  font-family: Orbitron, "Noto Sans JP", sans-serif;
+  font-size: clamp(3rem, 20vw, 7rem);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-shadow:
+    0 0 18px var(--cyan),
+    0 0 45px rgba(93, 228, 255, 0.56);
+  animation: countdown-pop 0.56s ease-out both;
+}
 
 .over-popup {
   position: fixed;
-  z-index: 70;
+  z-index: 9;
   top: 50%;
   left: 50%;
+  display: grid;
+  place-items: center;
+  min-width: 1em;
   color: var(--pink);
   font-family: "Mochiy Pop One", "Noto Sans JP", sans-serif;
   font-size: clamp(6rem, 34vw, 13rem);
+  font-weight: 900;
   line-height: 1;
-  text-shadow:
-    0 0 9px rgba(255, 113, 148, 0.95),
-    0 0 25px rgba(255, 113, 148, 0.78),
-    0 0 55px rgba(255, 113, 148, 0.47),
-    0 5px 0 rgba(96, 13, 36, 0.88);
   pointer-events: none;
+  text-shadow:
+    0 0 10px rgba(255, 113, 148, 0.95),
+    0 0 35px rgba(255, 113, 148, 0.72),
+    0 0 65px rgba(255, 113, 148, 0.34);
   transform: translate(-50%, -50%);
 }
 
 .over-popup.show {
-  display: block;
-  animation: over-number 1s cubic-bezier(0.18, 0.74, 0.24, 1) forwards;
-}
-
-.overlay {
-  position: fixed;
-  z-index: 60;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 8, 0.79);
-  backdrop-filter: blur(4px);
-}
-
-.overlay strong {
-  color: var(--cyan);
-  font-family: Orbitron, sans-serif;
-  font-size: clamp(3rem, 18vw, 7rem);
-  font-weight: 900;
-  text-shadow:
-    0 0 12px rgba(93, 228, 255, 0.95),
-    0 0 32px rgba(93, 228, 255, 0.8);
+  animation: over-number 0.96s cubic-bezier(0.15, 0.72, 0.25, 1) both;
 }
 
 /* ==================================================
@@ -850,62 +994,74 @@ h1 span {
 
 .modal {
   position: fixed;
-  z-index: 80;
+  z-index: 12;
   inset: 0;
   display: none;
-  place-items: center;
-  padding: 18px;
-  background: rgba(0, 0, 8, 0.78);
-  backdrop-filter: blur(6px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(1, 4, 13, 0.7);
+  backdrop-filter: blur(9px);
 }
 
 .modal.open {
-  display: grid;
+  display: flex;
 }
 
 .modal-card {
-  width: min(100%, 420px);
-  padding: 25px;
-  border: 1px solid var(--line-strong);
-  border-radius: 17px;
-  background: linear-gradient(135deg, rgba(25, 42, 77, 0.98), rgba(11, 18, 38, 0.98));
+  display: grid;
+  width: min(100%, 390px);
+  gap: 12px;
+  padding: 24px 18px 18px;
+  border: 1px solid rgba(155, 223, 255, 0.42);
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      ellipse at 25% 0%,
+      rgba(93, 228, 255, 0.11),
+      transparent 46%
+    ),
+    rgba(9, 18, 39, 0.97);
+  box-shadow:
+    0 18px 60px rgba(0, 0, 0, 0.46),
+    0 0 28px rgba(93, 228, 255, 0.12);
   text-align: center;
 }
 
 .modal-card h2 {
-  font-size: clamp(1.22rem, 6vw, 1.7rem);
+  font-size: clamp(1.18rem, 6vw, 1.7rem);
 }
 
-.modal-card p {
-  margin: 12px 0;
+.modal-card > p {
+  margin: 0;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  line-height: 1.8;
-}
-
-.modal-card .menu-button {
-  margin-top: 10px;
-  text-align: center;
+  line-height: 1.7;
 }
 
 .final-score {
   display: block;
-  margin: 6px 0 20px;
-  color: var(--yellow);
+  margin: -2px 0 7px;
+  color: var(--cyan);
   font-family: Orbitron, sans-serif;
-  font-size: clamp(2.2rem, 12vw, 3.2rem);
-  font-weight: 900;
+  font-size: clamp(2.3rem, 13vw, 4rem);
+  text-shadow: 0 0 20px rgba(93, 228, 255, 0.58);
 }
 
 .clear-card {
-  border-color: rgba(255, 224, 117, 0.85);
+  border-color: rgba(255, 224, 117, 0.7);
   background:
-    radial-gradient(circle at 50% 0%, rgba(255, 224, 117, 0.2), transparent 48%),
-    linear-gradient(135deg, rgba(49, 48, 78, 0.98), rgba(13, 23, 44, 0.98));
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(255, 224, 117, 0.17),
+      transparent 48%
+    ),
+    rgba(24, 23, 37, 0.97);
 }
 
-.clear-card h2 {
+.clear-card .eyebrow,
+.clear-card .final-score {
   color: var(--yellow);
 }
 
@@ -913,45 +1069,45 @@ h1 span {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 22px;
+}
+
+.tutorial-exit {
+  position: absolute;
+  top: max(16px, calc(var(--safe-top) + 7px));
+  right: 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+  background: rgba(10, 20, 42, 0.8);
+  font-size: 0.68rem;
+  font-weight: 900;
 }
 
 .tutorial-card {
   width: min(100%, 420px);
-  padding: 25px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--panel);
-}
-
-.tutorial-card p {
-  font-size: 0.94rem;
-  font-weight: 700;
-  line-height: 2;
+  padding: 25px 20px;
+  border: 1px solid rgba(158, 210, 255, 0.32);
+  border-radius: 20px;
+  background: rgba(10, 20, 42, 0.83);
+  box-shadow: 0 0 30px rgba(93, 228, 255, 0.1);
+  text-align: center;
+  backdrop-filter: blur(9px);
 }
 
 #tutorial-step {
   color: var(--cyan);
   font-family: Orbitron, sans-serif;
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
 }
 
-.tutorial > .menu-button {
-  width: min(100%, 420px);
-  margin-top: 15px;
-}
-
-.tutorial-exit {
-  position: absolute;
-  top: max(13px, calc(var(--safe-top) + 4px));
-  right: 13px;
-  padding: 9px 11px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: rgba(10, 19, 39, 0.82);
-  color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 900;
+#tutorial-text {
+  margin: 17px 0 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.95;
 }
 
 /* ==================================================
@@ -960,198 +1116,170 @@ h1 span {
 
 @keyframes particles-drift {
   from {
-    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+    background-position:
+      0 0,
+      0 0,
+      0 0,
+      0 0,
+      0 0;
   }
 
   to {
-    background-position: 25px 160px, -32px 210px, 42px 190px, -18px 240px, 34px 220px;
+    background-position:
+      57px -68px,
+      -74px 91px,
+      105px -88px,
+      -83px -102px,
+      119px 84px;
   }
 }
 
 @keyframes over-shockwave {
   0% {
-    opacity: 0.7;
+    opacity: 0.9;
     transform: translate(-50%, -50%) scale(0.2);
   }
 
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(12);
+    transform: translate(-50%, -50%) scale(8.4);
   }
 }
 
 @keyframes target-pulse {
-  from {
-    box-shadow: inset 0 0 0 rgba(93, 228, 255, 0);
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: scale(0.94);
   }
 
-  to {
-    box-shadow:
-      inset 0 0 10px rgba(93, 228, 255, 0.28),
-      0 0 10px rgba(93, 228, 255, 0.12);
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes prep-soft {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 rgba(101, 255, 154, 0);
+    opacity: 0.92;
+  }
+
+  50% {
+    box-shadow: inset 0 0 18px rgba(101, 255, 154, 0.22);
+    opacity: 1;
+  }
+}
+
+@keyframes prep-strong {
+  0%,
+  100% {
+    box-shadow: inset 0 0 4px rgba(255, 224, 117, 0.06);
+    opacity: 0.85;
+  }
+
+  50% {
+    box-shadow: inset 0 0 22px rgba(255, 224, 117, 0.3);
+    opacity: 1;
   }
 }
 
 @keyframes active-ring {
-  from {
-    transform: scale(0.96);
-  }
-
-  to {
-    transform: scale(1.05);
-  }
-}
-
-@keyframes prepared-row-6 {
-  from {
-    background: rgba(70, 255, 149, 0.05);
-  }
-
-  to {
-    background: rgba(70, 255, 149, 0.16);
-  }
-}
-
-@keyframes prepared-row-7 {
-  from {
-    background: rgba(255, 224, 117, 0.06);
-  }
-
-  to {
-    background: rgba(255, 224, 117, 0.22);
-  }
-}
-
-@keyframes prepared-piece-6 {
-  from {
-    transform: scale(0.96);
-    filter: brightness(0.96);
-  }
-
-  to {
-    transform: scale(1.06);
-    filter: brightness(1.36);
-  }
-}
-
-@keyframes prepared-piece-7 {
-  from {
+  0%,
+  100% {
     transform: scale(0.94);
-    filter: brightness(0.98);
   }
 
-  to {
-    transform: scale(1.1);
-    filter: brightness(1.52);
+  50% {
+    transform: scale(1.07);
   }
 }
 
 @keyframes over-pulse {
   0%,
   100% {
-    opacity: 0.58;
-    transform: scale(0.93);
+    box-shadow: 0 0 5px rgba(255, 113, 148, 0.48);
+    transform: scale(0.9);
   }
 
   50% {
-    opacity: 1;
+    box-shadow: 0 0 14px rgba(255, 113, 148, 0.95);
     transform: scale(1.08);
+  }
+}
+
+@keyframes countdown-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+
+  62% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
 @keyframes over-number {
   0% {
     opacity: 0;
-    transform: translate(-50%, -35%) scale(0.35) rotate(-8deg);
+    transform: translate(-50%, -42%) scale(0.38);
   }
 
-  18% {
+  20% {
     opacity: 1;
-    transform: translate(-50%, -53%) scale(1.25) rotate(4deg);
+    transform: translate(-50%, -50%) scale(1.12);
   }
 
-  43% {
+  62% {
     opacity: 1;
-    transform: translate(-50%, -61%) scale(1) rotate(-2deg);
+    transform: translate(-50%, -57%) scale(1);
   }
 
   100% {
     opacity: 0;
-    transform: translate(-50%, -125%) scale(0.84) rotate(2deg);
+    transform: translate(-50%, -79%) scale(0.88);
   }
 }
 
 /* ==================================================
-   アクセシビリティ：
-   端末が「動きを減らす」を指定した場合
-================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-  }
-
-  .stage-light--center,
-  .stage-light--left,
-  .stage-light--right,
-  .stage-laser--left,
-  .stage-laser--right {
-    transition: opacity 0.8s ease-out !important;
-  }
-
-  .stage-particles {
-    animation: none !important;
-    opacity: 0.12;
-  }
-
-  .app.is-over-flash .stage-lights::after {
-    animation-duration: 1.3s;
-  }
-
-  .cell.prep-6,
-  .cell.prep-7,
-  .t6,
-  .t7,
-  .active,
-  #over-gauge i.on {
-    animation: none !important;
-  }
-}
-
-/* ==================================================
-   PC・タブレット
+   画面が広い端末
 ================================================== */
 
 @media (min-width: 620px) {
-  .screen {
-    width: min(100%, 680px);
-    margin-inline: auto;
-  }
-
   #game-screen {
-    width: min(100%, 700px);
+    width: min(100%, 660px);
   }
 
   .hud {
-    grid-template-columns:
-      0.85fr
-      0.62fr
-      1.18fr
-      0.8fr
-      1fr;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .hud-stage {
-    grid-column: auto;
+    grid-column: span 1;
   }
 
-  .board {
-    max-height: 510px;
+  .hud-over {
+    grid-column: span 1;
+  }
+
+  .play-area {
+    grid-template-columns: minmax(0, 1fr) 76px;
+  }
+
+  .queue-ring {
+    width: 48px;
+    height: 48px;
   }
 }
 
+/* 縦が短い端末 */
 @media (max-height: 680px) {
   .screen {
     padding-top: max(10px, var(--safe-top));
@@ -1159,26 +1287,55 @@ h1 span {
   }
 
   .hud > div {
-    min-height: 45px;
-    padding: 5px;
+    padding: 5px 4px;
   }
 
-  .status {
-    min-height: 24px;
-    padding-top: 5px;
+  .play-area {
+    grid-template-columns: minmax(0, 1fr) 59px;
+  }
+
+  .queue {
+    gap: 5px;
+    padding: 6px 3px;
   }
 
   .queue-ring {
     width: 35px;
-    margin: 4px auto;
+    height: 35px;
+    font-size: 0.75rem;
   }
 
-  .queue {
-    width: 55px;
+  .queue-abort {
+    padding: 6px 2px;
   }
 
   .hint {
-    margin-top: 5px;
-    font-size: 0.56rem;
+    font-size: 0.61rem;
+  }
+}
+
+/*
+  端末側で「動きを減らす」が有効な場合は、
+  背景演出を静かにし、ゲーム機能自体は変えない。
+*/
+@media (prefers-reduced-motion: reduce) {
+  .stage-particles {
+    animation: none;
+  }
+
+  .stage-light--center,
+  .stage-light--left,
+  .stage-light--right,
+  .stage-laser--left,
+  .stage-laser--right {
+    transition-duration: 0.45s;
+  }
+
+  .cell.target::after,
+  .piece.active,
+  .piece.t6,
+  .piece.t7,
+  #over-gauge i.on {
+    animation-duration: 1.6s;
   }
 }

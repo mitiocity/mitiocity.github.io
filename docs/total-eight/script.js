@@ -30,13 +30,14 @@ const CONFIG = {
   endMusicVolume: 0.48,
 
   /*
-    音反応のなめらかさ。
-    小さいほど、急な音量変化を抑えられる。
+    音の変化をどれだけ滑らかにするか。
+    小さいほど、急な音量変化を抑える。
   */
   visualSmoothing: 0.055,
 
   /*
-    端末が「動きを減らす」を希望している場合の強さ。
+    iPhone等で「視差効果を減らす」がONの場合、
+    背景演出の動きを弱める。
   */
   reducedMotionStrength: 0.32
 };
@@ -128,9 +129,8 @@ let stageAnimationId = null;
 let endMusic = null;
 
 /*
-  表示用に音量を滑らかに保持する。
-  生の音量をそのまま使わないので、
-  細かいチカチカを防げる。
+  BGM解析の生データをそのまま使わず、
+  滑らかにした値を背景演出へ使う。
 */
 const visualEnergy = {
   bass: 0,
@@ -145,6 +145,12 @@ const reducedMotionQuery = window.matchMedia(
 /* ==================================================
    基本処理
 ================================================== */
+
+function wait(milliseconds) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, milliseconds);
+  });
+}
 
 function randomNumber() {
   return Math.floor(Math.random() * 4) + 1;
@@ -209,8 +215,7 @@ function createGameState() {
     time: CONFIG.startTime,
 
     /*
-      オーバーゲージ。
-      回復手段はなし。
+      オーバーゲージは回復・リセットしない。
     */
     over: 0,
 
@@ -261,8 +266,8 @@ function closeAllModals() {
 }
 
 function clearGameTimers() {
-  clearInterval(moveTimer);
-  clearInterval(clockTimer);
+  window.clearInterval(moveTimer);
+  window.clearInterval(clockTimer);
 
   moveTimer = null;
   clockTimer = null;
@@ -276,6 +281,15 @@ function setStatus(text) {
 
 function isFever() {
   return state && Date.now() < state.feverUntil;
+}
+
+function isGameRunning() {
+  return Boolean(
+    state &&
+    !state.isEnded &&
+    !state.isBusy &&
+    !state.isPaused
+  );
 }
 
 /* ==================================================
@@ -331,7 +345,8 @@ function playClearSound(chainSpeed = 1) {
   }
 
   const notes = [
-    0, 2, 4, 5, 7, 9, 11, 12
+    0, 2, 4, 5,
+    7, 9, 11, 12
   ];
 
   const root =
@@ -351,6 +366,10 @@ function playClearSound(chainSpeed = 1) {
   });
 }
 
+/*
+  オーバーゲージが増える時の
+  ド → ソ → レ → ド の低い効果音。
+*/
 function playOverSound() {
   if (!audioContext) {
     return;
@@ -453,14 +472,102 @@ function disconnectBgm(bgm) {
   try {
     bgm.source?.disconnect();
   } catch (error) {
-    /* 接続解除済み */
+    /* すでに接続解除済み */
   }
 
   try {
     bgm.analyser?.disconnect();
   } catch (error) {
-    /* 接続解除済み */
+    /* すでに接続解除済み */
   }
+}
+
+function stopStageLights() {
+  window.cancelAnimationFrame(stageAnimationId);
+  stageAnimationId = null;
+
+  visualEnergy.bass = 0;
+  visualEnergy.middle = 0;
+  visualEnergy.high = 0;
+
+  if (el.stageCenter) {
+    el.stageCenter.style.transform =
+      "translate(-50%, -50%) scale(0.82)";
+    el.stageCenter.style.opacity = "0.16";
+  }
+
+  if (el.stageLeft) {
+    el.stageLeft.style.transform =
+      "translate(0, -50%) scale(1)";
+    el.stageLeft.style.opacity = "0.13";
+  }
+
+  if (el.stageRight) {
+    el.stageRight.style.transform =
+      "translate(0, -50%) scale(1)";
+    el.stageRight.style.opacity = "0.13";
+  }
+
+  if (el.laserLeft) {
+    el.laserLeft.style.transform = "scale(1)";
+    el.laserLeft.style.opacity = "0.10";
+  }
+
+  if (el.laserRight) {
+    el.laserRight.style.transform = "scale(1)";
+    el.laserRight.style.opacity = "0.10";
+  }
+}
+
+function stopBgm() {
+  if (!currentBgm) {
+    stopStageLights();
+    return;
+  }
+
+  const { audio } = currentBgm;
+
+  try {
+    audio.pause();
+    audio.currentTime = 0;
+  } catch (error) {
+    /* 音声停止失敗時もゲームは継続 */
+  }
+
+  disconnectBgm(currentBgm);
+
+  currentBgm = null;
+  currentAnalyser = null;
+  analyserData = null;
+
+  stopStageLights();
+}
+
+function stopEndMusic() {
+  if (!endMusic) {
+    return;
+  }
+
+  try {
+    endMusic.pause();
+    endMusic.currentTime = 0;
+  } catch (error) {
+    /* 停止失敗時も継続 */
+  }
+
+  endMusic = null;
+}
+
+function playEndMusic(fileName) {
+  stopEndMusic();
+
+  endMusic = new Audio(
+    `assets/audio/bgm/${fileName}`
+  );
+
+  endMusic.loop = false;
+  endMusic.volume = CONFIG.endMusicVolume;
+  endMusic.play().catch(() => {});
 }
 
 function createBgmForCurrentLevel() {
@@ -480,10 +587,6 @@ function createBgmForCurrentLevel() {
     const analyser = audioContext.createAnalyser();
 
     analyser.fftSize = 2048;
-
-    /*
-      ブラウザ内の解析段階でも少し平均化する。
-    */
     analyser.smoothingTimeConstant = 0.84;
 
     const source =
@@ -499,6 +602,7 @@ function createBgmForCurrentLevel() {
     };
 
     currentAnalyser = analyser;
+
     analyserData = new Uint8Array(
       analyser.frequencyBinCount
     );
@@ -516,15 +620,28 @@ function createBgmForCurrentLevel() {
   analyserData = null;
 }
 
-function prepareBgmForStart() {
-  if (!currentBgm?.audio) {
+function fadeAudio(audio, from, to, duration) {
+  if (!audio) {
     return;
   }
 
-  currentBgm.audio.volume = 0;
+  const start = performance.now();
 
-  currentBgm.audio.play()
-    .catch(() => {});
+  function update(now) {
+    const progress = Math.min(
+      1,
+      (now - start) / duration
+    );
+
+    audio.volume =
+      from + (to - from) * progress;
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+
+  requestAnimationFrame(update);
 }
 
 function startBgm() {
@@ -536,160 +653,96 @@ function startBgm() {
     return;
   }
 
-  currentBgm.audio.currentTime = 0;
+  const { audio } = currentBgm;
 
-  currentBgm.audio.play()
-    .catch(() => {});
+  audio.currentTime = 0;
+  audio.volume = 0;
 
-  let step = 0;
-  const steps = 18;
-  const interval = CONFIG.bgmFadeMs / steps;
+  audio.play()
+    .then(() => {
+      fadeAudio(
+        audio,
+        0,
+        CONFIG.bgmVolume,
+        CONFIG.bgmFadeMs
+      );
 
-  const fadeTimer = setInterval(() => {
-    step += 1;
-
-    currentBgm.audio.volume = Math.min(
-      CONFIG.bgmVolume,
-      CONFIG.bgmVolume * (step / steps)
-    );
-
-    if (step >= steps) {
-      clearInterval(fadeTimer);
-    }
-  }, interval);
-
-  startStageLights();
+      startStageLights();
+    })
+    .catch(() => {
+      /*
+        端末側の音声制限などで失敗しても、
+        ゲーム自体は止めない。
+      */
+    });
 }
 
 function changeBgmForLevel() {
-  if (!state || state.isEnded) {
-    return;
-  }
-
-  const previous = currentBgm;
-
+  stopBgm();
   createBgmForCurrentLevel();
+  startBgm();
+}
 
+function pauseBgm() {
   if (!currentBgm?.audio) {
     return;
   }
 
-  const next = currentBgm;
-
-  next.audio.play()
-    .catch(() => {});
-
-  let step = 0;
-  const steps = 18;
-  const interval = CONFIG.bgmFadeMs / steps;
-
-  const fadeTimer = setInterval(() => {
-    step += 1;
-
-    const progress = step / steps;
-
-    next.audio.volume = Math.min(
-      CONFIG.bgmVolume,
-      CONFIG.bgmVolume * progress
-    );
-
-    if (previous?.audio) {
-      previous.audio.volume = Math.max(
-        0,
-        CONFIG.bgmVolume * (1 - progress)
-      );
-    }
-
-    if (step >= steps) {
-      clearInterval(fadeTimer);
-
-      if (previous?.audio) {
-        previous.audio.pause();
-        previous.audio.currentTime = 0;
-        disconnectBgm(previous);
-      }
-    }
-  }, interval);
-}
-
-function pauseBgm() {
-  currentBgm?.audio.pause();
+  currentBgm.audio.pause();
+  window.cancelAnimationFrame(stageAnimationId);
 }
 
 function resumeBgm() {
-  if (currentBgm?.audio && !state?.isEnded) {
-    currentBgm.audio.play()
-      .catch(() => {});
-  }
-}
-
-function stopBgm() {
-  if (currentBgm?.audio) {
-    currentBgm.audio.pause();
-    currentBgm.audio.currentTime = 0;
-  }
-
-  disconnectBgm(currentBgm);
-
-  currentBgm = null;
-  currentAnalyser = null;
-  analyserData = null;
-
-  stopStageLights();
-}
-
-function stopEndMusic() {
-  if (!endMusic) {
+  if (
+    !currentBgm?.audio ||
+    !state ||
+    state.isEnded
+  ) {
     return;
   }
 
-  endMusic.pause();
-  endMusic.currentTime = 0;
-  endMusic = null;
-}
-
-function playEndMusic(fileName) {
-  stopEndMusic();
-
-  endMusic = new Audio(
-    `assets/audio/bgm/${fileName}`
-  );
-
-  endMusic.loop = false;
-  endMusic.volume = CONFIG.endMusicVolume;
-
-  endMusic.play()
+  currentBgm.audio.play()
+    .then(() => {
+      startStageLights();
+    })
     .catch(() => {});
 }
 
 /* ==================================================
-   音反応：なめらかな多層万華鏡
+   BGM周波数 → 円・楕円の背景演出
 ================================================== */
 
-function getFrequencyAverage(fromHz, toHz) {
+function getBandEnergy(
+  startFrequency,
+  endFrequency
+) {
   if (
-    !audioContext ||
     !currentAnalyser ||
-    !analyserData
+    !analyserData ||
+    !audioContext
   ) {
     return 0;
   }
 
-  currentAnalyser.getByteFrequencyData(analyserData);
+  currentAnalyser.getByteFrequencyData(
+    analyserData
+  );
 
   const nyquist = audioContext.sampleRate / 2;
 
-  const fromIndex = Math.max(
+  const startIndex = Math.max(
     0,
     Math.floor(
-      (fromHz / nyquist) * analyserData.length
+      (startFrequency / nyquist) *
+      analyserData.length
     )
   );
 
-  const toIndex = Math.min(
+  const endIndex = Math.min(
     analyserData.length - 1,
     Math.ceil(
-      (toHz / nyquist) * analyserData.length
+      (endFrequency / nyquist) *
+      analyserData.length
     )
   );
 
@@ -697,823 +750,456 @@ function getFrequencyAverage(fromHz, toHz) {
   let count = 0;
 
   for (
-    let index = fromIndex;
-    index <= toIndex;
+    let index = startIndex;
+    index <= endIndex;
     index += 1
   ) {
     total += analyserData[index];
     count += 1;
   }
 
-  return count ? total / count / 255 : 0;
-}
-
-function smoothValue(current, target) {
-  return current +
-    (target - current) * CONFIG.visualSmoothing;
-}
-
-function updateStageLights(timestamp) {
-  const rawBass = getFrequencyAverage(35, 170);
-  const rawMiddle = getFrequencyAverage(170, 1100);
-  const rawHigh = getFrequencyAverage(1800, 9000);
-
-  /*
-    生の音量をそのまま画面へ反映しない。
-    滑らかに追いつかせる。
-  */
-  visualEnergy.bass = smoothValue(
-    visualEnergy.bass,
-    rawBass
-  );
-
-  visualEnergy.middle = smoothValue(
-    visualEnergy.middle,
-    rawMiddle
-  );
-
-  visualEnergy.high = smoothValue(
-    visualEnergy.high,
-    rawHigh
-  );
-
-  const time = timestamp / 1000;
-
-  const strength = reducedMotionQuery.matches
-    ? CONFIG.reducedMotionStrength
-    : 1;
-
-  const bass = visualEnergy.bass * strength;
-  const middle = visualEnergy.middle * strength;
-  const high = visualEnergy.high * strength;
-
-  const feverBoost = isFever()
-    ? 0.1 * strength
+  return count > 0
+    ? total / count / 255
     : 0;
+}
 
-  /*
-    低音：
-    中央万華鏡が呼吸するように広がる。
-    細かい振動は加えない。
-  */
-  if (el.stageCenter) {
-    const rotation =
-      time * (2.4 + bass * 4.5);
-
-    const scale =
-      0.78 +
-      bass * 0.42 +
-      feverBoost;
-
-    el.stageCenter.style.opacity = String(
-      0.09 +
-      bass * 0.42 +
-      feverBoost
-    );
-
-    el.stageCenter.style.transform =
-      `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
-  }
-
-  /*
-    中音：
-    左右の多角形をゆっくり逆方向へ動かす。
-  */
-  if (el.stageLeft) {
-    const rotation =
-      -12 +
-      Math.sin(time * 0.56) * 7 +
-      middle * 18;
-
-    const scale =
-      0.82 +
-      middle * 0.3 +
-      bass * 0.08 +
-      feverBoost;
-
-    el.stageLeft.style.opacity = String(
-      0.07 +
-      middle * 0.35 +
-      feverBoost
-    );
-
-    el.stageLeft.style.transform =
-      `translateY(-50%) rotate(${rotation}deg) scale(${scale})`;
-  }
-
-  if (el.stageRight) {
-    const rotation =
-      12 +
-      Math.cos(time * 0.52) * 7 -
-      middle * 18;
-
-    const scale =
-      0.82 +
-      middle * 0.3 +
-      bass * 0.08 +
-      feverBoost;
-
-    el.stageRight.style.opacity = String(
-      0.07 +
-      middle * 0.35 +
-      feverBoost
-    );
-
-    el.stageRight.style.transform =
-      `translateY(-50%) rotate(${rotation}deg) scale(${scale})`;
-  }
-
-  /*
-    高音：
-    点滅させず、細かい幾何学線の回転速度と濃さで見せる。
-  */
-  if (el.laserLeft) {
-    const rotation =
-      time * (5 + high * 18);
-
-    const scale =
-      0.78 +
-      high * 0.24 +
-      bass * 0.05;
-
-    el.laserLeft.style.opacity = String(
-      0.04 +
-      high * 0.32 +
-      feverBoost
-    );
-
-    el.laserLeft.style.transform =
-      `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
-  }
-
-  if (el.laserRight) {
-    const rotation =
-      -time * (5.8 + high * 18);
-
-    const scale =
-      0.78 +
-      high * 0.24 +
-      bass * 0.05;
-
-    el.laserRight.style.opacity = String(
-      0.04 +
-      high * 0.32 +
-      feverBoost
-    );
-
-    el.laserRight.style.transform =
-      `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
-  }
-
-  stageAnimationId = requestAnimationFrame(
-    updateStageLights
-  );
+function smoothEnergy(current, target) {
+  return current +
+    (target - current) *
+    CONFIG.visualSmoothing;
 }
 
 function startStageLights() {
-  if (stageAnimationId) {
-    return;
-  }
+  window.cancelAnimationFrame(stageAnimationId);
 
-  stageAnimationId = requestAnimationFrame(
-    updateStageLights
-  );
-}
-
-function stopStageLights() {
-  if (stageAnimationId) {
-    cancelAnimationFrame(stageAnimationId);
-  }
-
-  stageAnimationId = null;
-
-  visualEnergy.bass = 0;
-  visualEnergy.middle = 0;
-  visualEnergy.high = 0;
-}
-
-/* ==================================================
-   開始・時間
-================================================== */
-
-function startGame() {
-  clearGameTimers();
-  stopBgm();
-  stopEndMusic();
-
-  unlockAudio();
-
-  state = createGameState();
-
-  closeAllModals();
-
-  el.app?.classList.remove("is-fever");
-  el.app?.classList.remove("is-over-flash");
-
-  if (el.overPopup) {
-    el.overPopup.classList.add("hidden");
-    el.overPopup.classList.remove("show");
-  }
-
-  showScreen(el.game);
-
-  createBgmForCurrentLevel();
-  prepareBgmForStart();
-
-  renderGame();
-  runCountdown();
-}
-
-function runCountdown() {
-  if (!state) {
-    return;
-  }
-
-  const words = [
-    "READY?",
-    "3",
-    "2",
-    "1",
-    "GO!"
-  ];
-
-  let index = 0;
-
-  el.countdown?.classList.remove("hidden");
-
-  function showWord() {
-    if (!state || state.isEnded) {
-      return;
-    }
-
-    if (el.countdownText) {
-      el.countdownText.textContent = words[index];
-    }
-
-    index += 1;
-
-    if (index < words.length) {
-      setTimeout(
-        showWord,
-        index === 1 ? 850 : 720
-      );
-      return;
-    }
-
-    setTimeout(() => {
-      if (!state || state.isEnded) {
-        return;
-      }
-
-      el.countdown?.classList.add("hidden");
-
-      state.isBusy = false;
-
-      startClock();
-      startBgm();
-      spawnRing();
-    }, 620);
-  }
-
-  showWord();
-}
-
-function startClock() {
-  clearInterval(clockTimer);
-
-  clockTimer = setInterval(() => {
+  function animate() {
     if (
+      !currentBgm?.audio ||
+      currentBgm.audio.paused ||
       !state ||
-      state.isBusy ||
-      state.isPaused ||
       state.isEnded
     ) {
       return;
     }
 
-    state.time -= 1;
+    const motionStrength =
+      reducedMotionQuery.matches
+        ? CONFIG.reducedMotionStrength
+        : 1;
 
-    renderGame();
+    const bassTarget = getBandEnergy(35, 170);
+    const middleTarget = getBandEnergy(170, 1100);
+    const highTarget = getBandEnergy(1800, 9000);
 
-    if (state.time <= 0) {
-      endGame("TIME UP");
+    visualEnergy.bass = smoothEnergy(
+      visualEnergy.bass,
+      bassTarget
+    );
+
+    visualEnergy.middle = smoothEnergy(
+      visualEnergy.middle,
+      middleTarget
+    );
+
+    visualEnergy.high = smoothEnergy(
+      visualEnergy.high,
+      highTarget
+    );
+
+    const bass = visualEnergy.bass * motionStrength;
+    const middle =
+      visualEnergy.middle * motionStrength;
+    const high = visualEnergy.high * motionStrength;
+
+    /*
+      低音：
+      中央の巨大な円・楕円がゆっくり膨らむ。
+    */
+    if (el.stageCenter) {
+      const scale = 0.82 + bass * 0.48;
+      const opacity = 0.16 + bass * 0.24;
+
+      el.stageCenter.style.transform =
+        `translate(-50%, -50%) scale(${scale})`;
+
+      el.stageCenter.style.opacity = String(opacity);
     }
-  }, 1000);
+
+    /*
+      中音：
+      左右の大きな楕円が寄ったり離れたりする。
+    */
+    if (el.stageLeft) {
+      const scale = 1 + middle * 0.3;
+      const shift = middle * 9;
+      const opacity = 0.13 + middle * 0.22;
+
+      el.stageLeft.style.transform =
+        `translate(${shift}px, -50%) scale(${scale})`;
+
+      el.stageLeft.style.opacity = String(opacity);
+    }
+
+    if (el.stageRight) {
+      const scale = 1 + middle * 0.3;
+      const shift = middle * -9;
+      const opacity = 0.13 + middle * 0.22;
+
+      el.stageRight.style.transform =
+        `translate(${shift}px, -50%) scale(${scale})`;
+
+      el.stageRight.style.opacity = String(opacity);
+    }
+
+    /*
+      高音：
+      小さなカラー楕円を少し濃く、大きくする。
+      線・レーザー・フラッシュは使わない。
+    */
+    if (el.laserLeft) {
+      const scale = 1 + high * 0.36;
+      const shiftX = high * 12;
+      const shiftY = high * -5;
+      const opacity = 0.1 + high * 0.29;
+
+      el.laserLeft.style.transform =
+        `translate(${shiftX}px, ${shiftY}px) scale(${scale})`;
+
+      el.laserLeft.style.opacity = String(opacity);
+    }
+
+    if (el.laserRight) {
+      const scale = 1 + high * 0.36;
+      const shiftX = high * -12;
+      const shiftY = high * 5;
+      const opacity = 0.1 + high * 0.29;
+
+      el.laserRight.style.transform =
+        `translate(${shiftX}px, ${shiftY}px) scale(${scale})`;
+
+      el.laserRight.style.opacity = String(opacity);
+    }
+
+    stageAnimationId =
+      window.requestAnimationFrame(animate);
+  }
+
+  stageAnimationId =
+    window.requestAnimationFrame(animate);
 }
 
 /* ==================================================
-   リング操作
+   盤面の計算
 ================================================== */
 
-function spawnRing() {
-  if (
-    !state ||
-    state.isEnded ||
-    state.isPaused
-  ) {
-    return;
-  }
-
-  const nextRing = state.queue.shift();
-
-  state.queue.push(createRingData());
-
-  state.activeRing = {
-    type: nextRing.type,
-    number: nextRing.number,
-    row: Math.floor(Math.random() * CONFIG.rows),
-    col: CONFIG.cols - 1
-  };
-
-  state.selectedRow = null;
-
-  renderGame();
-
-  clearInterval(moveTimer);
-
-  moveTimer = setInterval(
-    moveActiveRing,
-    CONFIG.ringStepMs
-  );
+function getRowPieces(row) {
+  return state.board[row]
+    .map((piece, col) => ({
+      piece,
+      col
+    }))
+    .filter(({ piece }) => piece);
 }
 
-function moveActiveRing() {
-  if (
-    !state ||
-    !state.activeRing ||
-    state.isBusy ||
-    state.isPaused ||
-    state.isEnded
-  ) {
-    return;
-  }
+/*
+  オーブを含む列、または白リングだけの列を
+  まとまりごとに取得する。
+*/
+function getGroups() {
+  const groups = [];
 
-  const active = state.activeRing;
-  const nextCol = active.col - 1;
-
-  if (
-    nextCol < 0 ||
-    state.board[active.row][nextCol]
-  ) {
-    landActiveRing(active.col);
-    return;
-  }
-
-  active.col = nextCol;
-
-  renderGame();
-}
-
-function chooseRow(row) {
-  if (
-    !state ||
-    !state.activeRing ||
-    state.isBusy ||
-    state.isPaused ||
-    state.isEnded
-  ) {
-    return;
-  }
-
-  if (state.selectedRow !== row) {
-    state.selectedRow = row;
-    state.activeRing.row = row;
-
-    setStatus("TARGET LOCK");
-    renderGame();
-
-    return;
-  }
-
-  let landingCol = state.activeRing.col;
-
-  while (
-    landingCol > 0 &&
-    !state.board[row][landingCol - 1]
-  ) {
-    landingCol -= 1;
-  }
-
-  landActiveRing(landingCol);
-}
-
-function landActiveRing(col) {
-  clearInterval(moveTimer);
-
-  if (
-    !state ||
-    !state.activeRing ||
-    col >= CONFIG.cols
-  ) {
-    return;
-  }
-
-  state.isBusy = true;
-
-  const active = state.activeRing;
-  const row = active.row;
-
-  const newPiece = makePiece(
-    active.type,
-    active.number
-  );
-
-  state.activeRing = null;
-
-  if (newPiece.type === "star") {
-    resolveStar(row);
-    return;
-  }
-
-  state.board[row][col] = newPiece;
-
-  const group = getGroup(row);
-
-  if (group.total > 8) {
-    state.board[row][col] = null;
-
-    compactBoard();
-
-    if (group.orb) {
-      addOver(group.total);
-    } else {
-      setStatus("WHITE OVER");
-      showOverNumber(group.total);
-    }
-
-    renderGame();
-
-    setTimeout(finishTurn, 280);
-    return;
-  }
-
-  compactBoard();
-  resolveClears(1);
-}
-
-/* ==================================================
-   盤面
-================================================== */
-
-function compactRow(row) {
-  const source = state.board[row];
-
-  const orb = source.find((piece) => {
-    return piece?.type === "orb";
-  });
-
-  const rings = source.filter((piece) => {
-    return piece?.type === "ring";
-  });
-
-  const nextRow = Array(CONFIG.cols).fill(null);
-
-  let writeCol = 0;
-
-  if (orb) {
-    nextRow[0] = orb;
-    writeCol = 1;
-  }
-
-  rings.forEach((ring) => {
-    if (writeCol < CONFIG.cols) {
-      nextRow[writeCol] = ring;
-      writeCol += 1;
-    }
-  });
-
-  if (orb) {
-    for (
-      let col = 1;
-      col < CONFIG.cols;
-      col += 1
-    ) {
-      const ring = nextRow[col];
-
-      if (!ring) {
-        break;
-      }
-
-      ring.color = orb.color;
-    }
-  } else {
-    nextRow.forEach((ring) => {
-      if (ring?.type === "ring") {
-        ring.color = null;
-      }
-    });
-  }
-
-  state.board[row] = nextRow;
-}
-
-function compactBoard() {
   for (
     let row = 0;
     row < CONFIG.rows;
     row += 1
   ) {
-    compactRow(row);
+    let col = 0;
+
+    while (col < CONFIG.cols) {
+      const first = state.board[row][col];
+
+      if (!first) {
+        col += 1;
+        continue;
+      }
+
+      const pieces = [];
+      const hasOrb = first.type === "orb";
+
+      if (
+        first.type !== "orb" &&
+        first.type !== "ring"
+      ) {
+        col += 1;
+        continue;
+      }
+
+      let scan = col;
+
+      while (scan < CONFIG.cols) {
+        const current = state.board[row][scan];
+
+        if (!current) {
+          break;
+        }
+
+        if (
+          scan !== col &&
+          current.type === "orb"
+        ) {
+          break;
+        }
+
+        if (current.type === "star") {
+          break;
+        }
+
+        pieces.push({
+          row,
+          col: scan,
+          piece: current
+        });
+
+        scan += 1;
+      }
+
+      if (pieces.length > 0) {
+        const total = pieces.reduce(
+          (sum, item) =>
+            sum + (item.piece.number || 0),
+          0
+        );
+
+        groups.push({
+          row,
+          hasOrb,
+          total,
+          cells: pieces
+        });
+      }
+
+      col = Math.max(scan, col + 1);
+    }
+  }
+
+  return groups;
+}
+
+function getGroupAt(row, col) {
+  return getGroups().find((group) =>
+    group.cells.some(
+      (cell) =>
+        cell.row === row &&
+        cell.col === col
+    )
+  );
+}
+
+/*
+  リングだけを左側へ詰める。
+  オーブの位置は動かない。
+*/
+function settleBoard() {
+  for (
+    let row = 0;
+    row < CONFIG.rows;
+    row += 1
+  ) {
+    const oldRow = state.board[row];
+    const nextRow = Array(CONFIG.cols).fill(null);
+
+    const orbColumns = [];
+
+    oldRow.forEach((piece, col) => {
+      if (piece?.type === "orb") {
+        orbColumns.push(col);
+        nextRow[col] = piece;
+      }
+    });
+
+    const boundaries = [
+      -1,
+      ...orbColumns,
+      CONFIG.cols
+    ];
+
+    for (
+      let section = 0;
+      section < boundaries.length - 1;
+      section += 1
+    ) {
+      const start = boundaries[section] + 1;
+      const end = boundaries[section + 1];
+
+      const rings = [];
+
+      for (
+        let col = start;
+        col < end;
+        col += 1
+      ) {
+        const piece = oldRow[col];
+
+        if (
+          piece &&
+          piece.type !== "orb"
+        ) {
+          rings.push(piece);
+        }
+      }
+
+      rings.forEach((ring, index) => {
+        nextRow[start + index] = ring;
+      });
+    }
+
+    state.board[row] = nextRow;
   }
 }
 
-function getGroup(row) {
-  const cells = state.board[row];
-
-  const orb =
-    cells[0]?.type === "orb"
-      ? cells[0]
-      : null;
-
-  const ringColumns = [];
-  const pieceColumns = [];
-
-  let total = 0;
-  let startCol = 0;
-
-  if (orb) {
-    total += orb.number;
-    pieceColumns.push(0);
-    startCol = 1;
-  }
+function getLandingColumn(row) {
+  let rightmost = -1;
 
   for (
-    let col = startCol;
+    let col = 0;
     col < CONFIG.cols;
     col += 1
   ) {
-    const piece = cells[col];
-
-    if (!piece || piece.type !== "ring") {
-      break;
+    if (state.board[row][col]) {
+      rightmost = col;
     }
-
-    total += piece.number;
-    ringColumns.push(col);
-    pieceColumns.push(col);
   }
 
-  return {
-    row,
-    orb,
-    ringColumns,
-    pieceColumns,
-    total
-  };
+  return rightmost + 1;
+}
+
+function hasAnyOrb() {
+  return state.board.some((row) =>
+    row.some((piece) => piece?.type === "orb")
+  );
+}
+
+function isRowCompletelyEmpty(row) {
+  return state.board[row].every((piece) => !piece);
+}
+
+function respawnOrbsInEmptyRows() {
+  for (
+    let row = 0;
+    row < CONFIG.rows;
+    row += 1
+  ) {
+    /*
+      オーブもリングもない完全な空白レーンにだけ
+      新しいオーブを追加する。
+    */
+    if (isRowCompletelyEmpty(row)) {
+      state.board[row][0] = makePiece(
+        "orb",
+        randomNumber(),
+        row
+      );
+    }
+  }
 }
 
 /* ==================================================
-   経験値とLEVEL
+   得点・レベル・フィーバー
 ================================================== */
 
 function addExperience(amount) {
   if (!state || amount <= 0) {
-    return false;
+    return;
   }
 
-  state.score += amount;
-  state.stageScore += amount;
+  const feverMultiplier =
+    isFever()
+      ? CONFIG.feverMultiplier
+      : 1;
 
-  renderGame();
+  const earned = Math.floor(
+    amount * feverMultiplier
+  );
 
-  return checkStageClear();
+  state.score += earned;
+  state.stageScore += earned;
+
+  checkLevelProgress();
 }
 
-function checkStageClear() {
+function checkLevelProgress() {
   if (!state || state.isEnded) {
-    return false;
+    return;
   }
 
-  if (state.stageScore < getStageTarget()) {
-    return false;
+  const target = getStageTarget();
+
+  if (state.stageScore < target) {
+    return;
   }
 
   if (state.level >= CONFIG.maxLevel) {
     gameClear();
-    return true;
+    return;
   }
 
   state.level += 1;
   state.stageScore = 0;
   state.time = CONFIG.startTime;
 
-  /*
-    LEVEL UPでもオーバーゲージは維持。
-  */
   setStatus("LEVEL UP! TIME RESET");
 
   changeBgmForLevel();
   renderGame();
 
-  return false;
+  window.setTimeout(() => {
+    if (
+      state &&
+      !state.isEnded &&
+      !state.isPaused
+    ) {
+      setStatus("READY");
+    }
+  }, 1500);
 }
 
-/* ==================================================
-   消去・連鎖
-================================================== */
-
-function resolveClears(chainCount) {
+async function startFeverAndRespawn() {
   if (!state || state.isEnded) {
     return;
   }
 
-  const groups = state.board.map((_, row) => {
-    return getGroup(row);
-  });
+  state.feverUntil =
+    Date.now() + CONFIG.feverDuration;
 
-  const clearGroups = groups.filter((group) => {
-    return (
-      group.total === 8 &&
-      group.ringColumns.length > 0
-    );
-  });
+  el.app?.classList.add("is-fever");
 
-  if (clearGroups.length === 0) {
-    setStatus("READY");
-    finishTurn();
-    return;
-  }
+  setStatus("ALL CLEAR! FEVER!");
 
-  const orbGroups = clearGroups.filter((group) => {
-    return Boolean(group.orb);
-  });
+  await wait(520);
 
-  let gainedScore =
-    orbGroups.length * CONFIG.clearScore;
-
-  if (orbGroups.length >= 2) {
-    gainedScore +=
-      CONFIG.simultaneousBonus *
-      (orbGroups.length - 1);
-  }
-
-  const chainMultiplier =
-    chainCount >= 3
-      ? 1.5
-      : chainCount === 2
-        ? 1.25
-        : 1;
-
-  const feverMultiplier = isFever()
-    ? CONFIG.feverMultiplier
-    : 1;
-
-  gainedScore = Math.floor(
-    gainedScore *
-    chainMultiplier *
-    feverMultiplier
-  );
-
-  clearGroups.forEach((group) => {
-    group.pieceColumns.forEach((col) => {
-      state.board[group.row][col] = null;
-    });
-  });
-
-  if (orbGroups.length > 0) {
-    const gameCleared = addExperience(gainedScore);
-
-    if (gameCleared) {
-      return;
-    }
-
-    if (orbGroups.length >= 2) {
-      setStatus("SIMULTANEOUS!");
-    } else if (chainCount >= 2) {
-      setStatus(`${chainCount} CHAIN!`);
-    } else {
-      setStatus("CLEAR!");
-    }
-
-    playClearSound(
-      chainCount >= 3
-        ? 1.45
-        : chainCount === 2
-          ? 1.2
-          : 1
-    );
-  } else {
-    setStatus("WHITE CLEAR");
-  }
-
-  compactBoard();
-  renderGame();
-
-  setTimeout(() => {
-    if (!state || state.isEnded) {
-      return;
-    }
-
-    if (!hasAnyOrb()) {
-      startFeverAndRespawn();
-      return;
-    }
-
-    const hasChain = state.board.some((_, row) => {
-      const group = getGroup(row);
-
-      return (
-        group.total === 8 &&
-        group.ringColumns.length > 0
-      );
-    });
-
-    if (hasChain) {
-      resolveClears(chainCount + 1);
-      return;
-    }
-
-    finishTurn();
-  }, 280);
-}
-
-/* ==================================================
-   ★リング
-================================================== */
-
-function resolveStar(row) {
   if (!state || state.isEnded) {
     return;
   }
-
-  const pieces = state.board[row].filter(Boolean);
-  const clearCount = Math.max(1, pieces.length);
-
-  const feverMultiplier = isFever()
-    ? CONFIG.feverMultiplier
-    : 1;
-
-  const gainedScore =
-    clearCount *
-    CONFIG.clearScore *
-    feverMultiplier;
-
-  state.board[row] = Array(CONFIG.cols).fill(null);
 
   /*
-    ★でもオーバーゲージは回復しない。
+    白リングが残っているレーンへは追加しない。
+    完全な空白レーンだけへオーブを追加。
   */
+  respawnOrbsInEmptyRows();
 
-  const gameCleared = addExperience(gainedScore);
-
-  if (gameCleared) {
-    return;
-  }
-
-  setStatus(
-    clearCount >= 2
-      ? `★ × ${clearCount} CLEAR!`
-      : "★ CLEAR!"
-  );
-
-  playStarSound();
-
-  compactBoard();
   renderGame();
 
-  setTimeout(() => {
+  window.setTimeout(() => {
     if (!state || state.isEnded) {
       return;
     }
 
-    if (!hasAnyOrb()) {
-      startFeverAndRespawn();
-      return;
+    el.app?.classList.remove("is-fever");
+
+    if (!state.isPaused) {
+      setStatus("READY");
     }
-
-    finishTurn();
-  }, 420);
-}
-
-/* ==================================================
-   オーバー
-================================================== */
-
-function addOver(total) {
-  if (!state) {
-    return;
-  }
-
-  state.over += 1;
-
-  setStatus("OVER");
-
-  playOverSound();
-  showOverNumber(total);
-
-  el.app?.classList.remove("is-over-flash");
-
-  requestAnimationFrame(() => {
-    el.app?.classList.add("is-over-flash");
-  });
-
-  renderGame();
-
-  if (state.over >= 5) {
-    setTimeout(() => {
-      endGame("OVER LIMIT");
-    }, 900);
-  }
+  }, CONFIG.feverDuration);
 }
 
 function showOverNumber(total) {
@@ -1526,103 +1212,692 @@ function showOverNumber(total) {
   el.overPopup.classList.remove("hidden");
   el.overPopup.classList.remove("show");
 
-  requestAnimationFrame(() => {
+  window.requestAnimationFrame(() => {
     el.overPopup?.classList.add("show");
   });
 
-  setTimeout(() => {
+  window.setTimeout(() => {
     el.overPopup?.classList.remove("show");
     el.overPopup?.classList.add("hidden");
-  }, 1000);
+  }, 980);
 }
 
-/* ==================================================
-   フィーバー
-================================================== */
-
-function hasAnyOrb() {
-  return state?.board.some((row) => {
-    return row.some((piece) => {
-      return piece?.type === "orb";
-    });
-  });
-}
-
-function startFeverAndRespawn() {
+function increaseOverGauge(total) {
   if (!state || state.isEnded) {
     return;
   }
 
-  state.feverUntil =
-    Date.now() + CONFIG.feverDuration;
+  state.over += 1;
 
-  setStatus("ALL CLEAR! FEVER!");
+  showOverNumber(total);
+  playOverSound();
 
-  el.app?.classList.add("is-fever");
+  el.app?.classList.add("is-over-flash");
 
-  renderGame();
+  window.setTimeout(() => {
+    el.app?.classList.remove("is-over-flash");
+  }, 800);
 
-  setTimeout(() => {
-    if (!state || state.isEnded) {
-      return;
-    }
-
-    /*
-      オーブもリングもない完全な空白レーンだけに
-      新しいオーブを追加する。
-    */
-    for (
-      let row = 0;
-      row < CONFIG.rows;
-      row += 1
-    ) {
-      const isCompletelyEmpty =
-        state.board[row].every((piece) => {
-          return piece === null;
-        });
-
-      if (isCompletelyEmpty) {
-        state.board[row][0] = makePiece(
-          "orb",
-          randomNumber(),
-          row
-        );
-      }
-    }
-
-    compactBoard();
+  if (state.over >= 5) {
     renderGame();
-    finishTurn();
-  }, 520);
+    gameOver("OVER LIMIT");
+    return;
+  }
 
-  setTimeout(() => {
-    el.app?.classList.remove("is-fever");
-
-    if (state && !state.isEnded) {
-      renderGame();
-    }
-  }, CONFIG.feverDuration);
+  setStatus("OVER");
 }
 
 /* ==================================================
-   中断・終了
+   消去処理
 ================================================== */
 
-function finishTurn() {
+function removeCells(cells) {
+  cells.forEach(({ row, col }) => {
+    state.board[row][col] = null;
+  });
+}
+
+async function resolveClearChains() {
+  let chain = 0;
+
+  while (
+    state &&
+    !state.isEnded
+  ) {
+    const clearGroups = getGroups()
+      .filter((group) => group.total === 8);
+
+    if (clearGroups.length === 0) {
+      break;
+    }
+
+    chain += 1;
+
+    const orbGroups = clearGroups.filter(
+      (group) => group.hasOrb
+    );
+
+    clearGroups.forEach((group) => {
+      removeCells(group.cells);
+    });
+
+    settleBoard();
+
+    /*
+      オーブ起点の8だけが経験値になる。
+      白リングだけの8は消えるが得点なし。
+    */
+    if (orbGroups.length > 0) {
+      const base =
+        orbGroups.length *
+        CONFIG.clearScore *
+        chain;
+
+      const simultaneousBonus =
+        Math.max(0, orbGroups.length - 1) *
+        CONFIG.simultaneousBonus;
+
+      addExperience(base + simultaneousBonus);
+      playClearSound(
+        chain === 1
+          ? 1
+          : chain === 2
+            ? 1.25
+            : 1.55
+      );
+    }
+
+    renderGame();
+
+    await wait(260);
+  }
+
+  if (
+    state &&
+    !state.isEnded &&
+    !hasAnyOrb()
+  ) {
+    await startFeverAndRespawn();
+  }
+}
+
+async function resolveStar(row) {
+  if (!state || state.isEnded) {
+    return;
+  }
+
+  const existingPieces = getRowPieces(row)
+    .filter(({ piece }) => piece.type !== "star");
+
+  /*
+    空白レーンの★も「8を1つ作った」扱い。
+    既存ピースがある場合は、既存ピース1個ごとに
+    8を作った扱いで得点。
+  */
+  const clearCount = Math.max(
+    1,
+    existingPieces.length
+  );
+
+  state.board[row] = Array(CONFIG.cols).fill(null);
+
+  addExperience(
+    CONFIG.clearScore * clearCount
+  );
+
+  playStarSound();
+
+  settleBoard();
   renderGame();
 
-  setTimeout(() => {
+  await wait(240);
+
+  if (
+    state &&
+    !state.isEnded &&
+    !hasAnyOrb()
+  ) {
+    await startFeverAndRespawn();
+  }
+}
+
+/*
+  新しく固定した通常リングの合計を判定する。
+*/
+async function evaluatePlacedRing(row, col) {
+  const group = getGroupAt(row, col);
+
+  if (!group) {
+    return;
+  }
+
+  if (group.total > 8) {
+    /*
+      9以上：
+      新しく置いたリングだけ消える。
+      オーブ列ならオーバーゲージ+1。
+      白リング列ならゲージは増えない。
+    */
+    state.board[row][col] = null;
+
+    if (group.hasOrb) {
+      increaseOverGauge(group.total);
+    } else {
+      showOverNumber(group.total);
+      setStatus("TOO HIGH");
+    }
+
+    settleBoard();
+    renderGame();
+
+    return;
+  }
+
+  await resolveClearChains();
+}
+
+/* ==================================================
+   リング出現・移動・固定
+================================================== */
+
+function spawnActiveRing() {
+  if (
+    !state ||
+    state.isEnded ||
+    state.isPaused
+  ) {
+    return;
+  }
+
+  const next = state.queue.shift();
+
+  state.queue.push(createRingData());
+
+  state.activeRing = {
+    ...next,
+    row: Math.floor(
+      Math.random() * CONFIG.rows
+    ),
+    col: CONFIG.cols - 1
+  };
+
+  state.selectedRow = null;
+
+  renderGame();
+}
+
+async function lockActiveRing(row, col) {
+  if (
+    !state ||
+    !state.activeRing ||
+    state.isBusy ||
+    state.isEnded
+  ) {
+    return;
+  }
+
+  const active = state.activeRing;
+
+  state.isBusy = true;
+
+  if (active.type === "star") {
+    state.activeRing = null;
+
+    await resolveStar(row);
+
+    if (
+      state &&
+      !state.isEnded &&
+      !state.isPaused
+    ) {
+      spawnActiveRing();
+      state.isBusy = false;
+      renderGame();
+    }
+
+    return;
+  }
+
+  state.board[row][col] = makePiece(
+    "ring",
+    active.number,
+    null
+  );
+
+  state.activeRing = null;
+
+  renderGame();
+
+  await evaluatePlacedRing(row, col);
+
+  if (
+    state &&
+    !state.isEnded &&
+    !state.isPaused
+  ) {
+    spawnActiveRing();
+    state.isBusy = false;
+    renderGame();
+  }
+}
+
+function moveActiveRing() {
+  if (
+    !isGameRunning() ||
+    !state.activeRing
+  ) {
+    return;
+  }
+
+  const active = state.activeRing;
+  const nextCol = active.col - 1;
+
+  /*
+    左端まで到達した場合、
+    または次のマスが埋まっている場合は固定。
+  */
+  if (nextCol < 0) {
+    lockActiveRing(active.row, 0);
+    return;
+  }
+
+  if (state.board[active.row][nextCol]) {
+    lockActiveRing(active.row, active.col);
+    return;
+  }
+
+  active.col = nextCol;
+
+  renderGame();
+}
+
+function startRingMovement() {
+  window.clearInterval(moveTimer);
+
+  moveTimer = window.setInterval(
+    moveActiveRing,
+    CONFIG.ringStepMs
+  );
+}
+
+function handleBoardTap(row) {
+  if (
+    !isGameRunning() ||
+    !state.activeRing
+  ) {
+    return;
+  }
+
+  /*
+    1回目：流れているリングをそのレーンへ移動。
+  */
+  if (state.selectedRow !== row) {
+    state.selectedRow = row;
+    state.activeRing.row = row;
+
+    setStatus("TARGET LOCK");
+
+    renderGame();
+    return;
+  }
+
+  /*
+    同じレーンを2回目：
+    そのレーンの先頭へ即固定。
+  */
+  const landingCol = getLandingColumn(row);
+
+  if (landingCol >= CONFIG.cols) {
+    setStatus("ROW FULL");
+    return;
+  }
+
+  lockActiveRing(row, landingCol);
+}
+
+/* ==================================================
+   描画
+================================================== */
+
+function getPreparationClasses(row, col, piece) {
+  if (
+    !piece ||
+    piece.type === "star"
+  ) {
+    return [];
+  }
+
+  const group = getGroupAt(row, col);
+
+  if (!group) {
+    return [];
+  }
+
+  if (group.total === 5) {
+    return ["prep-5", "t5"];
+  }
+
+  if (group.total === 6) {
+    return ["prep-6", "t6"];
+  }
+
+  if (group.total === 7) {
+    return ["prep-7", "t7"];
+  }
+
+  return [];
+}
+
+function makePieceElement(
+  piece,
+  row,
+  col,
+  isActive = false
+) {
+  const node = document.createElement("div");
+
+  const classes = ["piece"];
+
+  if (piece.type === "orb") {
+    classes.push("orb");
+  }
+
+  if (piece.type === "ring") {
+    classes.push("ring");
+  }
+
+  if (piece.type === "star") {
+    classes.push("star-ring");
+  }
+
+  if (piece.color !== null) {
+    classes.push(`c${piece.color}`);
+  }
+
+  if (isActive) {
+    classes.push("active");
+  }
+
+  const prepClasses =
+    getPreparationClasses(row, col, piece);
+
+  prepClasses
+    .filter((className) =>
+      className.startsWith("t")
+    )
+    .forEach((className) => {
+      classes.push(className);
+    });
+
+  node.className = classes.join(" ");
+
+  if (piece.type === "star") {
+    node.textContent = "★";
+  } else {
+    node.textContent = String(piece.number);
+  }
+
+  return node;
+}
+
+function renderBoard() {
+  if (!el.board || !state) {
+    return;
+  }
+
+  el.board.innerHTML = "";
+
+  for (
+    let row = 0;
+    row < CONFIG.rows;
+    row += 1
+  ) {
+    for (
+      let col = 0;
+      col < CONFIG.cols;
+      col += 1
+    ) {
+      const cell = document.createElement("button");
+
+      cell.type = "button";
+      cell.className = "cell";
+      cell.dataset.row = String(row);
+      cell.dataset.col = String(col);
+
+      const piece = state.board[row][col];
+
+      if (piece) {
+        const prepClasses =
+          getPreparationClasses(row, col, piece);
+
+        prepClasses
+          .filter((className) =>
+            className.startsWith("prep")
+          )
+          .forEach((className) => {
+            cell.classList.add(className);
+          });
+
+        cell.appendChild(
+          makePieceElement(piece, row, col)
+        );
+      }
+
+      if (
+        state.activeRing &&
+        state.activeRing.row === row &&
+        state.activeRing.col === col
+      ) {
+        const activePiece = {
+          type: state.activeRing.type,
+          number: state.activeRing.number,
+          color: null
+        };
+
+        cell.appendChild(
+          makePieceElement(
+            activePiece,
+            row,
+            col,
+            true
+          )
+        );
+      }
+
+      if (
+        state.selectedRow === row &&
+        state.activeRing
+      ) {
+        cell.classList.add("target");
+      }
+
+      el.board.appendChild(cell);
+    }
+  }
+}
+
+function renderQueue() {
+  if (!el.queueList || !state) {
+    return;
+  }
+
+  el.queueList.innerHTML = "";
+
+  state.queue.forEach((ring) => {
+    const item = document.createElement("div");
+
+    item.className = "queue-ring";
+
+    if (ring.type === "star") {
+      item.classList.add("star");
+      item.textContent = "★";
+    } else {
+      item.textContent = String(ring.number);
+    }
+
+    el.queueList.appendChild(item);
+  });
+}
+
+function renderOverGauge() {
+  if (!el.over || !state) {
+    return;
+  }
+
+  el.over.className = "";
+
+  if (state.over > 0) {
+    el.over.classList.add(
+      `over-${Math.min(state.over, 4)}`
+    );
+  }
+
+  [...el.over.querySelectorAll("i")]
+    .forEach((item, index) => {
+      item.classList.toggle(
+        "on",
+        index < state.over
+      );
+    });
+}
+
+function renderGame() {
+  if (!state) {
+    return;
+  }
+
+  if (el.score) {
+    el.score.textContent =
+      state.score.toLocaleString("ja-JP");
+  }
+
+  if (el.level) {
+    el.level.textContent = String(state.level);
+  }
+
+  if (el.stageScore) {
+    el.stageScore.textContent =
+      state.stageScore.toLocaleString("ja-JP");
+  }
+
+  if (el.stageTarget) {
+    el.stageTarget.textContent =
+      getStageTarget().toLocaleString("ja-JP");
+  }
+
+  if (el.time) {
+    el.time.textContent = String(
+      Math.max(0, state.time)
+    );
+  }
+
+  renderOverGauge();
+  renderBoard();
+  renderQueue();
+}
+
+/* ==================================================
+   ゲーム開始・終了
+================================================== */
+
+async function runCountdown() {
+  if (!el.countdown || !el.countdownText) {
+    return;
+  }
+
+  const messages = [
+    ["READY?", 850],
+    ["3", 720],
+    ["2", 720],
+    ["1", 720],
+    ["GO!", 620]
+  ];
+
+  el.countdown.classList.remove("hidden");
+
+  for (const [message, duration] of messages) {
+    el.countdownText.textContent = message;
+
+    el.countdownText.style.animation = "none";
+
+    void el.countdownText.offsetWidth;
+
+    el.countdownText.style.animation = "";
+
+    await wait(duration);
+  }
+
+  el.countdown.classList.add("hidden");
+}
+
+function startClock() {
+  window.clearInterval(clockTimer);
+
+  clockTimer = window.setInterval(() => {
     if (
       !state ||
       state.isEnded ||
-      state.isPaused
+      state.isPaused ||
+      state.isBusy
     ) {
       return;
     }
 
-    state.isBusy = false;
-    spawnRing();
-  }, 280);
+    state.time -= 1;
+
+    renderGame();
+
+    if (state.time <= 0) {
+      gameOver("TIME UP");
+    }
+  }, 1000);
+}
+
+async function startNewGame() {
+  unlockAudio();
+  stopEndMusic();
+  stopBgm();
+  clearGameTimers();
+  closeAllModals();
+
+  el.app?.classList.remove(
+    "is-fever",
+    "is-over-flash"
+  );
+
+  state = createGameState();
+
+  showScreen(el.game);
+  setStatus("READY");
+
+  renderGame();
+
+  await runCountdown();
+
+  if (!state || state.isEnded) {
+    return;
+  }
+
+  createBgmForCurrentLevel();
+  startBgm();
+
+  state.isBusy = false;
+
+  setStatus("GO!");
+
+  spawnActiveRing();
+  startRingMovement();
+  startClock();
+
+  window.setTimeout(() => {
+    if (
+      state &&
+      !state.isEnded &&
+      !state.isPaused
+    ) {
+      setStatus("READY");
+    }
+  }, 900);
 }
 
 function pauseGame() {
@@ -1636,10 +1911,10 @@ function pauseGame() {
 
   state.isPaused = true;
 
-  clearGameTimers();
   pauseBgm();
-
   el.abortModal?.classList.add("open");
+
+  setStatus("PAUSED");
 }
 
 function resumeGame() {
@@ -1656,23 +1931,33 @@ function resumeGame() {
   el.abortModal?.classList.remove("open");
 
   resumeBgm();
-  startClock();
+  setStatus("READY");
 
-  if (state.activeRing) {
-    moveTimer = setInterval(
-      moveActiveRing,
-      CONFIG.ringStepMs
-    );
-  }
+  renderGame();
 }
 
-function endGame(reason) {
+function returnToTitle() {
+  clearGameTimers();
+  stopBgm();
+  stopEndMusic();
+
+  state = null;
+
+  el.app?.classList.remove(
+    "is-fever",
+    "is-over-flash"
+  );
+
+  closeAllModals();
+  showScreen(el.title);
+}
+
+function gameOver(reason) {
   if (!state || state.isEnded) {
     return;
   }
 
   state.isEnded = true;
-  state.isBusy = true;
 
   clearGameTimers();
   stopBgm();
@@ -1684,12 +1969,13 @@ function endGame(reason) {
   }
 
   if (el.finalScore) {
-    el.finalScore.textContent = String(state.score);
+    el.finalScore.textContent =
+      state.score.toLocaleString("ja-JP");
   }
 
-  playEndMusic("GAMEOVER.mp3");
-
   el.gameOver?.classList.add("open");
+
+  playEndMusic("GAMEOVER.mp3");
 }
 
 function gameClear() {
@@ -1698,7 +1984,6 @@ function gameClear() {
   }
 
   state.isEnded = true;
-  state.isBusy = true;
 
   clearGameTimers();
   stopBgm();
@@ -1706,260 +1991,18 @@ function gameClear() {
   el.app?.classList.remove("is-fever");
 
   if (el.clearScore) {
-    el.clearScore.textContent = String(state.score);
+    el.clearScore.textContent =
+      state.score.toLocaleString("ja-JP");
   }
-
-  playEndMusic("OvercameHardships.mp3");
 
   el.gameClear?.classList.add("open");
-}
 
-function returnTitle() {
-  clearGameTimers();
-  stopBgm();
-  stopEndMusic();
-
-  state = null;
-
-  el.app?.classList.remove("is-fever");
-  el.app?.classList.remove("is-over-flash");
-
-  closeAllModals();
-
-  el.countdown?.classList.add("hidden");
-
-  if (el.overPopup) {
-    el.overPopup.classList.add("hidden");
-    el.overPopup.classList.remove("show");
-  }
-
-  showScreen(el.title);
-}
-
-/* ==================================================
-   描画
-================================================== */
-
-function createPieceElement(piece, active, total) {
-  const node = document.createElement("div");
-
-  let typeClass = "ring";
-
-  if (piece.type === "orb") {
-    typeClass = "orb";
-  }
-
-  if (piece.type === "star") {
-    typeClass = "ring star-ring";
-  }
-
-  node.className = `piece ${typeClass}`;
-
-  if (active) {
-    node.classList.add("active");
-  }
-
-  if (
-    piece.color !== null &&
-    piece.color !== undefined
-  ) {
-    node.classList.add(`c${piece.color}`);
-  }
-
-  if (total >= 5 && total <= 7) {
-    node.classList.add(`t${total}`);
-  }
-
-  node.textContent =
-    piece.type === "star"
-      ? "★"
-      : String(piece.number);
-
-  return node;
-}
-
-function getPreparedClass(group, col) {
-  if (
-    group.total < 5 ||
-    group.total > 7 ||
-    !group.pieceColumns.includes(col)
-  ) {
-    return "";
-  }
-
-  return `prep-${group.total}`;
-}
-
-function renderGame() {
-  if (!state || !el.board) {
-    return;
-  }
-
-  el.board.innerHTML = "";
-
-  for (
-    let row = 0;
-    row < CONFIG.rows;
-    row += 1
-  ) {
-    const group = getGroup(row);
-
-    for (
-      let col = 0;
-      col < CONFIG.cols;
-      col += 1
-    ) {
-      const cell = document.createElement("button");
-
-      cell.type = "button";
-      cell.className = "cell";
-      cell.dataset.row = String(row);
-
-      const preparedClass = getPreparedClass(
-        group,
-        col
-      );
-
-      if (preparedClass) {
-        cell.classList.add(preparedClass);
-      }
-
-      if (state.selectedRow === row) {
-        cell.classList.add("target");
-      }
-
-      const piece = state.board[row][col];
-
-      if (piece) {
-        cell.append(
-          createPieceElement(
-            piece,
-            false,
-            group.total
-          )
-        );
-      }
-
-      if (
-        state.activeRing &&
-        state.activeRing.row === row &&
-        state.activeRing.col === col
-      ) {
-        cell.append(
-          createPieceElement(
-            {
-              type: state.activeRing.type,
-              number: state.activeRing.number,
-              color: null
-            },
-            true,
-            0
-          )
-        );
-      }
-
-      el.board.append(cell);
-    }
-  }
-
-  renderQueue();
-  renderHud();
-}
-
-function renderQueue() {
-  if (!state || !el.queueList) {
-    return;
-  }
-
-  el.queueList.innerHTML = "";
-
-  state.queue.forEach((ringData) => {
-    const ring = document.createElement("div");
-
-    ring.className = "queue-ring";
-
-    if (ringData.type === "star") {
-      ring.classList.add("star-ring");
-      ring.textContent = "★";
-    } else {
-      ring.textContent = String(ringData.number);
-    }
-
-    el.queueList.append(ring);
-  });
-}
-
-function renderHud() {
-  if (!state) {
-    return;
-  }
-
-  if (el.score) {
-    el.score.textContent = String(state.score);
-  }
-
-  if (el.level) {
-    el.level.textContent = String(state.level);
-  }
-
-  if (el.stageScore) {
-    el.stageScore.textContent = String(
-      state.stageScore
-    );
-  }
-
-  if (el.stageTarget) {
-    el.stageTarget.textContent = String(
-      getStageTarget()
-    );
-  }
-
-  if (el.time) {
-    el.time.textContent = String(
-      Math.max(0, state.time)
-    );
-  }
-
-  if (!el.over) {
-    return;
-  }
-
-  el.over.classList.remove(
-    "over-1",
-    "over-2",
-    "over-3",
-    "over-4",
-    "over-5"
-  );
-
-  if (state.over > 0) {
-    el.over.classList.add(
-      `over-${state.over}`
-    );
-  }
-
-  el.over.querySelectorAll("i").forEach(
-    (bar, index) => {
-      bar.classList.toggle(
-        "on",
-        index < state.over
-      );
-    }
-  );
+  playEndMusic("OvercameHardships.mp3");
 }
 
 /* ==================================================
    チュートリアル
 ================================================== */
-
-function startTutorial() {
-  tutorialIndex = 0;
-
-  el.tutorialModal?.classList.remove("open");
-
-  showScreen(el.tutorial);
-  renderTutorial();
-}
 
 function renderTutorial() {
   if (el.tutorialStep) {
@@ -1973,30 +2016,25 @@ function renderTutorial() {
   }
 
   if (el.tutorialNext) {
-    const label =
-      tutorialIndex === TUTORIAL_TEXTS.length - 1
-        ? "完了"
-        : "つぎへ";
+    const isLast =
+      tutorialIndex ===
+      TUTORIAL_TEXTS.length - 1;
 
-    const strong =
-      el.tutorialNext.querySelector("strong");
-
-    if (strong) {
-      strong.textContent = label;
-    } else {
-      el.tutorialNext.textContent = label;
-    }
+    el.tutorialNext.innerHTML = isLast
+      ? "<strong>完了</strong><small>FINISH</small>"
+      : "<strong>つぎへ</strong><small>NEXT</small>";
   }
 }
 
-function nextTutorial() {
-  tutorialIndex += 1;
+function openTutorial() {
+  clearGameTimers();
+  stopBgm();
+  stopEndMusic();
+  closeAllModals();
 
-  if (tutorialIndex >= TUTORIAL_TEXTS.length) {
-    el.tutorialModal?.classList.add("open");
-    return;
-  }
+  tutorialIndex = 0;
 
+  showScreen(el.tutorial);
   renderTutorial();
 }
 
@@ -2004,12 +2042,13 @@ function nextTutorial() {
    イベント
 ================================================== */
 
-el.start?.addEventListener("click", startGame);
+el.start?.addEventListener("click", () => {
+  startNewGame();
+});
 
-el.tutorialButton?.addEventListener(
-  "click",
-  startTutorial
-);
+el.tutorialButton?.addEventListener("click", () => {
+  openTutorial();
+});
 
 el.board?.addEventListener("click", (event) => {
   const cell = event.target.closest(".cell");
@@ -2018,81 +2057,106 @@ el.board?.addEventListener("click", (event) => {
     return;
   }
 
-  chooseRow(Number(cell.dataset.row));
+  const row = Number(cell.dataset.row);
+
+  if (Number.isNaN(row)) {
+    return;
+  }
+
+  handleBoardTap(row);
 });
 
-el.abort?.addEventListener("click", pauseGame);
+el.abort?.addEventListener("click", () => {
+  pauseGame();
+});
 
-el.tutorialExit?.addEventListener(
-  "click",
-  returnTitle
-);
+el.abortResume?.addEventListener("click", () => {
+  resumeGame();
+});
 
-el.tutorialNext?.addEventListener(
-  "click",
-  nextTutorial
-);
+el.abortRetry?.addEventListener("click", () => {
+  startNewGame();
+});
 
-el.tutorialStart?.addEventListener(
-  "click",
-  startGame
-);
+el.abortTitle?.addEventListener("click", () => {
+  returnToTitle();
+});
 
-el.tutorialRestart?.addEventListener(
-  "click",
-  startTutorial
-);
+el.retry?.addEventListener("click", () => {
+  startNewGame();
+});
 
-el.tutorialTitle?.addEventListener(
-  "click",
-  returnTitle
-);
+el.titleButton?.addEventListener("click", () => {
+  returnToTitle();
+});
 
-el.abortResume?.addEventListener(
-  "click",
-  resumeGame
-);
+el.clearRetry?.addEventListener("click", () => {
+  startNewGame();
+});
 
-el.abortRetry?.addEventListener(
-  "click",
-  startGame
-);
+el.clearTitle?.addEventListener("click", () => {
+  returnToTitle();
+});
 
-el.abortTitle?.addEventListener(
-  "click",
-  returnTitle
-);
+el.tutorialNext?.addEventListener("click", () => {
+  const isLast =
+    tutorialIndex ===
+    TUTORIAL_TEXTS.length - 1;
 
-el.retry?.addEventListener(
-  "click",
-  startGame
-);
+  if (isLast) {
+    el.tutorialModal?.classList.add("open");
+    return;
+  }
 
-el.titleButton?.addEventListener(
-  "click",
-  returnTitle
-);
+  tutorialIndex += 1;
+  renderTutorial();
+});
 
-el.clearRetry?.addEventListener(
-  "click",
-  startGame
-);
+el.tutorialExit?.addEventListener("click", () => {
+  returnToTitle();
+});
 
-el.clearTitle?.addEventListener(
-  "click",
-  returnTitle
-);
+el.tutorialStart?.addEventListener("click", () => {
+  startNewGame();
+});
 
+el.tutorialRestart?.addEventListener("click", () => {
+  tutorialIndex = 0;
+  el.tutorialModal?.classList.remove("open");
+  renderTutorial();
+});
+
+el.tutorialTitle?.addEventListener("click", () => {
+  returnToTitle();
+});
+
+/*
+  タブ切替・着信などでゲーム画面が裏に回った場合、
+  意図せず時間だけ進むことを防ぐ。
+*/
 document.addEventListener("visibilitychange", () => {
   if (
     document.hidden &&
-    state &&
-    !state.isPaused &&
-    !state.isEnded &&
-    el.game?.classList.contains("is-active")
+    isGameRunning()
   ) {
     pauseGame();
   }
 });
+
+/*
+  端末設定で動きを減らす設定を途中で切り替えた場合も、
+  次のフレームから背景演出の強さへ反映される。
+*/
+reducedMotionQuery.addEventListener?.(
+  "change",
+  () => {
+    if (
+      currentBgm?.audio &&
+      !currentBgm.audio.paused
+    ) {
+      startStageLights();
+    }
+  }
+);
 
 showScreen(el.title);
