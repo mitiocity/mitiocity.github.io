@@ -16,8 +16,7 @@
   --pink: #ff7194;
 
   /*
-    script.js がBGMに合わせて更新する値。
-    CSSだけ貼った段階では0のまま。
+    script.jsからBGM周波数に応じて更新する値。
   */
   --electric-bass: 0;
   --electric-middle: 0;
@@ -41,10 +40,24 @@ body {
   color: var(--text);
   font-family: "Noto Sans JP", sans-serif;
   overscroll-behavior: none;
+
+  /*
+    ダブルタップ時のブラウザ拡大を抑える。
+    同じレーンを連続タップするゲーム操作は維持する。
+  */
+  touch-action: manipulation;
 }
 
 body {
   overflow-x: hidden;
+}
+
+button,
+.board,
+.cell,
+.queue,
+.app {
+  touch-action: manipulation;
 }
 
 button {
@@ -96,8 +109,6 @@ button:focus-visible {
 
 /* ==================================================
    背景
-   円・楕円・放射線は廃止。
-   盤面の外側は静かな星空だけにする。
 ================================================== */
 
 .stage-lights {
@@ -121,20 +132,13 @@ button:focus-visible {
   opacity: 0.32;
 }
 
-/*
-  以前の背景用要素は隠す。
-  電流演出は盤面と控えリング枠に直接付ける。
-*/
 .stage-light,
-.stage-laser {
+.stage-laser,
+.stage-particles {
   display: none !important;
 }
 
-.stage-particles {
-  display: none;
-}
-
-/* オーバー時だけ一度広がるピンクの衝撃波 */
+/* オーバー時に一度だけ表示するピンク衝撃波 */
 .stage-lights::after {
   position: absolute;
   top: 50%;
@@ -385,8 +389,49 @@ h1 span {
   text-shadow: 0 0 12px rgba(93, 228, 255, 0.6);
 }
 
+/* BGM再生に失敗した時だけ表示するボタン */
+
+.sound-enable {
+  width: min(100%, 340px);
+  margin: -2px auto 2px;
+  padding: 10px 15px;
+  border: 1px solid rgba(255, 224, 117, 0.8);
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(118, 91, 20, 0.92),
+      rgba(65, 47, 17, 0.92)
+    );
+  box-shadow:
+    0 0 18px rgba(255, 224, 117, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-align: center;
+}
+
+.sound-enable:active {
+  transform: scale(0.97);
+}
+
+.sound-enable strong {
+  display: block;
+  color: #fff5c7;
+  font-size: 0.87rem;
+  font-weight: 900;
+}
+
+.sound-enable small {
+  display: block;
+  margin-top: 2px;
+  color: rgba(255, 245, 199, 0.72);
+  font-family: Orbitron, sans-serif;
+  font-size: 0.49rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
 /* ==================================================
-   盤面
+   盤面とレーン電流
 ================================================== */
 
 .play-area {
@@ -419,13 +464,9 @@ h1 span {
   backdrop-filter: blur(5px);
 }
 
-/*
-  盤面全体の外周に走る電流。
-  音の低音で強く脈動する。
-*/
 .board::before {
   position: absolute;
-  z-index: 4;
+  z-index: 5;
   inset: 2px;
   border: 1px solid rgba(93, 228, 255, 0.44);
   border-radius: 13px;
@@ -439,13 +480,9 @@ h1 span {
   pointer-events: none;
 }
 
-/*
-  外周を走る短い電流。
-  BGMの高音で速度・明るさが増す。
-*/
 .board::after {
   position: absolute;
-  z-index: 5;
+  z-index: 6;
   inset: 0;
   border-radius: 15px;
   background:
@@ -459,12 +496,9 @@ h1 span {
       rgba(101, 255, 154, 0.74) 84%,
       transparent 88%
     );
-  background-size: 220% 2px;
   background-repeat: no-repeat;
+  background-size: 220% 2px;
   background-position: 0 0;
-  box-shadow:
-    0 100% 0 rgba(93, 228, 255, 0.42),
-    100% 0 0 rgba(164, 113, 255, 0.36);
   content: "";
   opacity: calc(0.18 + var(--electric-high) * 0.7);
   pointer-events: none;
@@ -483,8 +517,7 @@ h1 span {
 }
 
 /*
-  各レーンの先頭セルから横一列に枠を描く。
-  4つのレーンそれぞれに独立した電流枠ができる。
+  各レーン先頭から横一列へ、独立した電流枠を表示。
 */
 .cell:nth-child(8n + 1)::before {
   position: absolute;
@@ -505,9 +538,6 @@ h1 span {
   pointer-events: none;
 }
 
-/*
-  レーンごとの色。
-*/
 .cell:nth-child(8n + 1)::after {
   position: absolute;
   z-index: 0;
@@ -515,7 +545,6 @@ h1 span {
   left: 4px;
   width: calc(800% - 8px);
   height: calc(100% - 8px);
-  border: 1px solid transparent;
   border-radius: 10px;
   background:
     linear-gradient(
@@ -526,8 +555,8 @@ h1 span {
       rgba(93, 228, 255, 0.4) 49%,
       transparent 52% 100%
     );
-  background-size: 190% 2px;
   background-repeat: no-repeat;
+  background-size: 190% 2px;
   content: "";
   opacity: calc(0.12 + var(--electric-high) * 0.68);
   pointer-events: none;
@@ -552,7 +581,7 @@ h1 span {
 
 .cell.target::after {
   position: absolute;
-  z-index: 2;
+  z-index: 4;
   inset: 9%;
   width: auto;
   height: auto;
@@ -593,21 +622,28 @@ h1 span {
   z-index: 3;
   display: grid;
   place-items: center;
-  width: min(82%, 58px);
+  width: min(84%, 60px);
   aspect-ratio: 1;
   color: #ffffff;
-  font-family: Orbitron, "Noto Sans JP", sans-serif;
-  font-size: clamp(1rem, 4.7vw, 1.48rem);
+
+  /*
+    数字が潰れないよう、盤面の数字は
+    Orbitronではなく太いNoto Sans JPを使う。
+  */
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: clamp(1.14rem, 5.3vw, 1.65rem);
   font-weight: 900;
   line-height: 1;
-  letter-spacing: -0.04em;
-  text-shadow:
-    -1px -1px 0 #06112b,
-    1px -1px 0 #06112b,
-    -1px 1px 0 #06112b,
-    1px 1px 0 #06112b,
-    0 1px 5px #06112b;
+  letter-spacing: 0;
+
+  /*
+    4方向の白縁取りを廃止。
+    文字形状を崩さない、黒い影1つだけにする。
+  */
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.94);
+
   user-select: none;
+  -webkit-user-select: none;
 }
 
 .orb {
@@ -637,8 +673,8 @@ h1 span {
   background:
     radial-gradient(
       circle,
-      rgba(12, 25, 56, 0.94) 0 46%,
-      rgba(255, 255, 255, 0.09) 47% 61%,
+      #0b1937 0 51%,
+      rgba(255, 255, 255, 0.08) 52% 61%,
       transparent 62%
     );
   box-shadow:
@@ -647,15 +683,16 @@ h1 span {
 }
 
 /*
-  数字のため、白リングは必ず暗い中心色にする。
+  色が付いていない白リングも、中心を濃紺へ固定。
+  白い数字とのコントラストを確保する。
 */
 .ring:not(.c0):not(.c1):not(.c2):not(.c3) {
   color: #ffffff;
   background:
     radial-gradient(
       circle,
-      #0d1b3a 0 48%,
-      rgba(255, 255, 255, 0.13) 49% 61%,
+      #0a1835 0 51%,
+      rgba(255, 255, 255, 0.12) 52% 61%,
       transparent 62%
     );
 }
@@ -666,12 +703,8 @@ h1 span {
   font-family: "Mochiy Pop One", sans-serif;
   font-size: clamp(1.45rem, 6.5vw, 2.15rem);
   text-shadow:
-    -1px -1px 0 #332600,
-    1px -1px 0 #332600,
-    -1px 1px 0 #332600,
-    1px 1px 0 #332600,
-    0 0 10px rgba(255, 224, 117, 0.95),
-    0 0 23px rgba(255, 224, 117, 0.5);
+    0 2px 3px rgba(48, 34, 0, 0.92),
+    0 0 10px rgba(255, 224, 117, 0.86);
 }
 
 .piece.c0 {
@@ -741,7 +774,6 @@ h1 span {
   backdrop-filter: blur(8px);
 }
 
-/* 控え枠を縦方向に走る電流 */
 .queue::before {
   position: absolute;
   z-index: 0;
@@ -759,10 +791,8 @@ h1 span {
       rgba(101, 255, 154, 0.72) 86%,
       transparent 91%
     );
-  background-size: 2px 190%;
   background-repeat: no-repeat;
-  background-position: 0 0;
-  box-shadow: 100% 0 0 rgba(93, 228, 255, 0.35);
+  background-size: 2px 190%;
   content: "";
   opacity: calc(0.25 + var(--electric-high) * 0.7);
   pointer-events: none;
@@ -799,21 +829,18 @@ h1 span {
   background:
     radial-gradient(
       circle,
-      #0b1a38 0 46%,
-      rgba(93, 228, 255, 0.12) 47% 65%,
+      #0a1835 0 51%,
+      rgba(93, 228, 255, 0.12) 52% 65%,
       transparent 66%
     );
   box-shadow:
     0 0 10px rgba(93, 228, 255, 0.34),
     inset 0 0 8px rgba(255, 255, 255, 0.14);
-  font-family: Orbitron, sans-serif;
-  font-size: 1rem;
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: 1.08rem;
   font-weight: 900;
-  text-shadow:
-    -1px -1px 0 #06112b,
-    1px -1px 0 #06112b,
-    -1px 1px 0 #06112b,
-    1px 1px 0 #06112b;
+  line-height: 1;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.94);
 }
 
 .queue-ring.star {
@@ -824,10 +851,7 @@ h1 span {
   font-family: "Mochiy Pop One", sans-serif;
   font-size: 1.55rem;
   text-shadow:
-    -1px -1px 0 #332600,
-    1px -1px 0 #332600,
-    -1px 1px 0 #332600,
-    1px 1px 0 #332600,
+    0 2px 3px rgba(48, 34, 0, 0.92),
     0 0 12px rgba(255, 224, 117, 0.76);
 }
 
@@ -1179,7 +1203,7 @@ h1 span {
 }
 
 /* ==================================================
-   PC・横幅が広い端末
+   横幅の広い端末
 ================================================== */
 
 @media (min-width: 620px) {
@@ -1191,10 +1215,7 @@ h1 span {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
-  .hud-stage {
-    grid-column: span 1;
-  }
-
+  .hud-stage,
   .hud-over {
     grid-column: span 1;
   }
@@ -1209,7 +1230,7 @@ h1 span {
   }
 
   .piece {
-    font-size: 1.4rem;
+    font-size: 1.55rem;
   }
 }
 
@@ -1237,7 +1258,7 @@ h1 span {
   .queue-ring {
     width: 36px;
     height: 36px;
-    font-size: 0.88rem;
+    font-size: 0.92rem;
   }
 
   .queue-abort {
@@ -1249,14 +1270,11 @@ h1 span {
   }
 
   .piece {
-    font-size: clamp(0.92rem, 4.4vw, 1.2rem);
+    font-size: clamp(1rem, 4.9vw, 1.32rem);
   }
 }
 
-/*
-  端末側の「視差効果を減らす」に対応。
-  電流の動きだけを弱め、数字・ゲーム機能は変えない。
-*/
+/* 動きを減らす設定を尊重 */
 
 @media (prefers-reduced-motion: reduce) {
   .board::after,

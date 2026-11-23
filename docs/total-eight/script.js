@@ -1,5 +1,10 @@
 "use strict";
 
+/* ==================================================
+   とーたるえいと❣️
+   ver1.1
+================================================== */
+
 const CONFIG = {
   rows: 4,
   cols: 8,
@@ -29,16 +34,7 @@ const CONFIG = {
   bgmFadeMs: 900,
   endMusicVolume: 0.48,
 
-  /*
-    音の変化をどれだけ滑らかにするか。
-    小さいほど、急な音量変化を抑える。
-  */
   visualSmoothing: 0.055,
-
-  /*
-    iPhone等で「視差効果を減らす」がONの場合、
-    背景演出の動きを弱める。
-  */
   reducedMotionStrength: 0.32
 };
 
@@ -73,11 +69,11 @@ const el = {
   over: $("#over-gauge"),
   status: $("#status-label"),
 
+  soundEnable: $("#sound-enable-button"),
   abort: $("#abort-button"),
 
   countdown: $("#countdown-overlay"),
   countdownText: $("#countdown-text"),
-
   overPopup: $("#over-popup"),
 
   tutorialStep: $("#tutorial-step"),
@@ -104,13 +100,7 @@ const el = {
   gameClear: $("#game-clear-modal"),
   clearScore: $("#clear-score-value"),
   clearRetry: $("#clear-retry-button"),
-  clearTitle: $("#clear-title-button"),
-
-  stageLeft: $(".stage-light--left"),
-  stageRight: $(".stage-light--right"),
-  stageCenter: $(".stage-light--center"),
-  laserLeft: $(".stage-laser--left"),
-  laserRight: $(".stage-laser--right")
+  clearTitle: $("#clear-title-button")
 };
 
 let state = null;
@@ -118,20 +108,18 @@ let state = null;
 let moveTimer = null;
 let clockTimer = null;
 
-let tutorialIndex = 0;
 let pieceId = 0;
+let tutorialIndex = 0;
 
 let audioContext = null;
+
 let currentBgm = null;
 let currentAnalyser = null;
 let analyserData = null;
-let stageAnimationId = null;
-let endMusic = null;
 
-/*
-  BGM解析の生データをそのまま使わず、
-  滑らかにした値を背景演出へ使う。
-*/
+let endMusic = null;
+let electricAnimationId = null;
+
 const visualEnergy = {
   bass: 0,
   middle: 0,
@@ -143,7 +131,7 @@ const reducedMotionQuery = window.matchMedia(
 );
 
 /* ==================================================
-   基本処理
+   共通
 ================================================== */
 
 function wait(milliseconds) {
@@ -154,6 +142,17 @@ function wait(milliseconds) {
 
 function randomNumber() {
   return Math.floor(Math.random() * 4) + 1;
+}
+
+function makePiece(type, number = null, color = null) {
+  pieceId += 1;
+
+  return {
+    id: `piece-${pieceId}`,
+    type,
+    number,
+    color
+  };
 }
 
 function createRingData() {
@@ -170,29 +169,21 @@ function createRingData() {
   };
 }
 
-function makePiece(type, number = null, color = null) {
-  pieceId += 1;
-
-  return {
-    id: `piece-${pieceId}`,
-    type,
-    number,
-    color
-  };
-}
-
 function createInitialBoard() {
-  return Array.from({ length: CONFIG.rows }, (_, row) => {
-    const boardRow = Array(CONFIG.cols).fill(null);
+  return Array.from(
+    { length: CONFIG.rows },
+    (_, row) => {
+      const boardRow = Array(CONFIG.cols).fill(null);
 
-    boardRow[0] = makePiece(
-      "orb",
-      randomNumber(),
-      row
-    );
+      boardRow[0] = makePiece(
+        "orb",
+        randomNumber(),
+        row
+      );
 
-    return boardRow;
-  });
+      return boardRow;
+    }
+  );
 }
 
 function createGameState() {
@@ -215,7 +206,7 @@ function createGameState() {
     time: CONFIG.startTime,
 
     /*
-      オーバーゲージは回復・リセットしない。
+      オーバーゲージは回復もリセットもしない。
     */
     over: 0,
 
@@ -224,6 +215,11 @@ function createGameState() {
     isBusy: true,
     isPaused: false,
     isEnded: false,
+
+    /*
+      BGMがカウントダウン中に開始済みか。
+    */
+    bgmPrimed: false,
 
     bgmPaths: {}
   };
@@ -240,6 +236,25 @@ function getStageTarget() {
       CONFIG.stageTargets.length - 1
     )
   ];
+}
+
+function isFever() {
+  return state && Date.now() < state.feverUntil;
+}
+
+function isGameRunning() {
+  return Boolean(
+    state &&
+    !state.isBusy &&
+    !state.isPaused &&
+    !state.isEnded
+  );
+}
+
+function setStatus(text) {
+  if (el.status) {
+    el.status.textContent = text;
+  }
 }
 
 function showScreen(screen) {
@@ -273,24 +288,26 @@ function clearGameTimers() {
   clockTimer = null;
 }
 
-function setStatus(text) {
-  if (el.status) {
-    el.status.textContent = text;
-  }
+function showSoundEnableButton() {
+  el.soundEnable?.classList.remove("hidden");
 }
 
-function isFever() {
-  return state && Date.now() < state.feverUntil;
+function hideSoundEnableButton() {
+  el.soundEnable?.classList.add("hidden");
 }
 
-function isGameRunning() {
-  return Boolean(
-    state &&
-    !state.isEnded &&
-    !state.isBusy &&
-    !state.isPaused
-  );
-}
+/* ==================================================
+   ダブルタップズームを抑止
+   ゲーム内のタップ操作は止めない
+================================================== */
+
+document.addEventListener(
+  "dblclick",
+  (event) => {
+    event.preventDefault();
+  },
+  { passive: false }
+);
 
 /* ==================================================
    効果音
@@ -299,7 +316,8 @@ function isGameRunning() {
 function unlockAudio() {
   if (!audioContext) {
     const AudioContextClass =
-      window.AudioContext || window.webkitAudioContext;
+      window.AudioContext ||
+      window.webkitAudioContext;
 
     if (AudioContextClass) {
       audioContext = new AudioContextClass();
@@ -309,34 +327,45 @@ function unlockAudio() {
   audioContext?.resume().catch(() => {});
 }
 
-function playTone(frequency, time, duration, volume) {
+function playTone(
+  frequency,
+  startTime,
+  duration,
+  volume
+) {
   if (!audioContext) {
     return;
   }
 
-  const oscillator = audioContext.createOscillator();
-  const gain = audioContext.createGain();
+  const oscillator =
+    audioContext.createOscillator();
+
+  const gain =
+    audioContext.createGain();
 
   oscillator.type = "sine";
   oscillator.frequency.value = frequency;
 
-  gain.gain.setValueAtTime(0.001, time);
+  gain.gain.setValueAtTime(
+    0.001,
+    startTime
+  );
 
   gain.gain.exponentialRampToValueAtTime(
     volume,
-    time + 0.012
+    startTime + 0.012
   );
 
   gain.gain.exponentialRampToValueAtTime(
     0.001,
-    time + duration
+    startTime + duration
   );
 
   oscillator.connect(gain);
   gain.connect(audioContext.destination);
 
-  oscillator.start(time);
-  oscillator.stop(time + duration + 0.03);
+  oscillator.start(startTime);
+  oscillator.stop(startTime + duration + 0.03);
 }
 
 function playClearSound(chainSpeed = 1) {
@@ -366,10 +395,6 @@ function playClearSound(chainSpeed = 1) {
   });
 }
 
-/*
-  オーバーゲージが増える時の
-  ド → ソ → レ → ド の低い効果音。
-*/
 function playOverSound() {
   if (!audioContext) {
     return;
@@ -399,14 +424,16 @@ function playStarSound() {
     return;
   }
 
-  const now = audioContext.currentTime;
-
-  [
+  const notes = [
     523.25,
     659.25,
     783.99,
     1046.5
-  ].forEach((frequency, index) => {
+  ];
+
+  const now = audioContext.currentTime;
+
+  notes.forEach((frequency, index) => {
     playTone(
       frequency,
       now + index * 0.075,
@@ -457,7 +484,8 @@ function getBgmPath(level) {
         : "LEVEL-5-b.mp3";
   }
 
-  const path = `assets/audio/bgm/${fileName}`;
+  const path =
+    `assets/audio/bgm/${fileName}`;
 
   state.bgmPaths[level] = path;
 
@@ -472,66 +500,48 @@ function disconnectBgm(bgm) {
   try {
     bgm.source?.disconnect();
   } catch (error) {
-    /* すでに接続解除済み */
+    /* 接続済みでない場合 */
   }
 
   try {
     bgm.analyser?.disconnect();
   } catch (error) {
-    /* すでに接続解除済み */
+    /* 接続済みでない場合 */
   }
 }
 
-function stopStageLights() {
-  window.cancelAnimationFrame(stageAnimationId);
-  stageAnimationId = null;
+function setElectricValue(name, value) {
+  document.documentElement.style.setProperty(
+    name,
+    String(value)
+  );
+}
+
+function stopElectricAnimation() {
+  window.cancelAnimationFrame(electricAnimationId);
+
+  electricAnimationId = null;
 
   visualEnergy.bass = 0;
   visualEnergy.middle = 0;
   visualEnergy.high = 0;
 
-  if (el.stageCenter) {
-    el.stageCenter.style.transform =
-      "translate(-50%, -50%) scale(0.82)";
-    el.stageCenter.style.opacity = "0.16";
-  }
-
-  if (el.stageLeft) {
-    el.stageLeft.style.transform =
-      "translate(0, -50%) scale(1)";
-    el.stageLeft.style.opacity = "0.13";
-  }
-
-  if (el.stageRight) {
-    el.stageRight.style.transform =
-      "translate(0, -50%) scale(1)";
-    el.stageRight.style.opacity = "0.13";
-  }
-
-  if (el.laserLeft) {
-    el.laserLeft.style.transform = "scale(1)";
-    el.laserLeft.style.opacity = "0.10";
-  }
-
-  if (el.laserRight) {
-    el.laserRight.style.transform = "scale(1)";
-    el.laserRight.style.opacity = "0.10";
-  }
+  setElectricValue("--electric-bass", 0);
+  setElectricValue("--electric-middle", 0);
+  setElectricValue("--electric-high", 0);
 }
 
 function stopBgm() {
   if (!currentBgm) {
-    stopStageLights();
+    stopElectricAnimation();
     return;
   }
 
-  const { audio } = currentBgm;
-
   try {
-    audio.pause();
-    audio.currentTime = 0;
+    currentBgm.audio.pause();
+    currentBgm.audio.currentTime = 0;
   } catch (error) {
-    /* 音声停止失敗時もゲームは継続 */
+    /* 停止失敗時も続行 */
   }
 
   disconnectBgm(currentBgm);
@@ -540,7 +550,7 @@ function stopBgm() {
   currentAnalyser = null;
   analyserData = null;
 
-  stopStageLights();
+  stopElectricAnimation();
 }
 
 function stopEndMusic() {
@@ -552,7 +562,7 @@ function stopEndMusic() {
     endMusic.pause();
     endMusic.currentTime = 0;
   } catch (error) {
-    /* 停止失敗時も継続 */
+    /* 停止失敗時も続行 */
   }
 
   endMusic = null;
@@ -567,7 +577,10 @@ function playEndMusic(fileName) {
 
   endMusic.loop = false;
   endMusic.volume = CONFIG.endMusicVolume;
-  endMusic.play().catch(() => {});
+
+  endMusic.play().catch(() => {
+    /* 端末が止めた場合は無理に続行しない */
+  });
 }
 
 function createBgmForCurrentLevel() {
@@ -581,10 +594,17 @@ function createBgmForCurrentLevel() {
 
   audio.loop = true;
   audio.preload = "auto";
+
+  /*
+    スタートを押した時点で無音再生する。
+    カウントダウン後の自動再生拒否を防ぐ。
+  */
   audio.volume = 0;
+  audio.muted = true;
 
   if (audioContext) {
-    const analyser = audioContext.createAnalyser();
+    const analyser =
+      audioContext.createAnalyser();
 
     analyser.fftSize = 2048;
     analyser.smoothingTimeConstant = 0.84;
@@ -644,7 +664,40 @@ function fadeAudio(audio, from, to, duration) {
   requestAnimationFrame(update);
 }
 
-function startBgm() {
+/*
+  最重要：
+  スタートボタンを押した瞬間に実行する。
+  Safari／Chromeが「ユーザー操作で開始した音声」と判断する。
+*/
+function primeBgmFromUserTap() {
+  if (!currentBgm?.audio || !state) {
+    return;
+  }
+
+  const { audio } = currentBgm;
+
+  audio.volume = 0;
+  audio.muted = true;
+  audio.currentTime = 0;
+
+  audio.play()
+    .then(() => {
+      state.bgmPrimed = true;
+      hideSoundEnableButton();
+      startElectricAnimation();
+    })
+    .catch(() => {
+      state.bgmPrimed = false;
+      showSoundEnableButton();
+    });
+}
+
+/*
+  GO! の瞬間に呼ぶ。
+  カウントダウン中に確保した無音再生を、
+  通常のBGM音量までフェードインする。
+*/
+function revealBgmAtGo() {
   if (
     !currentBgm?.audio ||
     !state ||
@@ -655,32 +708,108 @@ function startBgm() {
 
   const { audio } = currentBgm;
 
-  audio.currentTime = 0;
-  audio.volume = 0;
+  audio.muted = false;
+
+  if (!state.bgmPrimed) {
+    audio.play()
+      .then(() => {
+        state.bgmPrimed = true;
+        hideSoundEnableButton();
+
+        fadeAudio(
+          audio,
+          0,
+          CONFIG.bgmVolume,
+          CONFIG.bgmFadeMs
+        );
+
+        startElectricAnimation();
+      })
+      .catch(() => {
+        showSoundEnableButton();
+      });
+
+    return;
+  }
+
+  fadeAudio(
+    audio,
+    0,
+    CONFIG.bgmVolume,
+    CONFIG.bgmFadeMs
+  );
+
+  startElectricAnimation();
+}
+
+/*
+  「音を有効化」ボタンを押した時。
+  これも必ずユーザー操作中に実行されるため、
+  音声ブロックから復旧できる。
+*/
+function enableSoundFromUserTap() {
+  unlockAudio();
+
+  if (!currentBgm?.audio || !state) {
+    hideSoundEnableButton();
+    return;
+  }
+
+  const { audio } = currentBgm;
+
+  audio.muted = false;
 
   audio.play()
     .then(() => {
+      state.bgmPrimed = true;
+
       fadeAudio(
         audio,
-        0,
+        audio.volume || 0,
         CONFIG.bgmVolume,
         CONFIG.bgmFadeMs
       );
 
-      startStageLights();
+      hideSoundEnableButton();
+      startElectricAnimation();
     })
     .catch(() => {
-      /*
-        端末側の音声制限などで失敗しても、
-        ゲーム自体は止めない。
-      */
+      showSoundEnableButton();
+      setStatus("SOUND TAP REQUIRED");
     });
 }
 
 function changeBgmForLevel() {
   stopBgm();
+
   createBgmForCurrentLevel();
-  startBgm();
+
+  /*
+    LEVEL UPはプレイ中なので、
+    いったん再生を試行してフェードイン。
+  */
+  if (currentBgm?.audio) {
+    currentBgm.audio.muted = false;
+    currentBgm.audio.volume = 0;
+
+    currentBgm.audio.play()
+      .then(() => {
+        state.bgmPrimed = true;
+
+        fadeAudio(
+          currentBgm.audio,
+          0,
+          CONFIG.bgmVolume,
+          CONFIG.bgmFadeMs
+        );
+
+        hideSoundEnableButton();
+        startElectricAnimation();
+      })
+      .catch(() => {
+        showSoundEnableButton();
+      });
+  }
 }
 
 function pauseBgm() {
@@ -689,7 +818,10 @@ function pauseBgm() {
   }
 
   currentBgm.audio.pause();
-  window.cancelAnimationFrame(stageAnimationId);
+
+  window.cancelAnimationFrame(
+    electricAnimationId
+  );
 }
 
 function resumeBgm() {
@@ -703,13 +835,16 @@ function resumeBgm() {
 
   currentBgm.audio.play()
     .then(() => {
-      startStageLights();
+      startElectricAnimation();
+      hideSoundEnableButton();
     })
-    .catch(() => {});
+    .catch(() => {
+      showSoundEnableButton();
+    });
 }
 
 /* ==================================================
-   BGM周波数 → 円・楕円の背景演出
+   BGM周波数 → レーン枠・控え枠の電流
 ================================================== */
 
 function getBandEnergy(
@@ -769,8 +904,10 @@ function smoothEnergy(current, target) {
     CONFIG.visualSmoothing;
 }
 
-function startStageLights() {
-  window.cancelAnimationFrame(stageAnimationId);
+function startElectricAnimation() {
+  window.cancelAnimationFrame(
+    electricAnimationId
+  );
 
   function animate() {
     if (
@@ -782,14 +919,19 @@ function startStageLights() {
       return;
     }
 
-    const motionStrength =
+    const strength =
       reducedMotionQuery.matches
         ? CONFIG.reducedMotionStrength
         : 1;
 
-    const bassTarget = getBandEnergy(35, 170);
-    const middleTarget = getBandEnergy(170, 1100);
-    const highTarget = getBandEnergy(1800, 9000);
+    const bassTarget =
+      getBandEnergy(35, 170);
+
+    const middleTarget =
+      getBandEnergy(170, 1100);
+
+    const highTarget =
+      getBandEnergy(1800, 9000);
 
     visualEnergy.bass = smoothEnergy(
       visualEnergy.bass,
@@ -806,90 +948,35 @@ function startStageLights() {
       highTarget
     );
 
-    const bass = visualEnergy.bass * motionStrength;
-    const middle =
-      visualEnergy.middle * motionStrength;
-    const high = visualEnergy.high * motionStrength;
-
     /*
-      低音：
-      中央の巨大な円・楕円がゆっくり膨らむ。
+      CSS変数へ値を渡す。
+      CSS側がレーン枠と控え枠を脈動させる。
     */
-    if (el.stageCenter) {
-      const scale = 0.82 + bass * 0.48;
-      const opacity = 0.16 + bass * 0.24;
+    setElectricValue(
+      "--electric-bass",
+      visualEnergy.bass * strength
+    );
 
-      el.stageCenter.style.transform =
-        `translate(-50%, -50%) scale(${scale})`;
+    setElectricValue(
+      "--electric-middle",
+      visualEnergy.middle * strength
+    );
 
-      el.stageCenter.style.opacity = String(opacity);
-    }
+    setElectricValue(
+      "--electric-high",
+      visualEnergy.high * strength
+    );
 
-    /*
-      中音：
-      左右の大きな楕円が寄ったり離れたりする。
-    */
-    if (el.stageLeft) {
-      const scale = 1 + middle * 0.3;
-      const shift = middle * 9;
-      const opacity = 0.13 + middle * 0.22;
-
-      el.stageLeft.style.transform =
-        `translate(${shift}px, -50%) scale(${scale})`;
-
-      el.stageLeft.style.opacity = String(opacity);
-    }
-
-    if (el.stageRight) {
-      const scale = 1 + middle * 0.3;
-      const shift = middle * -9;
-      const opacity = 0.13 + middle * 0.22;
-
-      el.stageRight.style.transform =
-        `translate(${shift}px, -50%) scale(${scale})`;
-
-      el.stageRight.style.opacity = String(opacity);
-    }
-
-    /*
-      高音：
-      小さなカラー楕円を少し濃く、大きくする。
-      線・レーザー・フラッシュは使わない。
-    */
-    if (el.laserLeft) {
-      const scale = 1 + high * 0.36;
-      const shiftX = high * 12;
-      const shiftY = high * -5;
-      const opacity = 0.1 + high * 0.29;
-
-      el.laserLeft.style.transform =
-        `translate(${shiftX}px, ${shiftY}px) scale(${scale})`;
-
-      el.laserLeft.style.opacity = String(opacity);
-    }
-
-    if (el.laserRight) {
-      const scale = 1 + high * 0.36;
-      const shiftX = high * -12;
-      const shiftY = high * 5;
-      const opacity = 0.1 + high * 0.29;
-
-      el.laserRight.style.transform =
-        `translate(${shiftX}px, ${shiftY}px) scale(${scale})`;
-
-      el.laserRight.style.opacity = String(opacity);
-    }
-
-    stageAnimationId =
+    electricAnimationId =
       window.requestAnimationFrame(animate);
   }
 
-  stageAnimationId =
+  electricAnimationId =
     window.requestAnimationFrame(animate);
 }
 
 /* ==================================================
-   盤面の計算
+   盤面計算
 ================================================== */
 
 function getRowPieces(row) {
@@ -901,10 +988,6 @@ function getRowPieces(row) {
     .filter(({ piece }) => piece);
 }
 
-/*
-  オーブを含む列、または白リングだけの列を
-  まとまりごとに取得する。
-*/
 function getGroups() {
   const groups = [];
 
@@ -923,9 +1006,6 @@ function getGroups() {
         continue;
       }
 
-      const pieces = [];
-      const hasOrb = first.type === "orb";
-
       if (
         first.type !== "orb" &&
         first.type !== "ring"
@@ -933,6 +1013,9 @@ function getGroups() {
         col += 1;
         continue;
       }
+
+      const cells = [];
+      const hasOrb = first.type === "orb";
 
       let scan = col;
 
@@ -954,7 +1037,7 @@ function getGroups() {
           break;
         }
 
-        pieces.push({
+        cells.push({
           row,
           col: scan,
           piece: current
@@ -963,8 +1046,8 @@ function getGroups() {
         scan += 1;
       }
 
-      if (pieces.length > 0) {
-        const total = pieces.reduce(
+      if (cells.length > 0) {
+        const total = cells.reduce(
           (sum, item) =>
             sum + (item.piece.number || 0),
           0
@@ -974,7 +1057,7 @@ function getGroups() {
           row,
           hasOrb,
           total,
-          cells: pieces
+          cells
         });
       }
 
@@ -995,10 +1078,30 @@ function getGroupAt(row, col) {
   );
 }
 
-/*
-  リングだけを左側へ詰める。
-  オーブの位置は動かない。
-*/
+function getInheritedColor(row, col) {
+  for (
+    let scan = col - 1;
+    scan >= 0;
+    scan -= 1
+  ) {
+    const piece = state.board[row][scan];
+
+    if (!piece) {
+      break;
+    }
+
+    if (piece.type === "orb") {
+      return piece.color;
+    }
+
+    if (piece.color !== null) {
+      return piece.color;
+    }
+  }
+
+  return null;
+}
+
 function settleBoard() {
   for (
     let row = 0;
@@ -1089,10 +1192,6 @@ function respawnOrbsInEmptyRows() {
     row < CONFIG.rows;
     row += 1
   ) {
-    /*
-      オーブもリングもない完全な空白レーンにだけ
-      新しいオーブを追加する。
-    */
     if (isRowCompletelyEmpty(row)) {
       state.board[row][0] = makePiece(
         "orb",
@@ -1104,7 +1203,7 @@ function respawnOrbsInEmptyRows() {
 }
 
 /* ==================================================
-   得点・レベル・フィーバー
+   経験値・LEVEL・フィーバー
 ================================================== */
 
 function addExperience(amount) {
@@ -1112,13 +1211,13 @@ function addExperience(amount) {
     return;
   }
 
-  const feverMultiplier =
+  const multiplier =
     isFever()
       ? CONFIG.feverMultiplier
       : 1;
 
   const earned = Math.floor(
-    amount * feverMultiplier
+    amount * multiplier
   );
 
   state.score += earned;
@@ -1132,9 +1231,7 @@ function checkLevelProgress() {
     return;
   }
 
-  const target = getStageTarget();
-
-  if (state.stageScore < target) {
+  if (state.stageScore < getStageTarget()) {
     return;
   }
 
@@ -1182,8 +1279,7 @@ async function startFeverAndRespawn() {
   }
 
   /*
-    白リングが残っているレーンへは追加しない。
-    完全な空白レーンだけへオーブを追加。
+    完全に空のレーンだけへオーブ再出現。
   */
   respawnOrbsInEmptyRows();
 
@@ -1248,7 +1344,7 @@ function increaseOverGauge(total) {
 }
 
 /* ==================================================
-   消去処理
+   消去
 ================================================== */
 
 function removeCells(cells) {
@@ -1283,21 +1379,18 @@ async function resolveClearChains() {
 
     settleBoard();
 
-    /*
-      オーブ起点の8だけが経験値になる。
-      白リングだけの8は消えるが得点なし。
-    */
     if (orbGroups.length > 0) {
       const base =
         orbGroups.length *
         CONFIG.clearScore *
         chain;
 
-      const simultaneousBonus =
+      const simultaneous =
         Math.max(0, orbGroups.length - 1) *
         CONFIG.simultaneousBonus;
 
-      addExperience(base + simultaneousBonus);
+      addExperience(base + simultaneous);
+
       playClearSound(
         chain === 1
           ? 1
@@ -1329,11 +1422,6 @@ async function resolveStar(row) {
   const existingPieces = getRowPieces(row)
     .filter(({ piece }) => piece.type !== "star");
 
-  /*
-    空白レーンの★も「8を1つ作った」扱い。
-    既存ピースがある場合は、既存ピース1個ごとに
-    8を作った扱いで得点。
-  */
   const clearCount = Math.max(
     1,
     existingPieces.length
@@ -1361,9 +1449,6 @@ async function resolveStar(row) {
   }
 }
 
-/*
-  新しく固定した通常リングの合計を判定する。
-*/
 async function evaluatePlacedRing(row, col) {
   const group = getGroupAt(row, col);
 
@@ -1372,12 +1457,6 @@ async function evaluatePlacedRing(row, col) {
   }
 
   if (group.total > 8) {
-    /*
-      9以上：
-      新しく置いたリングだけ消える。
-      オーブ列ならオーバーゲージ+1。
-      白リング列ならゲージは増えない。
-    */
     state.board[row][col] = null;
 
     if (group.hasOrb) {
@@ -1397,7 +1476,7 @@ async function evaluatePlacedRing(row, col) {
 }
 
 /* ==================================================
-   リング出現・移動・固定
+   リング移動
 ================================================== */
 
 function spawnActiveRing() {
@@ -1461,7 +1540,7 @@ async function lockActiveRing(row, col) {
   state.board[row][col] = makePiece(
     "ring",
     active.number,
-    null
+    getInheritedColor(row, col)
   );
 
   state.activeRing = null;
@@ -1476,7 +1555,9 @@ async function lockActiveRing(row, col) {
     !state.isPaused
   ) {
     spawnActiveRing();
+
     state.isBusy = false;
+
     renderGame();
   }
 }
@@ -1492,10 +1573,6 @@ function moveActiveRing() {
   const active = state.activeRing;
   const nextCol = active.col - 1;
 
-  /*
-    左端まで到達した場合、
-    または次のマスが埋まっている場合は固定。
-  */
   if (nextCol < 0) {
     lockActiveRing(active.row, 0);
     return;
@@ -1529,7 +1606,7 @@ function handleBoardTap(row) {
   }
 
   /*
-    1回目：流れているリングをそのレーンへ移動。
+    1回目：狙うレーンを変更。
   */
   if (state.selectedRow !== row) {
     state.selectedRow = row;
@@ -1538,12 +1615,12 @@ function handleBoardTap(row) {
     setStatus("TARGET LOCK");
 
     renderGame();
+
     return;
   }
 
   /*
-    同じレーンを2回目：
-    そのレーンの先頭へ即固定。
+    同じレーン2回目：先頭へ即固定。
   */
   const landingCol = getLandingColumn(row);
 
@@ -1618,10 +1695,10 @@ function makePieceElement(
     classes.push("active");
   }
 
-  const prepClasses =
+  const prep =
     getPreparationClasses(row, col, piece);
 
-  prepClasses
+  prep
     .filter((className) =>
       className.startsWith("t")
     )
@@ -1631,11 +1708,10 @@ function makePieceElement(
 
   node.className = classes.join(" ");
 
-  if (piece.type === "star") {
-    node.textContent = "★";
-  } else {
-    node.textContent = String(piece.number);
-  }
+  node.textContent =
+    piece.type === "star"
+      ? "★"
+      : String(piece.number);
 
   return node;
 }
@@ -1662,15 +1738,14 @@ function renderBoard() {
       cell.type = "button";
       cell.className = "cell";
       cell.dataset.row = String(row);
-      cell.dataset.col = String(col);
 
       const piece = state.board[row][col];
 
       if (piece) {
-        const prepClasses =
+        const prep =
           getPreparationClasses(row, col, piece);
 
-        prepClasses
+        prep
           .filter((className) =>
             className.startsWith("prep")
           )
@@ -1688,15 +1763,13 @@ function renderBoard() {
         state.activeRing.row === row &&
         state.activeRing.col === col
       ) {
-        const activePiece = {
-          type: state.activeRing.type,
-          number: state.activeRing.number,
-          color: null
-        };
-
         cell.appendChild(
           makePieceElement(
-            activePiece,
+            {
+              type: state.activeRing.type,
+              number: state.activeRing.number,
+              color: null
+            },
             row,
             col,
             true
@@ -1772,7 +1845,8 @@ function renderGame() {
   }
 
   if (el.level) {
-    el.level.textContent = String(state.level);
+    el.level.textContent =
+      String(state.level);
   }
 
   if (el.stageScore) {
@@ -1797,7 +1871,7 @@ function renderGame() {
 }
 
 /* ==================================================
-   ゲーム開始・終了
+   開始・終了
 ================================================== */
 
 async function runCountdown() {
@@ -1854,11 +1928,18 @@ function startClock() {
 }
 
 async function startNewGame() {
+  /*
+    この関数は必ずボタンを押したタイミングで始まる。
+    ここで音声を準備することが重要。
+  */
   unlockAudio();
+
   stopEndMusic();
   stopBgm();
   clearGameTimers();
   closeAllModals();
+
+  hideSoundEnableButton();
 
   el.app?.classList.remove(
     "is-fever",
@@ -1872,14 +1953,20 @@ async function startNewGame() {
 
   renderGame();
 
+  /*
+    カウントダウンより先に、
+    無音BGMをユーザー操作中に開始する。
+  */
+  createBgmForCurrentLevel();
+  primeBgmFromUserTap();
+
   await runCountdown();
 
   if (!state || state.isEnded) {
     return;
   }
 
-  createBgmForCurrentLevel();
-  startBgm();
+  revealBgmAtGo();
 
   state.isBusy = false;
 
@@ -1912,6 +1999,7 @@ function pauseGame() {
   state.isPaused = true;
 
   pauseBgm();
+
   el.abortModal?.classList.add("open");
 
   setStatus("PAUSED");
@@ -1931,6 +2019,7 @@ function resumeGame() {
   el.abortModal?.classList.remove("open");
 
   resumeBgm();
+
   setStatus("READY");
 
   renderGame();
@@ -1941,6 +2030,8 @@ function returnToTitle() {
   stopBgm();
   stopEndMusic();
 
+  hideSoundEnableButton();
+
   state = null;
 
   el.app?.classList.remove(
@@ -1949,6 +2040,7 @@ function returnToTitle() {
   );
 
   closeAllModals();
+
   showScreen(el.title);
 }
 
@@ -2030,11 +2122,14 @@ function openTutorial() {
   clearGameTimers();
   stopBgm();
   stopEndMusic();
+
+  hideSoundEnableButton();
   closeAllModals();
 
   tutorialIndex = 0;
 
   showScreen(el.tutorial);
+
   renderTutorial();
 }
 
@@ -2064,6 +2159,10 @@ el.board?.addEventListener("click", (event) => {
   }
 
   handleBoardTap(row);
+});
+
+el.soundEnable?.addEventListener("click", () => {
+  enableSoundFromUserTap();
 });
 
 el.abort?.addEventListener("click", () => {
@@ -2109,6 +2208,7 @@ el.tutorialNext?.addEventListener("click", () => {
   }
 
   tutorialIndex += 1;
+
   renderTutorial();
 });
 
@@ -2122,7 +2222,9 @@ el.tutorialStart?.addEventListener("click", () => {
 
 el.tutorialRestart?.addEventListener("click", () => {
   tutorialIndex = 0;
+
   el.tutorialModal?.classList.remove("open");
+
   renderTutorial();
 });
 
@@ -2131,8 +2233,8 @@ el.tutorialTitle?.addEventListener("click", () => {
 });
 
 /*
-  タブ切替・着信などでゲーム画面が裏に回った場合、
-  意図せず時間だけ進むことを防ぐ。
+  タブ切替やLINE内ブラウザから別画面へ移動した時、
+  時間だけ進行することを防ぐ。
 */
 document.addEventListener("visibilitychange", () => {
   if (
@@ -2143,10 +2245,6 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
-/*
-  端末設定で動きを減らす設定を途中で切り替えた場合も、
-  次のフレームから背景演出の強さへ反映される。
-*/
 reducedMotionQuery.addEventListener?.(
   "change",
   () => {
@@ -2154,7 +2252,7 @@ reducedMotionQuery.addEventListener?.(
       currentBgm?.audio &&
       !currentBgm.audio.paused
     ) {
-      startStageLights();
+      startElectricAnimation();
     }
   }
 );
