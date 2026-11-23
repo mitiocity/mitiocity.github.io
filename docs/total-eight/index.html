@@ -6,8 +6,13 @@
     name="viewport"
     content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
   >
+  <meta
+    name="description"
+    content="数字をつないで合計8を作るパズルゲーム、とーたるえいと❣️"
+  >
   <title>とーたるえいと❣️</title>
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="style.css?v=20261118-03">
 </head>
 
 <body>
@@ -16,8 +21,12 @@
     <section id="title-screen" class="screen is-active">
       <div class="title-content">
         <p class="eyebrow">CONNECT · CALCULATE · CLEAR</p>
+
         <h1>とーたるえいと<span>❣️</span></h1>
-        <p class="lead">合計8にして高スコアを狙え🫰</p>
+
+        <p class="lead">
+          合計8にして高スコアを狙え<span class="emoji">&#x1FAF0;</span>
+        </p>
 
         <div class="title-menu">
           <button id="start-button" class="menu-button menu-button--main" type="button">
@@ -30,8 +39,6 @@
             <small>TUTORIAL</small>
           </button>
         </div>
-
-        <p class="title-note">残り400秒。すべてを8にしろ。</p>
       </div>
     </section>
 
@@ -76,7 +83,9 @@
         同じレーンをもう一度タップで即固定
       </p>
 
-      <button id="menu-button" class="corner-button" type="button">メニュー</button>
+      <button id="menu-button" class="corner-button" type="button">
+        メニュー
+      </button>
 
       <div id="countdown-overlay" class="countdown-overlay is-hidden">
         <strong id="countdown-text">READY?</strong>
@@ -85,7 +94,10 @@
 
     <section id="tutorial-screen" class="screen">
       <header class="tutorial-header">
-        <button id="tutorial-exit-button" class="corner-button" type="button">メニュー</button>
+        <button id="tutorial-exit-button" class="corner-button" type="button">
+          メニュー
+        </button>
+
         <h2>チュートリアル</h2>
       </header>
 
@@ -94,7 +106,7 @@
         <p id="tutorial-text"></p>
       </div>
 
-      <button id="tutorial-next-button" class="menu-button menu-button--main" type="button">
+      <button id="tutorial-next-button" class="menu-button menu-button--main tutorial-next" type="button">
         <strong>つぎへ</strong>
         <small>NEXT</small>
       </button>
@@ -143,6 +155,6 @@
 
   </main>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=20261118-03"></script>
 </body>
 </html>
