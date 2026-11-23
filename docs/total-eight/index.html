@@ -8,12 +8,65 @@
   >
   <title>とーたるえいと❣️</title>
   <link rel="stylesheet" href="style.css?v=20261118-10">
+
+  <style>
+    #title-screen h1,
+    #title-screen h1 span {
+      color: #fff3bd;
+      -webkit-text-stroke: 1px rgba(6, 12, 34, 0.88);
+      text-shadow:
+        0 2px 0 rgba(5, 10, 28, 0.96),
+        0 0 10px rgba(255, 229, 140, 0.95),
+        0 0 28px rgba(255, 200, 73, 0.62),
+        0 0 55px rgba(91, 131, 255, 0.3);
+    }
+
+    .portal-return-button {
+      display: flex;
+      width: 100%;
+      min-height: 56px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding: 14px 18px;
+      color: #fff6d2;
+      border: 1px solid rgba(255, 224, 117, 0.72);
+      border-radius: 15px;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(85, 61, 22, 0.92),
+          rgba(25, 30, 60, 0.94)
+        );
+      box-shadow:
+        0 0 18px rgba(255, 224, 117, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+    }
+
+    .portal-return-button::after {
+      content: "←";
+      color: #ffe075;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .portal-return-button:active {
+      transform: scale(0.97);
+    }
+
+    .portal-return-button:focus-visible {
+      outline: 2px solid #ffe075;
+      outline-offset: 3px;
+    }
+  </style>
 </head>
 
 <body>
   <main class="app">
 
-    <!-- BGM周波数へ反応する背景照明 -->
     <div class="stage-lights" aria-hidden="true">
       <i class="stage-light stage-light--left"></i>
       <i class="stage-light stage-light--right"></i>
@@ -23,7 +76,6 @@
       <div class="stage-particles"></div>
     </div>
 
-    <!-- タイトル画面 -->
     <section id="title-screen" class="screen is-active">
       <div class="title-content">
         <p class="eyebrow">CONNECT · CALCULATE · CLEAR</p>
@@ -50,11 +102,18 @@
             <strong>チュートリアル</strong>
             <small>TUTORIAL</small>
           </button>
+
+          <a
+            class="portal-return-button"
+            href="../#home"
+            aria-label="みちを市ポータルサイトへ戻る"
+          >
+            みちを市ポータルサイトへ戻る
+          </a>
         </div>
       </div>
     </section>
 
-    <!-- ゲーム画面 -->
     <section id="game-screen" class="screen">
       <header class="hud">
 
@@ -124,7 +183,6 @@
         同じレーンをもう一度タップで即固定
       </p>
 
-      <!-- READY? / 3 / 2 / 1 / GO! -->
       <div
         id="countdown-overlay"
         class="overlay hidden"
@@ -133,7 +191,6 @@
         <strong id="countdown-text">READY?</strong>
       </div>
 
-      <!-- 合計9以上を作った瞬間に中央へ大きく表示 -->
       <div
         id="over-popup"
         class="over-popup hidden"
@@ -141,7 +198,6 @@
       ></div>
     </section>
 
-    <!-- チュートリアル -->
     <section id="tutorial-screen" class="screen tutorial">
       <button
         id="tutorial-exit-button"
@@ -166,7 +222,6 @@
       </button>
     </section>
 
-    <!-- チュートリアル終了 -->
     <section id="tutorial-complete-modal" class="modal">
       <div class="modal-card">
         <h2>準備完了。</h2>
@@ -200,7 +255,6 @@
       </div>
     </section>
 
-    <!-- 中断 -->
     <section id="abort-modal" class="modal">
       <div class="modal-card">
         <h2>ゲームを中断しました</h2>
@@ -234,7 +288,6 @@
       </div>
     </section>
 
-    <!-- ゲームオーバー -->
     <section id="game-over-modal" class="modal">
       <div class="modal-card">
         <p id="game-over-reason" class="eyebrow">TIME UP</p>
@@ -268,7 +321,6 @@
       </div>
     </section>
 
-    <!-- ゲームクリア -->
     <section id="game-clear-modal" class="modal">
       <div class="modal-card clear-card">
         <p class="eyebrow">MISSION COMPLETE</p>
