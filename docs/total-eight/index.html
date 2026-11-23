@@ -8,6 +8,100 @@
   >
   <title>とーたるえいと❣️</title>
   <link rel="stylesheet" href="style.css?v=20261118-19">
+
+  <style>
+    /* 更新ボタンを押した直後・読み込み完了後の手ごたえ表示 */
+    #update-button {
+      position: relative;
+      overflow: hidden;
+    }
+
+    #update-button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        110deg,
+        transparent 18%,
+        rgba(93, 228, 255, 0.12) 38%,
+        rgba(255, 255, 255, 0.58) 50%,
+        rgba(93, 228, 255, 0.12) 62%,
+        transparent 82%
+      );
+      transform: translateX(-130%);
+      pointer-events: none;
+    }
+
+    #update-button.is-updating {
+      border-color: #5de4ff;
+      color: #e9fcff;
+      box-shadow:
+        0 0 0 2px rgba(93, 228, 255, 0.18),
+        0 0 22px rgba(93, 228, 255, 0.58);
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+
+    #update-button.is-updating::after {
+      animation: update-sweep 0.48s ease-out both;
+    }
+
+    #update-button:disabled {
+      cursor: wait;
+    }
+
+    #update-feedback {
+      position: fixed;
+      z-index: 100;
+      left: 50%;
+      bottom: max(22px, env(safe-area-inset-bottom));
+      width: min(calc(100% - 36px), 360px);
+      padding: 13px 16px;
+      border: 1px solid rgba(93, 228, 255, 0.88);
+      border-radius: 14px;
+      background: rgba(5, 14, 30, 0.94);
+      color: #edfeff;
+      box-shadow:
+        0 0 0 1px rgba(93, 228, 255, 0.14) inset,
+        0 8px 30px rgba(0, 0, 0, 0.48),
+        0 0 24px rgba(93, 228, 255, 0.24);
+      font-family: "Noto Sans JP", sans-serif;
+      font-size: 0.83rem;
+      font-weight: 900;
+      line-height: 1.55;
+      letter-spacing: 0.04em;
+      text-align: center;
+      pointer-events: none;
+      transform: translate(-50%, 18px);
+      opacity: 0;
+      transition:
+        opacity 0.22s ease,
+        transform 0.22s ease;
+    }
+
+    #update-feedback.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    #update-feedback strong {
+      display: block;
+      color: #5de4ff;
+      font-family: Orbitron, "Noto Sans JP", sans-serif;
+      font-size: 0.76rem;
+      letter-spacing: 0.1em;
+    }
+
+    @keyframes update-sweep {
+      from {
+        transform: translateX(-130%);
+      }
+
+      to {
+        transform: translateX(130%);
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -95,7 +189,6 @@
 
         <div class="hud-stage">
           <span>ステージ経験値</span>
-
           <strong>
             <b id="stage-score-value">0</b>
             <em>/</em>
@@ -110,7 +203,6 @@
 
         <div class="hud-over">
           <span>オーバー</span>
-
           <p id="over-gauge">
             <i></i>
             <i></i>
@@ -280,10 +372,7 @@
         <h2>ゲーム終了</h2>
         <p>今回の獲得経験値</p>
 
-        <strong
-          id="final-score-value"
-          class="final-score"
-        >
+        <strong id="final-score-value" class="final-score">
           0
         </strong>
 
@@ -320,10 +409,7 @@
           今回の獲得経験値
         </p>
 
-        <strong
-          id="clear-score-value"
-          class="final-score"
-        >
+        <strong id="clear-score-value" class="final-score">
           0
         </strong>
 
@@ -353,20 +439,11 @@
       aria-live="assertive"
     >
       <div class="orientation-card">
-        <span
-          class="orientation-phone"
-          aria-hidden="true"
-        >
-          ▯
-        </span>
+        <span class="orientation-phone" aria-hidden="true">▯</span>
 
-        <strong>
-          端末を横向きにしてください
-        </strong>
+        <strong>端末を横向きにしてください</strong>
 
-        <small>
-          TURN YOUR DEVICE SIDEWAYS
-        </small>
+        <small>TURN YOUR DEVICE SIDEWAYS</small>
 
         <p>
           横画面で、広い盤面を使って<br>
@@ -390,16 +467,85 @@
     </section>
   </main>
 
+  <div
+    id="update-feedback"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+  ></div>
+
   <script>
     "use strict";
 
-    document
-      .getElementById("update-button")
-      ?.addEventListener("click", () => {
-        location.replace(
-          `${location.pathname}?reload=${Date.now()}`
+    (() => {
+      const updateButton = document.getElementById("update-button");
+      const feedback = document.getElementById("update-feedback");
+
+      function showFeedback(title, message) {
+        if (!feedback) {
+          return;
+        }
+
+        feedback.innerHTML = `<strong>${title}</strong>${message}`;
+        feedback.classList.add("is-visible");
+      }
+
+      function hideFeedback() {
+        feedback?.classList.remove("is-visible");
+      }
+
+      const params = new URLSearchParams(location.search);
+
+      if (params.has("reload")) {
+        showFeedback(
+          "UPDATE COMPLETE",
+          "最新版を読み込みました"
         );
+
+        history.replaceState(
+          null,
+          "",
+          `${location.pathname}${location.hash}`
+        );
+
+        window.setTimeout(hideFeedback, 2400);
+      }
+
+      updateButton?.addEventListener("click", () => {
+        if (updateButton.disabled) {
+          return;
+        }
+
+        updateButton.disabled = true;
+        updateButton.classList.add("is-updating");
+
+        const title = updateButton.querySelector("strong");
+        const subtitle = updateButton.querySelector("small");
+
+        if (title) {
+          title.textContent = "更新中…";
+        }
+
+        if (subtitle) {
+          subtitle.textContent = "CHECKING LATEST VERSION";
+        }
+
+        showFeedback(
+          "UPDATING…",
+          "最新版を確認しています"
+        );
+
+        if ("vibrate" in navigator) {
+          navigator.vibrate(28);
+        }
+
+        window.setTimeout(() => {
+          location.replace(
+            `${location.pathname}?reload=${Date.now()}`
+          );
+        }, 420);
       });
+    })();
   </script>
 
   <script src="script.js?v=20261118-19"></script>
