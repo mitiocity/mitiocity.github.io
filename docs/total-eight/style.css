@@ -2,10 +2,10 @@
 
 :root {
   --bg: #050914;
-  --panel: rgba(14, 24, 48, 0.92);
+  --panel: rgba(14, 24, 48, 0.93);
   --line: rgba(158, 210, 255, 0.28);
-  --line-strong: rgba(128, 223, 255, 0.72);
-  --text: #f5f8ff;
+  --line-strong: rgba(128, 223, 255, 0.78);
+  --text: #f8fbff;
   --muted: #9caaca;
 
   --cyan: #5de4ff;
@@ -14,6 +14,14 @@
   --green: #65ff9a;
   --yellow: #ffe075;
   --pink: #ff7194;
+
+  /*
+    script.js がBGMに合わせて更新する値。
+    CSSだけ貼った段階では0のまま。
+  */
+  --electric-bass: 0;
+  --electric-middle: 0;
+  --electric-high: 0;
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -60,19 +68,24 @@ button:focus-visible {
   overflow: hidden;
   background:
     radial-gradient(
-      ellipse at 50% 45%,
-      rgba(33, 76, 149, 0.24),
-      transparent 51%
+      ellipse at 50% 15%,
+      rgba(38, 86, 171, 0.22),
+      transparent 43%
     ),
     radial-gradient(
-      ellipse at 83% 4%,
-      rgba(81, 56, 173, 0.17),
-      transparent 33%
+      ellipse at 5% 90%,
+      rgba(49, 68, 149, 0.16),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 95% 86%,
+      rgba(78, 47, 138, 0.13),
+      transparent 44%
     ),
     linear-gradient(
       145deg,
       #101b35 0%,
-      #050914 58%,
+      #050914 55%,
       #02040b 100%
     );
 }
@@ -82,8 +95,9 @@ button:focus-visible {
 }
 
 /* ==================================================
-   音反応：カラフルな円と楕円
-   白フラッシュや放射線状の線は使わない
+   背景
+   円・楕円・放射線は廃止。
+   盤面の外側は静かな星空だけにする。
 ================================================== */
 
 .stage-lights {
@@ -92,24 +106,41 @@ button:focus-visible {
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  background:
-    radial-gradient(
-      ellipse at center,
-      rgba(59, 104, 203, 0.1),
-      transparent 56%
-    );
+  background-image:
+    radial-gradient(circle at 12% 17%, #fff 0 1px, transparent 1.5px),
+    radial-gradient(circle at 78% 12%, #aeefff 0 1px, transparent 1.7px),
+    radial-gradient(circle at 89% 64%, #cbb4ff 0 1px, transparent 1.6px),
+    radial-gradient(circle at 19% 78%, #b8ffd0 0 1px, transparent 1.5px),
+    radial-gradient(circle at 48% 39%, #fff 0 1px, transparent 1.4px);
+  background-size:
+    117px 137px,
+    163px 187px,
+    211px 177px,
+    151px 229px,
+    239px 253px;
+  opacity: 0.32;
 }
 
 /*
-  オーバー時だけ一度だけ広がるピンクの衝撃波。
-  常時の点滅ではない。
+  以前の背景用要素は隠す。
+  電流演出は盤面と控えリング枠に直接付ける。
 */
+.stage-light,
+.stage-laser {
+  display: none !important;
+}
+
+.stage-particles {
+  display: none;
+}
+
+/* オーバー時だけ一度広がるピンクの衝撃波 */
 .stage-lights::after {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 12vmax;
-  height: 12vmax;
+  width: 10vmax;
+  height: 10vmax;
   border: 2px solid transparent;
   border-radius: 50%;
   content: "";
@@ -120,352 +151,9 @@ button:focus-visible {
 .app.is-over-flash .stage-lights::after {
   border-color: rgba(255, 113, 148, 0.88);
   box-shadow:
-    0 0 26px rgba(255, 113, 148, 0.74),
-    inset 0 0 20px rgba(255, 113, 148, 0.32);
+    0 0 27px rgba(255, 113, 148, 0.8),
+    inset 0 0 20px rgba(255, 113, 148, 0.36);
   animation: over-shockwave 0.78s ease-out forwards;
-}
-
-/*
-  低音担当。
-  一番大きい楕円で、音に合わせてゆっくり拡縮する。
-*/
-.stage-light--center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: block;
-  width: 118vmax;
-  height: 82vmax;
-  border-radius: 50%;
-  opacity: 0.16;
-  background:
-    radial-gradient(
-      ellipse at 30% 38%,
-      rgba(93, 228, 255, 0.48),
-      rgba(93, 228, 255, 0.12) 29%,
-      transparent 61%
-    ),
-    radial-gradient(
-      ellipse at 70% 63%,
-      rgba(164, 113, 255, 0.44),
-      rgba(164, 113, 255, 0.11) 31%,
-      transparent 63%
-    ),
-    radial-gradient(
-      ellipse at 52% 49%,
-      rgba(91, 131, 255, 0.34),
-      transparent 58%
-    );
-  filter: blur(7px) saturate(1.2);
-  mix-blend-mode: screen;
-  transform: translate(-50%, -50%) scale(0.82);
-  transform-origin: center;
-  transition:
-    opacity 0.25s ease-out,
-    transform 0.25s ease-out;
-}
-
-/* 中心に浮かぶ柔らかい円 */
-.stage-light--center::before {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 33%;
-  height: 46%;
-  border: 1px solid rgba(192, 241, 255, 0.34);
-  border-radius: 50%;
-  background:
-    radial-gradient(
-      ellipse at 38% 36%,
-      rgba(93, 228, 255, 0.24),
-      transparent 53%
-    ),
-    radial-gradient(
-      ellipse at 66% 68%,
-      rgba(164, 113, 255, 0.22),
-      transparent 55%
-    );
-  box-shadow:
-    0 0 25px rgba(93, 228, 255, 0.18),
-    inset 0 0 22px rgba(93, 228, 255, 0.12);
-  content: "";
-  transform: translate(-50%, -50%);
-}
-
-/* 中心の小さなカラー球 */
-.stage-light--center::after {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 15%;
-  height: 21%;
-  border-radius: 50%;
-  background:
-    radial-gradient(
-      circle at 30% 28%,
-      rgba(255, 255, 255, 0.34),
-      transparent 16%
-    ),
-    radial-gradient(
-      circle at 48% 50%,
-      rgba(93, 228, 255, 0.48),
-      rgba(91, 131, 255, 0.24) 48%,
-      rgba(164, 113, 255, 0.1) 70%,
-      transparent 74%
-    );
-  box-shadow:
-    0 0 32px rgba(93, 228, 255, 0.26),
-    0 0 48px rgba(164, 113, 255, 0.16);
-  content: "";
-  transform: translate(-50%, -50%);
-}
-
-/*
-  中音担当。
-  左右から重なる大きな楕円。
-  幾何学線・多角形・放射線にはしない。
-*/
-.stage-light--left,
-.stage-light--right {
-  position: absolute;
-  top: 50%;
-  display: block;
-  width: 92vmax;
-  height: 61vmax;
-  border-radius: 50%;
-  opacity: 0.13;
-  filter: blur(5px) saturate(1.25);
-  mix-blend-mode: screen;
-  transform-origin: center;
-  transition:
-    opacity 0.24s ease-out,
-    transform 0.24s ease-out;
-}
-
-.stage-light--left {
-  left: -57vmax;
-  background:
-    radial-gradient(
-      ellipse at 62% 48%,
-      rgba(91, 131, 255, 0.58),
-      rgba(91, 131, 255, 0.17) 38%,
-      transparent 68%
-    ),
-    radial-gradient(
-      ellipse at 72% 24%,
-      rgba(93, 228, 255, 0.31),
-      transparent 43%
-    );
-  box-shadow:
-    0 0 65px rgba(91, 131, 255, 0.22),
-    inset 0 0 70px rgba(93, 228, 255, 0.14);
-}
-
-.stage-light--right {
-  right: -57vmax;
-  background:
-    radial-gradient(
-      ellipse at 38% 51%,
-      rgba(164, 113, 255, 0.56),
-      rgba(164, 113, 255, 0.16) 39%,
-      transparent 68%
-    ),
-    radial-gradient(
-      ellipse at 28% 75%,
-      rgba(93, 228, 255, 0.28),
-      transparent 44%
-    );
-  box-shadow:
-    0 0 65px rgba(164, 113, 255, 0.22),
-    inset 0 0 70px rgba(164, 113, 255, 0.14);
-}
-
-/* 左右の楕円内にある淡い小円 */
-.stage-light--left::before,
-.stage-light--right::before {
-  position: absolute;
-  width: 28%;
-  height: 42%;
-  border: 1px solid rgba(220, 248, 255, 0.28);
-  border-radius: 50%;
-  box-shadow:
-    0 0 20px rgba(93, 228, 255, 0.15),
-    inset 0 0 18px rgba(93, 228, 255, 0.1);
-  content: "";
-}
-
-.stage-light--left::before {
-  top: 27%;
-  right: 17%;
-}
-
-.stage-light--right::before {
-  top: 31%;
-  left: 17%;
-}
-
-/* 小さな色玉 */
-.stage-light--left::after,
-.stage-light--right::after {
-  position: absolute;
-  width: 16%;
-  height: 23%;
-  border-radius: 50%;
-  content: "";
-}
-
-.stage-light--left::after {
-  top: 51%;
-  right: 28%;
-  background:
-    radial-gradient(
-      circle at 32% 28%,
-      rgba(255, 255, 255, 0.28),
-      transparent 15%
-    ),
-    radial-gradient(
-      circle,
-      rgba(93, 228, 255, 0.37),
-      rgba(91, 131, 255, 0.16) 58%,
-      transparent 73%
-    );
-}
-
-.stage-light--right::after {
-  top: 27%;
-  left: 28%;
-  background:
-    radial-gradient(
-      circle at 32% 28%,
-      rgba(255, 255, 255, 0.25),
-      transparent 15%
-    ),
-    radial-gradient(
-      circle,
-      rgba(255, 224, 117, 0.3),
-      rgba(164, 113, 255, 0.17) 58%,
-      transparent 73%
-    );
-}
-
-/*
-  高音担当。
-  旧レーザー要素は「細い線」ではなく、
-  小さな楕円のカラー雲として使う。
-*/
-.stage-laser--left,
-.stage-laser--right {
-  position: absolute;
-  display: block;
-  width: 53vmax;
-  height: 28vmax;
-  border-radius: 50%;
-  opacity: 0.1;
-  filter: blur(9px) saturate(1.35);
-  mix-blend-mode: screen;
-  transform-origin: center;
-  transition:
-    opacity 0.16s ease-out,
-    transform 0.16s ease-out;
-}
-
-.stage-laser--left {
-  top: 9%;
-  left: -16vmax;
-  background:
-    radial-gradient(
-      ellipse at 68% 53%,
-      rgba(93, 228, 255, 0.54),
-      rgba(91, 131, 255, 0.18) 38%,
-      transparent 70%
-    );
-}
-
-.stage-laser--right {
-  right: -15vmax;
-  bottom: 4%;
-  background:
-    radial-gradient(
-      ellipse at 32% 45%,
-      rgba(101, 255, 154, 0.38),
-      rgba(164, 113, 255, 0.19) 40%,
-      transparent 70%
-    );
-}
-
-.stage-laser--left::before,
-.stage-laser--right::before {
-  position: absolute;
-  inset: 26%;
-  border: 1px solid rgba(223, 250, 255, 0.22);
-  border-radius: 50%;
-  content: "";
-}
-
-.stage-laser--left::after,
-.stage-laser--right::after {
-  position: absolute;
-  width: 24%;
-  height: 42%;
-  border-radius: 50%;
-  content: "";
-}
-
-.stage-laser--left::after {
-  top: 28%;
-  right: 19%;
-  background: rgba(255, 224, 117, 0.26);
-  box-shadow: 0 0 20px rgba(255, 224, 117, 0.16);
-}
-
-.stage-laser--right::after {
-  bottom: 26%;
-  left: 20%;
-  background: rgba(93, 228, 255, 0.28);
-  box-shadow: 0 0 20px rgba(93, 228, 255, 0.16);
-}
-
-/* 背景の小さな粒子 */
-.stage-particles {
-  position: absolute;
-  inset: 0;
-  opacity: 0.19;
-  background-image:
-    radial-gradient(circle at 12% 17%, #fff 0 1px, transparent 1.5px),
-    radial-gradient(circle at 78% 12%, var(--cyan) 0 1px, transparent 1.7px),
-    radial-gradient(circle at 89% 64%, var(--purple) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 19% 78%, var(--green) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 48% 39%, #fff 0 1px, transparent 1.4px);
-  background-size:
-    117px 137px,
-    163px 187px,
-    211px 177px,
-    151px 229px,
-    239px 253px;
-  animation: particles-drift 18s linear infinite;
-}
-
-/*
-  フィーバー中も点滅ではなく、
-  色数・彩度・空間の広がりを強化する。
-*/
-.app.is-fever .stage-light--center {
-  filter: blur(6px) saturate(1.75) hue-rotate(35deg);
-}
-
-.app.is-fever .stage-light--left,
-.app.is-fever .stage-light--right {
-  filter: blur(4px) saturate(1.65) hue-rotate(26deg);
-}
-
-.app.is-fever .stage-laser--left,
-.app.is-fever .stage-laser--right {
-  filter: blur(7px) saturate(1.7);
-}
-
-.app.is-fever .stage-particles {
-  opacity: 0.38;
-  animation-duration: 10s;
 }
 
 /* ==================================================
@@ -488,7 +176,7 @@ button:focus-visible {
 }
 
 /* ==================================================
-   タイトル画面
+   タイトル
 ================================================== */
 
 #title-screen {
@@ -548,7 +236,7 @@ h1 span {
   padding: 15px 18px;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: rgba(18, 31, 57, 0.9);
+  background: rgba(18, 31, 57, 0.92);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.17);
   text-align: left;
 }
@@ -608,7 +296,7 @@ h1 span {
   padding: 8px 7px;
   border: 1px solid rgba(158, 210, 255, 0.2);
   border-radius: 10px;
-  background: rgba(7, 14, 30, 0.74);
+  background: rgba(7, 14, 30, 0.78);
   text-align: center;
   backdrop-filter: blur(8px);
 }
@@ -697,6 +385,10 @@ h1 span {
   text-shadow: 0 0 12px rgba(93, 228, 255, 0.6);
 }
 
+/* ==================================================
+   盤面
+================================================== */
+
 .play-area {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 67px;
@@ -705,35 +397,84 @@ h1 span {
 }
 
 .board {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
   grid-template-rows: repeat(4, minmax(0, 1fr));
   aspect-ratio: 1.08;
   overflow: hidden;
-  border: 1px solid rgba(151, 213, 255, 0.35);
+  border: 1px solid rgba(122, 191, 255, 0.4);
   border-radius: 15px;
   background:
     linear-gradient(
-      rgba(139, 211, 255, 0.11) 1px,
+      90deg,
+      rgba(67, 135, 218, 0.1) 1px,
       transparent 1px
     ),
+    rgba(4, 11, 26, 0.84);
+  background-size: 12.5% 100%;
+  box-shadow:
+    0 0 24px rgba(54, 149, 255, 0.13),
+    inset 0 0 30px rgba(9, 22, 55, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+/*
+  盤面全体の外周に走る電流。
+  音の低音で強く脈動する。
+*/
+.board::before {
+  position: absolute;
+  z-index: 4;
+  inset: 2px;
+  border: 1px solid rgba(93, 228, 255, 0.44);
+  border-radius: 13px;
+  box-shadow:
+    0 0 calc(8px + var(--electric-bass) * 24px)
+      rgba(93, 228, 255, calc(0.16 + var(--electric-bass) * 0.42)),
+    inset 0 0 calc(4px + var(--electric-bass) * 12px)
+      rgba(93, 228, 255, calc(0.08 + var(--electric-bass) * 0.2));
+  content: "";
+  opacity: calc(0.52 + var(--electric-bass) * 0.46);
+  pointer-events: none;
+}
+
+/*
+  外周を走る短い電流。
+  BGMの高音で速度・明るさが増す。
+*/
+.board::after {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  border-radius: 15px;
+  background:
     linear-gradient(
       90deg,
-      rgba(139, 211, 255, 0.11) 1px,
-      transparent 1px
-    ),
-    rgba(4, 11, 26, 0.72);
-  background-size:
-    100% 25%,
-    12.5% 100%;
+      transparent 0 9%,
+      rgba(93, 228, 255, 0.92) 13%,
+      transparent 17% 43%,
+      rgba(164, 113, 255, 0.8) 47%,
+      transparent 51% 80%,
+      rgba(101, 255, 154, 0.74) 84%,
+      transparent 88%
+    );
+  background-size: 220% 2px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
   box-shadow:
-    0 0 26px rgba(54, 149, 255, 0.14),
-    inset 0 0 28px rgba(9, 22, 55, 0.42);
-  backdrop-filter: blur(5px);
+    0 100% 0 rgba(93, 228, 255, 0.42),
+    100% 0 0 rgba(164, 113, 255, 0.36);
+  content: "";
+  opacity: calc(0.18 + var(--electric-high) * 0.7);
+  pointer-events: none;
+  animation: electric-run 2.8s linear infinite;
+  animation-duration: calc(2.8s - var(--electric-high) * 1.45s);
 }
 
 .cell {
   position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -741,42 +482,131 @@ h1 span {
   min-height: 0;
 }
 
+/*
+  各レーンの先頭セルから横一列に枠を描く。
+  4つのレーンそれぞれに独立した電流枠ができる。
+*/
+.cell:nth-child(8n + 1)::before {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  left: 4px;
+  width: calc(800% - 8px);
+  height: calc(100% - 8px);
+  border: 1px solid rgba(116, 189, 255, 0.23);
+  border-radius: 10px;
+  box-shadow:
+    0 0 calc(3px + var(--electric-middle) * 15px)
+      rgba(93, 228, 255, calc(0.07 + var(--electric-middle) * 0.32)),
+    inset 0 0 calc(2px + var(--electric-bass) * 10px)
+      rgba(91, 131, 255, calc(0.03 + var(--electric-bass) * 0.16));
+  content: "";
+  opacity: calc(0.45 + var(--electric-middle) * 0.52);
+  pointer-events: none;
+}
+
+/*
+  レーンごとの色。
+*/
+.cell:nth-child(8n + 1)::after {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  left: 4px;
+  width: calc(800% - 8px);
+  height: calc(100% - 8px);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 10%,
+      rgba(93, 228, 255, 0.72) 13%,
+      transparent 17% 46%,
+      rgba(93, 228, 255, 0.4) 49%,
+      transparent 52% 100%
+    );
+  background-size: 190% 2px;
+  background-repeat: no-repeat;
+  content: "";
+  opacity: calc(0.12 + var(--electric-high) * 0.68);
+  pointer-events: none;
+  animation: lane-current 2.3s linear infinite;
+  animation-duration: calc(2.3s - var(--electric-high) * 1.15s);
+}
+
+.cell:nth-child(n + 9):nth-child(-n + 16)::after {
+  filter: hue-rotate(45deg);
+  animation-delay: -0.6s;
+}
+
+.cell:nth-child(n + 17):nth-child(-n + 24)::after {
+  filter: hue-rotate(106deg);
+  animation-delay: -1.2s;
+}
+
+.cell:nth-child(n + 25):nth-child(-n + 32)::after {
+  filter: hue-rotate(205deg);
+  animation-delay: -1.8s;
+}
+
 .cell.target::after {
   position: absolute;
-  inset: 8%;
-  border: 1px dashed rgba(93, 228, 255, 0.72);
-  border-radius: 12px;
-  box-shadow: 0 0 11px rgba(93, 228, 255, 0.24);
+  z-index: 2;
+  inset: 9%;
+  width: auto;
+  height: auto;
+  border: 2px dashed rgba(255, 224, 117, 0.92);
+  border-radius: 10px;
+  background: transparent;
+  box-shadow:
+    0 0 13px rgba(255, 224, 117, 0.34),
+    inset 0 0 10px rgba(255, 224, 117, 0.14);
   content: "";
+  filter: none;
+  opacity: 1;
   animation: target-pulse 0.85s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .cell.prep-5 {
-  background: rgba(101, 255, 154, 0.08);
+  background: rgba(101, 255, 154, 0.07);
 }
 
 .cell.prep-6 {
-  background: rgba(101, 255, 154, 0.13);
+  background: rgba(101, 255, 154, 0.11);
   animation: prep-soft 1.25s ease-in-out infinite;
 }
 
 .cell.prep-7 {
-  background: rgba(255, 224, 117, 0.15);
+  background: rgba(255, 224, 117, 0.12);
   animation: prep-strong 0.72s ease-in-out infinite;
 }
 
+/* ==================================================
+   オーブ・リング
+   数字を最優先で読めるようにする
+================================================== */
+
 .piece {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   display: grid;
   place-items: center;
-  width: min(78%, 52px);
+  width: min(82%, 58px);
   aspect-ratio: 1;
-  color: #fff;
+  color: #ffffff;
   font-family: Orbitron, "Noto Sans JP", sans-serif;
-  font-size: clamp(0.76rem, 4vw, 1.18rem);
+  font-size: clamp(1rem, 4.7vw, 1.48rem);
   font-weight: 900;
   line-height: 1;
+  letter-spacing: -0.04em;
+  text-shadow:
+    -1px -1px 0 #06112b,
+    1px -1px 0 #06112b,
+    -1px 1px 0 #06112b,
+    1px 1px 0 #06112b,
+    0 1px 5px #06112b;
   user-select: none;
 }
 
@@ -785,36 +615,61 @@ h1 span {
   border-radius: 50%;
   background:
     radial-gradient(
-      circle at 32% 26%,
-      rgba(255, 255, 255, 0.9),
-      rgba(255, 255, 255, 0.22) 12%,
-      transparent 26%
+      circle at 31% 24%,
+      rgba(255, 255, 255, 0.96),
+      rgba(255, 255, 255, 0.32) 11%,
+      transparent 25%
     ),
     radial-gradient(
-      circle at 55% 58%,
+      circle at 53% 58%,
       currentColor,
-      rgba(10, 22, 47, 0.92) 68%
+      rgba(5, 14, 35, 0.96) 69%
     );
   box-shadow:
-    0 0 12px currentColor,
-    inset 0 0 12px rgba(255, 255, 255, 0.2);
+    0 0 11px currentColor,
+    0 0 22px color-mix(in srgb, currentColor 45%, transparent),
+    inset 0 0 11px rgba(255, 255, 255, 0.23);
 }
 
 .ring {
-  border: max(3px, 0.16em) solid currentColor;
+  border: max(3px, 0.17em) solid currentColor;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
+  background:
+    radial-gradient(
+      circle,
+      rgba(12, 25, 56, 0.94) 0 46%,
+      rgba(255, 255, 255, 0.09) 47% 61%,
+      transparent 62%
+    );
   box-shadow:
-    0 0 11px currentColor,
-    inset 0 0 10px rgba(255, 255, 255, 0.11);
+    0 0 9px currentColor,
+    inset 0 0 9px rgba(255, 255, 255, 0.14);
+}
+
+/*
+  数字のため、白リングは必ず暗い中心色にする。
+*/
+.ring:not(.c0):not(.c1):not(.c2):not(.c3) {
+  color: #ffffff;
+  background:
+    radial-gradient(
+      circle,
+      #0d1b3a 0 48%,
+      rgba(255, 255, 255, 0.13) 49% 61%,
+      transparent 62%
+    );
 }
 
 .star-ring {
   color: var(--yellow);
   background: transparent;
   font-family: "Mochiy Pop One", sans-serif;
-  font-size: clamp(1.25rem, 6vw, 2rem);
+  font-size: clamp(1.45rem, 6.5vw, 2.15rem);
   text-shadow:
+    -1px -1px 0 #332600,
+    1px -1px 0 #332600,
+    -1px 1px 0 #332600,
+    1px 1px 0 #332600,
     0 0 10px rgba(255, 224, 117, 0.95),
     0 0 23px rgba(255, 224, 117, 0.5);
 }
@@ -836,43 +691,90 @@ h1 span {
 }
 
 .piece.active {
-  animation: active-ring 0.8s ease-in-out infinite;
+  animation: active-ring 0.82s ease-in-out infinite;
 }
 
 .piece.t5 {
   filter:
-    brightness(1.3)
+    brightness(1.22)
     saturate(1.35)
     hue-rotate(64deg);
 }
 
 .piece.t6 {
   filter:
-    brightness(1.45)
-    saturate(1.5)
+    brightness(1.35)
+    saturate(1.45)
     hue-rotate(64deg);
   animation: prep-soft 1.1s ease-in-out infinite;
 }
 
 .piece.t7 {
   filter:
-    brightness(1.55)
-    saturate(1.7)
+    brightness(1.48)
+    saturate(1.6)
     hue-rotate(47deg);
   animation: prep-strong 0.64s ease-in-out infinite;
 }
 
+/* ==================================================
+   控えリング
+================================================== */
+
 .queue {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   min-width: 0;
   padding: 9px 5px;
-  border: 1px solid rgba(158, 210, 255, 0.23);
+  overflow: hidden;
+  border: 1px solid rgba(158, 210, 255, 0.38);
   border-radius: 14px;
-  background: rgba(5, 13, 29, 0.74);
+  background: rgba(5, 13, 29, 0.82);
+  box-shadow:
+    0 0 calc(6px + var(--electric-bass) * 20px)
+      rgba(93, 228, 255, calc(0.12 + var(--electric-bass) * 0.32)),
+    inset 0 0 calc(4px + var(--electric-middle) * 10px)
+      rgba(91, 131, 255, calc(0.06 + var(--electric-middle) * 0.15));
   backdrop-filter: blur(8px);
+}
+
+/* 控え枠を縦方向に走る電流 */
+.queue::before {
+  position: absolute;
+  z-index: 0;
+  inset: 2px;
+  border: 1px solid rgba(93, 228, 255, 0.5);
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 0 13%,
+      rgba(93, 228, 255, 0.88) 17%,
+      transparent 22% 52%,
+      rgba(164, 113, 255, 0.75) 56%,
+      transparent 61% 82%,
+      rgba(101, 255, 154, 0.72) 86%,
+      transparent 91%
+    );
+  background-size: 2px 190%;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  box-shadow: 100% 0 0 rgba(93, 228, 255, 0.35);
+  content: "";
+  opacity: calc(0.25 + var(--electric-high) * 0.7);
+  pointer-events: none;
+  animation: queue-current 2.1s linear infinite;
+  animation-duration: calc(2.1s - var(--electric-high) * 1.05s);
+}
+
+.queue > b,
+#ring-queue-list,
+.queue-abort {
+  position: relative;
+  z-index: 1;
 }
 
 .queue > b {
@@ -889,16 +791,29 @@ h1 span {
 .queue-ring {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border: 3px solid var(--cyan);
   border-radius: 50%;
-  color: var(--cyan);
-  background: rgba(93, 228, 255, 0.06);
-  box-shadow: 0 0 10px rgba(93, 228, 255, 0.28);
+  color: #ffffff;
+  background:
+    radial-gradient(
+      circle,
+      #0b1a38 0 46%,
+      rgba(93, 228, 255, 0.12) 47% 65%,
+      transparent 66%
+    );
+  box-shadow:
+    0 0 10px rgba(93, 228, 255, 0.34),
+    inset 0 0 8px rgba(255, 255, 255, 0.14);
   font-family: Orbitron, sans-serif;
-  font-size: 0.88rem;
+  font-size: 1rem;
   font-weight: 900;
+  text-shadow:
+    -1px -1px 0 #06112b,
+    1px -1px 0 #06112b,
+    -1px 1px 0 #06112b,
+    1px 1px 0 #06112b;
 }
 
 .queue-ring.star {
@@ -907,8 +822,13 @@ h1 span {
   background: transparent;
   box-shadow: none;
   font-family: "Mochiy Pop One", sans-serif;
-  font-size: 1.45rem;
-  text-shadow: 0 0 12px rgba(255, 224, 117, 0.76);
+  font-size: 1.55rem;
+  text-shadow:
+    -1px -1px 0 #332600,
+    1px -1px 0 #332600,
+    -1px 1px 0 #332600,
+    1px 1px 0 #332600,
+    0 0 12px rgba(255, 224, 117, 0.76);
 }
 
 .queue-abort {
@@ -1114,23 +1034,33 @@ h1 span {
    アニメーション
 ================================================== */
 
-@keyframes particles-drift {
+@keyframes electric-run {
   from {
-    background-position:
-      0 0,
-      0 0,
-      0 0,
-      0 0,
-      0 0;
+    background-position: 0 0;
   }
 
   to {
-    background-position:
-      57px -68px,
-      -74px 91px,
-      105px -88px,
-      -83px -102px,
-      119px 84px;
+    background-position: 220% 0;
+  }
+}
+
+@keyframes lane-current {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 190% 0;
+  }
+}
+
+@keyframes queue-current {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 0 190%;
   }
 }
 
@@ -1149,7 +1079,7 @@ h1 span {
 @keyframes target-pulse {
   0%,
   100% {
-    opacity: 0.38;
+    opacity: 0.46;
     transform: scale(0.94);
   }
 
@@ -1163,11 +1093,11 @@ h1 span {
   0%,
   100% {
     box-shadow: inset 0 0 0 rgba(101, 255, 154, 0);
-    opacity: 0.92;
+    opacity: 0.93;
   }
 
   50% {
-    box-shadow: inset 0 0 18px rgba(101, 255, 154, 0.22);
+    box-shadow: inset 0 0 18px rgba(101, 255, 154, 0.24);
     opacity: 1;
   }
 }
@@ -1176,11 +1106,11 @@ h1 span {
   0%,
   100% {
     box-shadow: inset 0 0 4px rgba(255, 224, 117, 0.06);
-    opacity: 0.85;
+    opacity: 0.87;
   }
 
   50% {
-    box-shadow: inset 0 0 22px rgba(255, 224, 117, 0.3);
+    box-shadow: inset 0 0 22px rgba(255, 224, 117, 0.31);
     opacity: 1;
   }
 }
@@ -1249,7 +1179,7 @@ h1 span {
 }
 
 /* ==================================================
-   画面が広い端末
+   PC・横幅が広い端末
 ================================================== */
 
 @media (min-width: 620px) {
@@ -1277,9 +1207,14 @@ h1 span {
     width: 48px;
     height: 48px;
   }
+
+  .piece {
+    font-size: 1.4rem;
+  }
 }
 
-/* 縦が短い端末 */
+/* 縦が短いスマホ */
+
 @media (max-height: 680px) {
   .screen {
     padding-top: max(10px, var(--safe-top));
@@ -1300,9 +1235,9 @@ h1 span {
   }
 
   .queue-ring {
-    width: 35px;
-    height: 35px;
-    font-size: 0.75rem;
+    width: 36px;
+    height: 36px;
+    font-size: 0.88rem;
   }
 
   .queue-abort {
@@ -1312,23 +1247,22 @@ h1 span {
   .hint {
     font-size: 0.61rem;
   }
+
+  .piece {
+    font-size: clamp(0.92rem, 4.4vw, 1.2rem);
+  }
 }
 
 /*
-  端末側で「動きを減らす」が有効な場合は、
-  背景演出を静かにし、ゲーム機能自体は変えない。
+  端末側の「視差効果を減らす」に対応。
+  電流の動きだけを弱め、数字・ゲーム機能は変えない。
 */
-@media (prefers-reduced-motion: reduce) {
-  .stage-particles {
-    animation: none;
-  }
 
-  .stage-light--center,
-  .stage-light--left,
-  .stage-light--right,
-  .stage-laser--left,
-  .stage-laser--right {
-    transition-duration: 0.45s;
+@media (prefers-reduced-motion: reduce) {
+  .board::after,
+  .cell:nth-child(8n + 1)::after,
+  .queue::before {
+    animation-duration: 5s;
   }
 
   .cell.target::after,
