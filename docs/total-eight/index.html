@@ -2,24 +2,17 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-
   <meta
     name="viewport"
     content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
   >
-
   <title>とーたるえいと❣️</title>
-
-  <link
-    rel="stylesheet"
-    href="style.css?v=20261118-16"
-  >
+  <link rel="stylesheet" href="style.css?v=20261118-18">
 </head>
 
 <body>
   <main class="app">
 
-    <!-- 背景の星空・オーバー時の衝撃波 -->
     <div class="stage-lights" aria-hidden="true">
       <i class="stage-light stage-light--left"></i>
       <i class="stage-light stage-light--right"></i>
@@ -29,11 +22,7 @@
       <div class="stage-particles"></div>
     </div>
 
-    <!-- タイトル画面 -->
-    <section
-      id="title-screen"
-      class="screen is-active"
-    >
+    <section id="title-screen" class="screen is-active">
       <div class="title-content">
         <p class="eyebrow">
           CONNECT · CALCULATE · CLEAR
@@ -62,32 +51,25 @@
         </p>
 
         <div class="title-menu">
-          <button
-            id="start-button"
-            class="menu-button primary"
-            type="button"
-          >
+          <button id="start-button" class="menu-button primary" type="button">
             <strong>スタート</strong>
             <small>START</small>
           </button>
 
-          <button
-            id="tutorial-button"
-            class="menu-button"
-            type="button"
-          >
+          <button id="tutorial-button" class="menu-button" type="button">
             <strong>チュートリアル</strong>
             <small>TUTORIAL</small>
+          </button>
+
+          <button id="update-button" class="menu-button" type="button">
+            <strong>更新</strong>
+            <small>RELOAD LATEST</small>
           </button>
         </div>
       </div>
     </section>
 
-    <!-- ゲーム画面 -->
-    <section
-      id="game-screen"
-      class="screen"
-    >
+    <section id="game-screen" class="screen">
       <header class="hud">
         <div class="hud-score">
           <span>経験値</span>
@@ -101,7 +83,6 @@
 
         <div class="hud-stage">
           <span>ステージ経験値</span>
-
           <strong>
             <b id="stage-score-value">0</b>
             <em>/</em>
@@ -116,25 +97,16 @@
 
         <div class="hud-over">
           <span>オーバー</span>
-
           <p id="over-gauge">
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
+            <i></i><i></i><i></i><i></i><i></i>
           </p>
         </div>
       </header>
 
-      <strong
-        id="status-label"
-        class="status"
-      >
+      <strong id="status-label" class="status">
         READY
       </strong>
 
-      <!-- BGMが端末側に止められた時だけ表示 -->
       <button
         id="sound-enable-button"
         class="sound-enable hidden"
@@ -151,12 +123,8 @@
           aria-label="ゲーム盤面"
         ></div>
 
-        <aside
-          class="queue"
-          aria-label="控えリング"
-        >
+        <aside class="queue" aria-label="控えリング">
           <b>控え</b>
-
           <div id="ring-queue-list"></div>
 
           <button
@@ -174,18 +142,14 @@
         同じレーンをもう一度タップで即固定
       </p>
 
-      <!-- READY? / 3 / 2 / 1 / GO! -->
       <div
         id="countdown-overlay"
         class="overlay hidden"
         aria-live="assertive"
       >
-        <strong id="countdown-text">
-          READY?
-        </strong>
+        <strong id="countdown-text">READY?</strong>
       </div>
 
-      <!-- 合計9以上を作った時の大きい数値 -->
       <div
         id="over-popup"
         class="over-popup hidden"
@@ -193,11 +157,7 @@
       ></div>
     </section>
 
-    <!-- チュートリアル -->
-    <section
-      id="tutorial-screen"
-      class="screen tutorial"
-    >
+    <section id="tutorial-screen" class="screen tutorial">
       <button
         id="tutorial-exit-button"
         class="tutorial-exit"
@@ -207,10 +167,7 @@
       </button>
 
       <div class="tutorial-card">
-        <strong id="tutorial-step">
-          1 / 5
-        </strong>
-
+        <strong id="tutorial-step">1 / 5</strong>
         <p id="tutorial-text"></p>
       </div>
 
@@ -224,11 +181,7 @@
       </button>
     </section>
 
-    <!-- チュートリアル終了 -->
-    <section
-      id="tutorial-complete-modal"
-      class="modal"
-    >
+    <section id="tutorial-complete-modal" class="modal">
       <div class="modal-card">
         <h2>準備完了。</h2>
 
@@ -261,11 +214,7 @@
       </div>
     </section>
 
-    <!-- 中断 -->
-    <section
-      id="abort-modal"
-      class="modal"
-    >
+    <section id="abort-modal" class="modal">
       <div class="modal-card">
         <h2>ゲームを中断しました</h2>
 
@@ -298,21 +247,13 @@
       </div>
     </section>
 
-    <!-- ゲームオーバー -->
-    <section
-      id="game-over-modal"
-      class="modal"
-    >
+    <section id="game-over-modal" class="modal">
       <div class="modal-card">
-        <p
-          id="game-over-reason"
-          class="eyebrow"
-        >
+        <p id="game-over-reason" class="eyebrow">
           TIME UP
         </p>
 
         <h2>ゲーム終了</h2>
-
         <p>今回の獲得経験値</p>
 
         <strong
@@ -342,11 +283,7 @@
       </div>
     </section>
 
-    <!-- ゲームクリア -->
-    <section
-      id="game-clear-modal"
-      class="modal"
-    >
+    <section id="game-clear-modal" class="modal">
       <div class="modal-card clear-card">
         <p class="eyebrow">
           MISSION COMPLETE
@@ -386,19 +323,16 @@
       </div>
     </section>
 
-    <!--
-      縦画面専用。
-      CSSで縦画面時だけ全面表示する。
-      script.jsで縦向きになった時は自動中断する。
-    -->
     <section
       id="orientation-overlay"
       class="orientation-overlay"
       aria-live="assertive"
-      aria-label="横向きでプレイしてください"
     >
       <div class="orientation-card">
-        <span class="orientation-phone" aria-hidden="true">
+        <span
+          class="orientation-phone"
+          aria-hidden="true"
+        >
           ▯
         </span>
 
@@ -418,6 +352,24 @@
     </section>
   </main>
 
-  <script src="script.js?v=20261118-16"></script>
+  <!--
+    更新ボタン専用。
+    GitHubへファイルを作成したり保存したりはしない。
+    その時刻の番号をURLに付けて、最新HTMLを読み直す。
+  -->
+  <script>
+    "use strict";
+
+    document
+      .getElementById("update-button")
+      ?.addEventListener("click", () => {
+        const latestUrl =
+          `${location.pathname}?reload=${Date.now()}`;
+
+        location.replace(latestUrl);
+      });
+  </script>
+
+  <script src="script.js?v=20261118-18"></script>
 </body>
 </html>
