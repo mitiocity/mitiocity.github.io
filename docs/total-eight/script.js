@@ -2,7 +2,6 @@
 
 /* ==================================================
    とーたるえいと❣️
-   ゲーム本体
 ================================================== */
 
 const CONFIG = {
@@ -14,6 +13,7 @@ const CONFIG = {
   levelScoreStep: 900,
 
   ringStepMs: 950,
+
   clearScore: 100,
   simultaneousBonus: 80,
 
@@ -47,7 +47,7 @@ const el = {
   tutorialButton: $("#tutorial-button"),
 
   board: $("#game-board"),
-  queue: $("#ring-queue-list"),
+  queueList: $("#ring-queue-list"),
 
   score: $("#score-value"),
   level: $("#level-value"),
@@ -83,11 +83,11 @@ const el = {
   retry: $("#retry-button"),
   titleButton: $("#title-button"),
 
-  stageLeft: $(".stage-light.left"),
-  stageRight: $(".stage-light.right"),
-  stageCenter: $(".stage-light.center"),
-  laserA: $(".stage-laser.laser-a"),
-  laserB: $(".stage-laser.laser-b")
+  stageLeft: $(".stage-light--left"),
+  stageRight: $(".stage-light--right"),
+  stageCenter: $(".stage-light--center"),
+  laserLeft: $(".stage-laser--left"),
+  laserRight: $(".stage-laser--right")
 };
 
 let state = null;
@@ -97,7 +97,7 @@ let clockTimer = null;
 let tutorialIndex = 0;
 let pieceId = 0;
 
-/* Web Audio */
+/* 音関連 */
 let audioContext = null;
 let currentBgm = null;
 let currentAnalyser = null;
@@ -105,7 +105,7 @@ let analyserData = null;
 let stageAnimationId = null;
 
 /* ==================================================
-   基本データ
+   基本処理
 ================================================== */
 
 function randomNumber() {
@@ -137,19 +137,24 @@ function makePiece(type, number = null, color = null) {
   };
 }
 
-function makeInitialBoard() {
+function createInitialBoard() {
   return Array.from({ length: CONFIG.rows }, (_, row) => {
-    const cells = Array(CONFIG.cols).fill(null);
+    const boardRow = Array(CONFIG.cols).fill(null);
 
-    cells[0] = makePiece("orb", randomNumber(), row);
+    boardRow[0] = makePiece(
+      "orb",
+      randomNumber(),
+      row
+    );
 
-    return cells;
+    return boardRow;
   });
 }
 
 function createGameState() {
   return {
-    board: makeInitialBoard(),
+    board: createInitialBoard(),
+
     queue: [
       createRingData(),
       createRingData(),
@@ -170,32 +175,20 @@ function createGameState() {
     isPaused: false,
     isEnded: false,
 
-    selectedBgmByLevel: {}
+    bgmPaths: {}
   };
 }
 
-/* ==================================================
-   画面・タイマー
-================================================== */
-
-function showScreen(target) {
-  [el.title, el.game, el.tutorial].forEach((screen) => {
-    if (screen) {
-      screen.classList.remove("is-active");
+function showScreen(screen) {
+  [el.title, el.game, el.tutorial].forEach((item) => {
+    if (item) {
+      item.classList.remove("is-active");
     }
   });
 
-  if (target) {
-    target.classList.add("is-active");
+  if (screen) {
+    screen.classList.add("is-active");
   }
-}
-
-function clearGameTimers() {
-  clearInterval(moveTimer);
-  clearInterval(clockTimer);
-
-  moveTimer = null;
-  clockTimer = null;
 }
 
 function closeAllModals() {
@@ -210,8 +203,12 @@ function closeAllModals() {
   });
 }
 
-function isFever() {
-  return state && Date.now() < state.feverUntil;
+function clearGameTimers() {
+  clearInterval(moveTimer);
+  clearInterval(clockTimer);
+
+  moveTimer = null;
+  clockTimer = null;
 }
 
 function setStatus(text) {
@@ -220,14 +217,12 @@ function setStatus(text) {
   }
 }
 
-function wait(milliseconds) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, milliseconds);
-  });
+function isFever() {
+  return state && Date.now() < state.feverUntil;
 }
 
 /* ==================================================
-   音
+   効果音
 ================================================== */
 
 function unlockAudio() {
@@ -245,7 +240,7 @@ function unlockAudio() {
   audioContext.resume().catch(() => {});
 }
 
-function playTone(frequency, startTime, duration, volume = 0.12) {
+function playTone(frequency, time, duration, volume) {
   if (!audioContext) {
     return;
   }
@@ -256,21 +251,21 @@ function playTone(frequency, startTime, duration, volume = 0.12) {
   oscillator.type = "sine";
   oscillator.frequency.value = frequency;
 
-  gain.gain.setValueAtTime(0.001, startTime);
+  gain.gain.setValueAtTime(0.001, time);
   gain.gain.exponentialRampToValueAtTime(
     volume,
-    startTime + 0.012
+    time + 0.012
   );
   gain.gain.exponentialRampToValueAtTime(
     0.001,
-    startTime + duration
+    time + duration
   );
 
   oscillator.connect(gain);
   gain.connect(audioContext.destination);
 
-  oscillator.start(startTime);
-  oscillator.stop(startTime + duration + 0.03);
+  oscillator.start(time);
+  oscillator.stop(time + duration + 0.03);
 }
 
 function playClearSound(chainSpeed = 1) {
@@ -278,15 +273,12 @@ function playClearSound(chainSpeed = 1) {
     return;
   }
 
-  const scale = [0, 2, 4, 5, 7, 9, 11, 12];
-
-  const keyShift = (state.level - 1) * 2;
-  const root = 261.63 * (2 ** (keyShift / 12));
-
+  const notes = [0, 2, 4, 5, 7, 9, 11, 12];
+  const root = 261.63 * (2 ** (((state.level - 1) * 2) / 12));
   const now = audioContext.currentTime;
   const interval = 0.078 / chainSpeed;
 
-  scale.forEach((note, index) => {
+  notes.forEach((note, index) => {
     const frequency = root * (2 ** (note / 12));
 
     playTone(
@@ -303,10 +295,6 @@ function playOverSound() {
     return;
   }
 
-  /*
-    ド → ソ → レ → ド
-    最後ほど低い音へ落ちる警告音
-  */
   const notes = [
     261.63,
     196.0,
@@ -331,14 +319,16 @@ function playStarSound() {
     return;
   }
 
-  const now = audioContext.currentTime;
-
-  [
+  const notes = [
     523.25,
     659.25,
     783.99,
     1046.5
-  ].forEach((frequency, index) => {
+  ];
+
+  const now = audioContext.currentTime;
+
+  notes.forEach((frequency, index) => {
     playTone(
       frequency,
       now + index * 0.075,
@@ -354,68 +344,76 @@ function playStarSound() {
 
 function getBgmPath(level) {
   if (!state) {
-    return null;
+    return "";
   }
 
-  if (state.selectedBgmByLevel[level]) {
-    return state.selectedBgmByLevel[level];
+  if (state.bgmPaths[level]) {
+    return state.bgmPaths[level];
   }
 
   let fileName = "";
 
+  /*
+    実際にアップロードされているファイル名は
+    LEVEL-1.mp3 のように LEVEL が大文字。
+  */
   if (level === 1) {
-    fileName = "level-1.mp3";
+    fileName = "LEVEL-1.mp3";
   }
 
   if (level === 2) {
-    fileName = "level-2.mp3";
+    fileName = "LEVEL-2.mp3";
   }
 
   if (level === 3) {
-    fileName = "level-3.mp3";
+    fileName = "LEVEL-3.mp3";
   }
 
   if (level === 4) {
     fileName =
       Math.random() < 0.5
-        ? "level-4-a.mp3"
-        : "level-4-b.mp3";
+        ? "LEVEL-4-a.mp3"
+        : "LEVEL-4-b.mp3";
   }
 
   if (level >= 5) {
     fileName =
       Math.random() < 0.5
-        ? "level-5-a.mp3"
-        : "level-5-b.mp3";
+        ? "LEVEL-5-a.mp3"
+        : "LEVEL-5-b.mp3";
   }
 
   const path = `assets/audio/bgm/${fileName}`;
 
-  state.selectedBgmByLevel[level] = path;
+  state.bgmPaths[level] = path;
 
   return path;
 }
 
-function disconnectBgm(bgmData) {
-  if (!bgmData) {
+function disconnectBgm(bgm) {
+  if (!bgm) {
     return;
   }
 
   try {
-    bgmData.source.disconnect();
+    bgm.source.disconnect();
   } catch (error) {
     /* 接続解除済みなら何もしない */
   }
 
   try {
-    bgmData.analyser.disconnect();
+    bgm.analyser.disconnect();
   } catch (error) {
     /* 接続解除済みなら何もしない */
   }
 }
 
-function startBgm() {
-  if (!audioContext || !state || state.isEnded) {
+function createBgmForCurrentLevel() {
+  if (
+    !audioContext ||
+    !state ||
+    state.isEnded
+  ) {
     return;
   }
 
@@ -424,8 +422,6 @@ function startBgm() {
   if (!path) {
     return;
   }
-
-  const previous = currentBgm;
 
   const audio = new Audio(path);
 
@@ -450,22 +446,103 @@ function startBgm() {
   };
 
   currentAnalyser = analyser;
-  analyserData = new Uint8Array(analyser.frequencyBinCount);
+  analyserData = new Uint8Array(
+    analyser.frequencyBinCount
+  );
+}
 
-  audio.play().catch(() => {
-    /* MP3がまだ未配置でもゲーム自体は継続 */
-  });
+/*
+  STARTを押した直後に、一度だけ音声再生を許可する。
+  ChromeやSafariの自動再生制限を確実に越えるための処理。
+  READY?中は音量0・停止状態なので、実際に聞こえるのはGO!から。
+*/
+function prepareBgmForStart() {
+  if (
+    !currentBgm ||
+    !currentBgm.audio
+  ) {
+    return;
+  }
+
+  const audio = currentBgm.audio;
+
+  audio.volume = 0;
+
+  audio.play()
+    .then(() => {
+      audio.pause();
+      audio.currentTime = 0;
+    })
+    .catch(() => {
+      /* 失敗してもGO!時に再試行する */
+    });
+}
+
+function startBgm() {
+  if (
+    !currentBgm ||
+    !currentBgm.audio ||
+    !state ||
+    state.isEnded
+  ) {
+    return;
+  }
+
+  const audio = currentBgm.audio;
+
+  audio.play().catch(() => {});
 
   let step = 0;
-  const fadeSteps = 18;
-  const fadeInterval = CONFIG.bgmFadeMs / fadeSteps;
+  const steps = 18;
+  const interval = CONFIG.bgmFadeMs / steps;
 
   const fadeTimer = setInterval(() => {
     step += 1;
 
-    const progress = step / fadeSteps;
-
     audio.volume = Math.min(
+      CONFIG.bgmVolume,
+      CONFIG.bgmVolume * (step / steps)
+    );
+
+    if (step >= steps) {
+      clearInterval(fadeTimer);
+    }
+  }, interval);
+
+  startStageLights();
+}
+
+function changeBgmForLevel() {
+  if (
+    !state ||
+    !audioContext ||
+    state.isEnded
+  ) {
+    return;
+  }
+
+  const previous = currentBgm;
+
+  createBgmForCurrentLevel();
+
+  if (!currentBgm) {
+    return;
+  }
+
+  const next = currentBgm;
+
+  next.audio.play().catch(() => {});
+
+  let step = 0;
+  const steps = 18;
+  const interval = CONFIG.bgmFadeMs / steps;
+
+  const fadeTimer = setInterval(() => {
+    step += 1;
+
+    const progress = step / steps;
+
+    next.audio.volume = Math.min(
       CONFIG.bgmVolume,
       CONFIG.bgmVolume * progress
     );
@@ -477,7 +554,7 @@ function startBgm() {
       );
     }
 
-    if (step >= fadeSteps) {
+    if (step >= steps) {
       clearInterval(fadeTimer);
 
       if (previous) {
@@ -486,25 +563,23 @@ function startBgm() {
         disconnectBgm(previous);
       }
     }
-  }, fadeInterval);
-
-  startStageLights();
+  }, interval);
 }
 
 function pauseBgm() {
-  if (!currentBgm) {
-    return;
+  if (currentBgm) {
+    currentBgm.audio.pause();
   }
-
-  currentBgm.audio.pause();
 }
 
 function resumeBgm() {
-  if (!currentBgm || !state || state.isEnded) {
-    return;
+  if (
+    currentBgm &&
+    state &&
+    !state.isEnded
+  ) {
+    currentBgm.audio.play().catch(() => {});
   }
-
-  currentBgm.audio.play().catch(() => {});
 }
 
 function stopBgm() {
@@ -526,7 +601,7 @@ function stopBgm() {
    周波数反応ステージライト
 ================================================== */
 
-function averageFrequency(fromHz, toHz) {
+function getFrequencyAverage(fromHz, toHz) {
   if (
     !audioContext ||
     !currentAnalyser ||
@@ -541,12 +616,16 @@ function averageFrequency(fromHz, toHz) {
 
   const fromIndex = Math.max(
     0,
-    Math.floor((fromHz / nyquist) * analyserData.length)
+    Math.floor(
+      (fromHz / nyquist) * analyserData.length
+    )
   );
 
   const toIndex = Math.min(
     analyserData.length - 1,
-    Math.ceil((toHz / nyquist) * analyserData.length)
+    Math.ceil(
+      (toHz / nyquist) * analyserData.length
+    )
   );
 
   let total = 0;
@@ -561,51 +640,60 @@ function averageFrequency(fromHz, toHz) {
 }
 
 function updateStageLights() {
-  if (!el.app) {
-    return;
-  }
-
-  const bass = averageFrequency(40, 160);
-  const middle = averageFrequency(160, 800);
-  const high = averageFrequency(2000, 8000);
+  const bass = getFrequencyAverage(40, 160);
+  const middle = getFrequencyAverage(160, 800);
+  const high = getFrequencyAverage(2000, 8000);
 
   const feverBoost = isFever() ? 0.15 : 0;
 
-  const leftOpacity = 0.08 + middle * 0.28 + feverBoost;
-  const rightOpacity = 0.08 + middle * 0.27 + feverBoost;
-  const centerOpacity = 0.06 + bass * 0.35 + feverBoost;
-
   if (el.stageLeft) {
-    el.stageLeft.style.opacity = String(leftOpacity);
+    el.stageLeft.style.opacity = String(
+      0.08 + middle * 0.28 + feverBoost
+    );
+
     el.stageLeft.style.transform =
       `rotate(${-24 + middle * 11}deg) scale(${1 + bass * 0.28})`;
   }
 
   if (el.stageRight) {
-    el.stageRight.style.opacity = String(rightOpacity);
+    el.stageRight.style.opacity = String(
+      0.08 + middle * 0.28 + feverBoost
+    );
+
     el.stageRight.style.transform =
       `rotate(${24 - middle * 11}deg) scale(${1 + bass * 0.28})`;
   }
 
   if (el.stageCenter) {
-    el.stageCenter.style.opacity = String(centerOpacity);
+    el.stageCenter.style.opacity = String(
+      0.06 + bass * 0.35 + feverBoost
+    );
+
     el.stageCenter.style.transform =
       `translateX(-50%) scale(${1 + bass * 0.34})`;
   }
 
-  if (el.laserA) {
-    el.laserA.style.opacity = String(0.05 + high * 0.4);
-    el.laserA.style.transform =
+  if (el.laserLeft) {
+    el.laserLeft.style.opacity = String(
+      0.05 + high * 0.4
+    );
+
+    el.laserLeft.style.transform =
       `rotate(${25 + high * 18}deg)`;
   }
 
-  if (el.laserB) {
-    el.laserB.style.opacity = String(0.05 + high * 0.4);
-    el.laserB.style.transform =
+  if (el.laserRight) {
+    el.laserRight.style.opacity = String(
+      0.05 + high * 0.4
+    );
+
+    el.laserRight.style.transform =
       `rotate(${-25 - high * 18}deg)`;
   }
 
-  stageAnimationId = requestAnimationFrame(updateStageLights);
+  stageAnimationId = requestAnimationFrame(
+    updateStageLights
+  );
 }
 
 function startStageLights() {
@@ -622,23 +710,10 @@ function stopStageLights() {
   }
 
   stageAnimationId = null;
-
-  [
-    el.stageLeft,
-    el.stageRight,
-    el.stageCenter,
-    el.laserA,
-    el.laserB
-  ].forEach((light) => {
-    if (light) {
-      light.style.removeProperty("opacity");
-      light.style.removeProperty("transform");
-    }
-  });
 }
 
 /* ==================================================
-   ゲーム開始・カウントダウン
+   ゲーム開始
 ================================================== */
 
 function startGame() {
@@ -655,7 +730,15 @@ function startGame() {
     el.app.classList.remove("is-over-flash");
   }
 
+  if (el.overPopup) {
+    el.overPopup.classList.add("hidden");
+    el.overPopup.classList.remove("show");
+  }
+
   showScreen(el.game);
+
+  createBgmForCurrentLevel();
+  prepareBgmForStart();
 
   renderGame();
   runCountdown();
@@ -674,27 +757,27 @@ function runCountdown() {
     "GO!"
   ];
 
-  let wordIndex = 0;
+  let index = 0;
 
   if (el.countdown) {
     el.countdown.classList.remove("hidden");
   }
 
-  function showNextWord() {
+  function showWord() {
     if (!state || state.isEnded) {
       return;
     }
 
     if (el.countdownText) {
-      el.countdownText.textContent = words[wordIndex];
+      el.countdownText.textContent = words[index];
     }
 
-    wordIndex += 1;
+    index += 1;
 
-    if (wordIndex < words.length) {
-      const delay = wordIndex === 1 ? 850 : 720;
+    if (index < words.length) {
+      const delay = index === 1 ? 850 : 720;
 
-      setTimeout(showNextWord, delay);
+      setTimeout(showWord, delay);
       return;
     }
 
@@ -715,7 +798,7 @@ function runCountdown() {
     }, 620);
   }
 
-  showNextWord();
+  showWord();
 }
 
 function startClock() {
@@ -742,7 +825,7 @@ function startClock() {
 }
 
 /* ==================================================
-   リング出現・移動・固定
+   リング
 ================================================== */
 
 function spawnRing() {
@@ -815,24 +898,16 @@ function chooseRow(row) {
     return;
   }
 
-  /*
-    1回目：
-    流れているリングを選択したレーンへ移動。
-  */
   if (state.selectedRow !== row) {
     state.selectedRow = row;
     state.activeRing.row = row;
 
     setStatus("TARGET LOCK");
-
     renderGame();
+
     return;
   }
 
-  /*
-    同じレーンをもう1回：
-    そのレーンの一番左側へ即固定。
-  */
   let landingCol = state.activeRing.col;
 
   while (
@@ -866,28 +941,17 @@ function landActiveRing(col) {
     active.number
   );
 
-  /*
-    ★リング：
-    盤面へ通常配置せず、即座にレーン一列を消す。
-  */
-  if (newPiece.type === "star") {
-    state.activeRing = null;
+  state.activeRing = null;
 
+  if (newPiece.type === "star") {
     resolveStar(row);
     return;
   }
 
   state.board[row][col] = newPiece;
-  state.activeRing = null;
 
   const group = getGroup(row);
 
-  /*
-    合計9以上：
-    直前に置いたリングだけ消える。
-    オーブ列だけオーバーゲージが増える。
-    白リング列のオーバーはゲージ増加なし。
-  */
   if (group.total > 8) {
     state.board[row][col] = null;
 
@@ -897,13 +961,12 @@ function landActiveRing(col) {
       addOver(group.total);
     } else {
       setStatus("WHITE OVER");
+      showOverNumber(group.total);
     }
 
     renderGame();
 
-    setTimeout(() => {
-      finishTurn();
-    }, 250);
+    setTimeout(finishTurn, 280);
 
     return;
   }
@@ -913,7 +976,7 @@ function landActiveRing(col) {
 }
 
 /* ==================================================
-   盤面整理・計算
+   盤面・合計
 ================================================== */
 
 function compactRow(row) {
@@ -927,29 +990,25 @@ function compactRow(row) {
     return piece && piece.type === "ring";
   });
 
-  const compacted = Array(CONFIG.cols).fill(null);
+  const nextRow = Array(CONFIG.cols).fill(null);
 
   let writeCol = 0;
 
   if (orb) {
-    compacted[0] = orb;
+    nextRow[0] = orb;
     writeCol = 1;
   }
 
   rings.forEach((ring) => {
     if (writeCol < CONFIG.cols) {
-      compacted[writeCol] = ring;
+      nextRow[writeCol] = ring;
       writeCol += 1;
     }
   });
 
-  /*
-    オーブに接続しているリングは、オーブ色へ伝播。
-    オーブがない白リング列は白のまま。
-  */
   if (orb) {
     for (let col = 1; col < CONFIG.cols; col += 1) {
-      const ring = compacted[col];
+      const ring = nextRow[col];
 
       if (!ring) {
         break;
@@ -958,21 +1017,17 @@ function compactRow(row) {
       ring.color = orb.color;
     }
   } else {
-    compacted.forEach((ring) => {
+    nextRow.forEach((ring) => {
       if (ring && ring.type === "ring") {
         ring.color = null;
       }
     });
   }
 
-  state.board[row] = compacted;
+  state.board[row] = nextRow;
 }
 
 function compactBoard() {
-  if (!state) {
-    return;
-  }
-
   for (let row = 0; row < CONFIG.rows; row += 1) {
     compactRow(row);
   }
@@ -999,13 +1054,13 @@ function getGroup(row) {
   }
 
   for (let col = startCol; col < CONFIG.cols; col += 1) {
-    const ring = cells[col];
+    const piece = cells[col];
 
-    if (!ring || ring.type !== "ring") {
+    if (!piece || piece.type !== "ring") {
       break;
     }
 
-    total += ring.number;
+    total += piece.number;
     ringColumns.push(col);
     pieceColumns.push(col);
   }
@@ -1020,10 +1075,10 @@ function getGroup(row) {
 }
 
 /* ==================================================
-   通常消去・連鎖
+   通常消去
 ================================================== */
 
-function resolveClears(chainCount = 1) {
+function resolveClears(chainCount) {
   if (!state || state.isEnded) {
     return;
   }
@@ -1045,46 +1100,32 @@ function resolveClears(chainCount = 1) {
     return;
   }
 
-  const orbClearGroups = clearGroups.filter((group) => {
+  const orbGroups = clearGroups.filter((group) => {
     return Boolean(group.orb);
   });
 
-  const whiteClearGroups = clearGroups.filter((group) => {
-    return !group.orb;
-  });
-
-  const feverMultiplier = isFever()
-    ? CONFIG.feverMultiplier
-    : 1;
-
   let gainedScore = 0;
 
-  /*
-    オーブ列の消去だけが通常得点。
-    白リング列の合計8消去は得点なし。
-  */
-  orbClearGroups.forEach(() => {
+  orbGroups.forEach(() => {
     gainedScore += CONFIG.clearScore;
   });
 
-  /*
-    同時消去ボーナス
-  */
-  if (orbClearGroups.length >= 2) {
+  if (orbGroups.length >= 2) {
     gainedScore +=
       CONFIG.simultaneousBonus *
-      (orbClearGroups.length - 1);
+      (orbGroups.length - 1);
   }
 
-  /*
-    連鎖2回目以降は倍率を少し上げる。
-  */
   const chainMultiplier =
     chainCount >= 3
       ? 1.5
       : chainCount === 2
         ? 1.25
         : 1;
+
+  const feverMultiplier = isFever()
+    ? CONFIG.feverMultiplier
+    : 1;
 
   gainedScore = Math.floor(
     gainedScore *
@@ -1098,19 +1139,15 @@ function resolveClears(chainCount = 1) {
     });
   });
 
-  if (orbClearGroups.length > 0) {
+  if (orbGroups.length > 0) {
     state.score += gainedScore;
 
-    /*
-      オーブ列を8で消すごとに、
-      オーバーゲージを1つ戻す。
-    */
     state.over = Math.max(
       0,
-      state.over - orbClearGroups.length
+      state.over - orbGroups.length
     );
 
-    if (orbClearGroups.length >= 2) {
+    if (orbGroups.length >= 2) {
       setStatus("SIMULTANEOUS!");
     } else if (chainCount >= 2) {
       setStatus(`${chainCount} CHAIN!`);
@@ -1118,15 +1155,15 @@ function resolveClears(chainCount = 1) {
       setStatus("CLEAR!");
     }
 
-    const speed =
+    const soundSpeed =
       chainCount >= 3
         ? 1.45
         : chainCount === 2
           ? 1.2
           : 1;
 
-    playClearSound(speed);
-  } else if (whiteClearGroups.length > 0) {
+    playClearSound(soundSpeed);
+  } else {
     setStatus("WHITE CLEAR");
   }
 
@@ -1159,7 +1196,7 @@ function resolveClears(chainCount = 1) {
     }
 
     finishTurn();
-  }, 260);
+  }, 280);
 }
 
 /* ==================================================
@@ -1171,15 +1208,9 @@ function resolveStar(row) {
     return;
   }
 
-  const piecesInRow = state.board[row].filter((piece) => {
-    return Boolean(piece);
-  });
+  const pieces = state.board[row].filter(Boolean);
 
-  /*
-    空白レーンに★を置いた時も、
-    「8を1個作った」として得点。
-  */
-  const clearCount = Math.max(1, piecesInRow.length);
+  const clearCount = Math.max(1, pieces.length);
 
   const feverMultiplier = isFever()
     ? CONFIG.feverMultiplier
@@ -1190,16 +1221,12 @@ function resolveStar(row) {
     CONFIG.clearScore *
     feverMultiplier;
 
-  const hadOrb = piecesInRow.some((piece) => {
+  const hadOrb = pieces.some((piece) => {
     return piece.type === "orb";
   });
 
   state.board[row] = Array(CONFIG.cols).fill(null);
 
-  /*
-    ★でオーブ列を消した場合も、
-    オーバーゲージを1つ戻す。
-  */
   if (hadOrb) {
     state.over = Math.max(0, state.over - 1);
   }
@@ -1252,9 +1279,7 @@ function addOver(total) {
     el.app.classList.remove("is-over-flash");
 
     requestAnimationFrame(() => {
-      if (el.app) {
-        el.app.classList.add("is-over-flash");
-      }
+      el.app.classList.add("is-over-flash");
     });
   }
 
@@ -1263,7 +1288,7 @@ function addOver(total) {
   if (state.over >= 5) {
     setTimeout(() => {
       endGame("OVER LIMIT");
-    }, 680);
+    }, 800);
   }
 }
 
@@ -1274,6 +1299,11 @@ function showOverNumber(total) {
 
   el.overPopup.textContent = String(total);
 
+  /*
+    hiddenを外さないと、CSSのdisplay:none !importantが
+    showより強く残ってしまう。そのため必ずここで外す。
+  */
+  el.overPopup.classList.remove("hidden");
   el.overPopup.classList.remove("show");
 
   requestAnimationFrame(() => {
@@ -1283,14 +1313,17 @@ function showOverNumber(total) {
   });
 
   setTimeout(() => {
-    if (el.overPopup) {
-      el.overPopup.classList.remove("show");
+    if (!el.overPopup) {
+      return;
     }
-  }, 780);
+
+    el.overPopup.classList.remove("show");
+    el.overPopup.classList.add("hidden");
+  }, 1000);
 }
 
 /* ==================================================
-   フィーバー・再出現
+   フィーバー
 ================================================== */
 
 function hasAnyOrb() {
@@ -1326,12 +1359,8 @@ function startFeverAndRespawn() {
       return;
     }
 
-    /*
-      残っている白リングはそのまま。
-      その左側に新しいオーブを出す。
-    */
     for (let row = 0; row < CONFIG.rows; row += 1) {
-      const remainingRings = state.board[row]
+      const rings = state.board[row]
         .filter((piece) => {
           return piece && piece.type === "ring";
         })
@@ -1339,9 +1368,9 @@ function startFeverAndRespawn() {
 
       state.board[row] = [
         makePiece("orb", randomNumber(), row),
-        ...remainingRings,
+        ...rings,
         ...Array(
-          CONFIG.cols - 1 - remainingRings.length
+          CONFIG.cols - 1 - rings.length
         ).fill(null)
       ];
     }
@@ -1367,7 +1396,10 @@ function startFeverAndRespawn() {
 ================================================== */
 
 function checkLevelUp() {
-  if (!state || state.level >= CONFIG.maxLevel) {
+  if (
+    !state ||
+    state.level >= CONFIG.maxLevel
+  ) {
     return;
   }
 
@@ -1385,13 +1417,13 @@ function checkLevelUp() {
   state.level = targetLevel;
 
   /*
-    レベルアップ時は残り時間を300秒に完全回復
+    レベルアップするごとに300秒へ完全回復
   */
   state.time = CONFIG.startTime;
 
   setStatus("LEVEL UP! TIME RESET");
 
-  startBgm();
+  changeBgmForLevel();
 }
 
 /* ==================================================
@@ -1416,7 +1448,7 @@ function finishTurn() {
 }
 
 /* ==================================================
-   中断・再開・終了
+   中断・終了
 ================================================== */
 
 function pauseGame() {
@@ -1430,9 +1462,7 @@ function pauseGame() {
 
   state.isPaused = true;
 
-  clearInterval(moveTimer);
-  clearInterval(clockTimer);
-
+  clearGameTimers();
   pauseBgm();
 
   if (el.abortModal) {
@@ -1456,20 +1486,17 @@ function resumeGame() {
   }
 
   resumeBgm();
+  startClock();
 
-  if (!state.isBusy) {
-    startClock();
-
-    if (state.activeRing) {
-      moveTimer = setInterval(
-        moveActiveRing,
-        CONFIG.ringStepMs
-      );
-    }
+  if (state.activeRing) {
+    moveTimer = setInterval(
+      moveActiveRing,
+      CONFIG.ringStepMs
+    );
   }
 }
 
-function endGame(reason = "TIME UP") {
+function endGame(reason) {
   if (!state || state.isEnded) {
     return;
   }
@@ -1514,6 +1541,11 @@ function returnTitle() {
     el.countdown.classList.add("hidden");
   }
 
+  if (el.overPopup) {
+    el.overPopup.classList.add("hidden");
+    el.overPopup.classList.remove("show");
+  }
+
   showScreen(el.title);
 }
 
@@ -1521,19 +1553,22 @@ function returnTitle() {
    描画
 ================================================== */
 
-function createPieceElement(piece, isActive = false, total = 0) {
+function createPieceElement(piece, active, total) {
   const node = document.createElement("div");
 
-  const typeClass =
-    piece.type === "orb"
-      ? "orb"
-      : piece.type === "star"
-        ? "ring star-ring"
-        : "ring";
+  let typeClass = "ring";
+
+  if (piece.type === "orb") {
+    typeClass = "orb";
+  }
+
+  if (piece.type === "star") {
+    typeClass = "ring star-ring";
+  }
 
   node.className = `piece ${typeClass}`;
 
-  if (isActive) {
+  if (active) {
     node.classList.add("active");
   }
 
@@ -1544,10 +1579,6 @@ function createPieceElement(piece, isActive = false, total = 0) {
     node.classList.add(`c${piece.color}`);
   }
 
-  /*
-    合計値そのものは表示しない。
-    合計5/6/7だけ、ピースの発光や点滅で知らせる。
-  */
   if (total >= 5 && total <= 7) {
     node.classList.add(`t${total}`);
   }
@@ -1573,11 +1604,7 @@ function getPreparedClass(group, col) {
 }
 
 function renderGame() {
-  if (!state) {
-    return;
-  }
-
-  if (!el.board) {
+  if (!state || !el.board) {
     return;
   }
 
@@ -1593,7 +1620,10 @@ function renderGame() {
       cell.className = "cell";
       cell.dataset.row = String(row);
 
-      const preparedClass = getPreparedClass(group, col);
+      const preparedClass = getPreparedClass(
+        group,
+        col
+      );
 
       if (preparedClass) {
         cell.classList.add(preparedClass);
@@ -1638,6 +1668,41 @@ function renderGame() {
   }
 
   renderQueue();
+  renderHud();
+}
+
+function renderQueue() {
+  if (!state || !el.queueList) {
+    return;
+  }
+
+  /*
+    ここには控えリングだけを描画する。
+    中断ボタンはHTMLに元から1つあるものを使う。
+    これで中断ボタンが2つ出ない。
+  */
+  el.queueList.innerHTML = "";
+
+  state.queue.forEach((ringData) => {
+    const ring = document.createElement("div");
+
+    ring.className = "queue-ring";
+
+    if (ringData.type === "star") {
+      ring.classList.add("star-ring");
+      ring.textContent = "★";
+    } else {
+      ring.textContent = String(ringData.number);
+    }
+
+    el.queueList.append(ring);
+  });
+}
+
+function renderHud() {
+  if (!state) {
+    return;
+  }
 
   if (el.score) {
     el.score.textContent = String(state.score);
@@ -1653,72 +1718,30 @@ function renderGame() {
     );
   }
 
-  renderOverGauge();
-}
+  if (el.over) {
+    el.over.classList.remove(
+      "over-1",
+      "over-2",
+      "over-3",
+      "over-4",
+      "over-5"
+    );
 
-function renderQueue() {
-  if (!el.queue || !state) {
-    return;
-  }
-
-  el.queue.innerHTML = "";
-
-  state.queue.forEach((ringData) => {
-    const ring = document.createElement("div");
-
-    ring.className = "queue-ring";
-
-    if (ringData.type === "star") {
-      ring.classList.add("star-ring");
-      ring.textContent = "★";
-    } else {
-      ring.textContent = String(ringData.number);
+    if (state.over > 0) {
+      el.over.classList.add(
+        `over-${state.over}`
+      );
     }
 
-    el.queue.append(ring);
-  });
-
-  /*
-    中断ボタンを、
-    控えリングが縦に並ぶ列の最下部へ置く。
-  */
-  const abortButton = document.createElement("button");
-
-  abortButton.type = "button";
-  abortButton.className = "queue-abort";
-  abortButton.id = "abort-button";
-  abortButton.textContent = "中断";
-
-  abortButton.addEventListener("click", pauseGame);
-
-  el.queue.append(abortButton);
-
-  /*
-    最初にHTMLから取ったボタン参照も最新のものへ更新。
-  */
-  el.abort = abortButton;
-}
-
-function renderOverGauge() {
-  if (!el.over || !state) {
-    return;
+    el.over.querySelectorAll("i").forEach(
+      (bar, index) => {
+        bar.classList.toggle(
+          "on",
+          index < state.over
+        );
+      }
+    );
   }
-
-  el.over.classList.remove(
-    "over-1",
-    "over-2",
-    "over-3",
-    "over-4",
-    "over-5"
-  );
-
-  if (state.over > 0) {
-    el.over.classList.add(`over-${state.over}`);
-  }
-
-  el.over.querySelectorAll("i").forEach((bar, index) => {
-    bar.classList.toggle("on", index < state.over);
-  });
 }
 
 /* ==================================================
@@ -1753,10 +1776,11 @@ function renderTutorial() {
         ? "完了"
         : "つぎへ";
 
-    const strong = el.tutorialNext.querySelector("strong");
+    const labelElement =
+      el.tutorialNext.querySelector("strong");
 
-    if (strong) {
-      strong.textContent = label;
+    if (labelElement) {
+      labelElement.textContent = label;
     } else {
       el.tutorialNext.textContent = label;
     }
@@ -1781,103 +1805,77 @@ function nextTutorial() {
    イベント
 ================================================== */
 
-if (el.start) {
-  el.start.addEventListener("click", startGame);
-}
+el.start?.addEventListener("click", startGame);
 
-if (el.tutorialButton) {
-  el.tutorialButton.addEventListener(
-    "click",
-    startTutorial
-  );
-}
+el.tutorialButton?.addEventListener(
+  "click",
+  startTutorial
+);
 
-if (el.board) {
-  el.board.addEventListener("click", (event) => {
-    const cell = event.target.closest(".cell");
+el.board?.addEventListener("click", (event) => {
+  const cell = event.target.closest(".cell");
 
-    if (!cell) {
-      return;
-    }
+  if (!cell) {
+    return;
+  }
 
-    chooseRow(Number(cell.dataset.row));
-  });
-}
+  chooseRow(Number(cell.dataset.row));
+});
 
-if (el.tutorialExit) {
-  el.tutorialExit.addEventListener(
-    "click",
-    returnTitle
-  );
-}
+el.abort?.addEventListener("click", pauseGame);
 
-if (el.tutorialNext) {
-  el.tutorialNext.addEventListener(
-    "click",
-    nextTutorial
-  );
-}
+el.tutorialExit?.addEventListener(
+  "click",
+  returnTitle
+);
 
-if (el.tutorialStart) {
-  el.tutorialStart.addEventListener(
-    "click",
-    startGame
-  );
-}
+el.tutorialNext?.addEventListener(
+  "click",
+  nextTutorial
+);
 
-if (el.tutorialRestart) {
-  el.tutorialRestart.addEventListener(
-    "click",
-    startTutorial
-  );
-}
+el.tutorialStart?.addEventListener(
+  "click",
+  startGame
+);
 
-if (el.tutorialTitle) {
-  el.tutorialTitle.addEventListener(
-    "click",
-    returnTitle
-  );
-}
+el.tutorialRestart?.addEventListener(
+  "click",
+  startTutorial
+);
 
-if (el.abortResume) {
-  el.abortResume.addEventListener(
-    "click",
-    resumeGame
-  );
-}
+el.tutorialTitle?.addEventListener(
+  "click",
+  returnTitle
+);
 
-if (el.abortRetry) {
-  el.abortRetry.addEventListener(
-    "click",
-    startGame
-  );
-}
+el.abortResume?.addEventListener(
+  "click",
+  resumeGame
+);
 
-if (el.abortTitle) {
-  el.abortTitle.addEventListener(
-    "click",
-    returnTitle
-  );
-}
+el.abortRetry?.addEventListener(
+  "click",
+  startGame
+);
 
-if (el.retry) {
-  el.retry.addEventListener(
-    "click",
-    startGame
-  );
-}
+el.abortTitle?.addEventListener(
+  "click",
+  returnTitle
+);
 
-if (el.titleButton) {
-  el.titleButton.addEventListener(
-    "click",
-    returnTitle
-  );
-}
+el.retry?.addEventListener(
+  "click",
+  startGame
+);
+
+el.titleButton?.addEventListener(
+  "click",
+  returnTitle
+);
 
 /*
-  タブ切り替え時は音だけ止める。
-  戻った時はゲームが中断されている状態なので、
-  ユーザーが「つづける」を押してから音を再開する。
+  別タブ・別アプリへ移動した場合は自動中断。
 */
 document.addEventListener("visibilitychange", () => {
   if (
@@ -1885,8 +1883,7 @@ document.addEventListener("visibilitychange", () => {
     state &&
     !state.isPaused &&
     !state.isEnded &&
-    el.game &&
-    el.game.classList.contains("is-active")
+    el.game?.classList.contains("is-active")
   ) {
     pauseGame();
   }
