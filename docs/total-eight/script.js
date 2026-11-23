@@ -11,10 +11,6 @@ const CONFIG = {
   startTime: 300,
   maxLevel: 5,
 
-  /*
-    実プレイを基準に調整した、
-    各LEVELで必要なステージ経験値。
-  */
   stageTargets: [
     4500,
     4500,
@@ -23,10 +19,6 @@ const CONFIG = {
     7500
   ],
 
-  /*
-    右から左へ1マス移動する間隔。
-    以前の950msから大幅に減速。
-  */
   ringStepMs: 1800,
 
   clearScore: 100,
@@ -115,14 +107,11 @@ const el = {
 let state = null;
 let moveTimer = null;
 let clockTimer = null;
-
 let pieceId = 0;
 let tutorialIndex = 0;
 
 let audioContext = null;
 let currentBgm = null;
-let currentAnalyser = null;
-let analyserData = null;
 let endMusic = null;
 let electricAnimationId = null;
 
@@ -150,105 +139,15 @@ function wait(milliseconds) {
   });
 }
 
-function randomNumber() {
-  return Math.floor(Math.random() * 4) + 1;
-}
-
-function makePiece(type, number = null, color = null) {
-  pieceId += 1;
-
-  return {
-    id: `piece-${pieceId}`,
-    type,
-    number,
-    color
-  };
-}
-
-function createRingData() {
-  if (Math.random() < CONFIG.starRate) {
-    return {
-      type: "star",
-      number: null
-    };
-  }
-
-  return {
-    type: "ring",
-    number: randomNumber()
-  };
-}
-
-function createInitialBoard() {
-  return Array.from(
-    { length: CONFIG.rows },
-    (_, row) => {
-      const boardRow = Array(CONFIG.cols).fill(null);
-
-      boardRow[0] = makePiece(
-        "orb",
-        randomNumber(),
-        row
-      );
-
-      return boardRow;
-    }
-  );
-}
-
-function createGameState() {
-  return {
-    board: createInitialBoard(),
-
-    queue: [
-      createRingData(),
-      createRingData(),
-      createRingData()
-    ],
-
-    activeRing: null,
-    selectedRow: null,
-
-    score: 0,
-    stageScore: 0,
-
-    level: 1,
-    time: CONFIG.startTime,
-
-    over: 0,
-    feverUntil: 0,
-
-    isBusy: true,
-    isPaused: false,
-    isEnded: false,
-
-    isWaitingForLandscape: false,
-    pausedByOrientation: false,
-
-    bgmPrimed: false,
-    bgmPaths: {}
-  };
-}
-
-function getStageTarget() {
-  if (!state) {
-    return CONFIG.stageTargets[0];
-  }
-
-  return CONFIG.stageTargets[
-    Math.min(
-      state.level - 1,
-      CONFIG.stageTargets.length - 1
-    )
-  ];
-}
-
 function isLandscape() {
   return landscapeQuery.matches;
 }
 
 function isFever() {
-  return state && Date.now() < state.feverUntil;
+  return Boolean(
+    state &&
+    Date.now() < state.feverUntil
+  );
 }
 
 function isGameRunning() {
@@ -306,20 +205,102 @@ function hideSoundEnableButton() {
   el.soundEnable?.classList.add("hidden");
 }
 
+function getStageTarget() {
+  if (!state) {
+    return CONFIG.stageTargets[0];
+  }
+
+  return CONFIG.stageTargets[
+    Math.min(
+      state.level - 1,
+      CONFIG.stageTargets.length - 1
+    )
+  ];
+}
+
 /* ==================================================
-   ダブルタップズーム抑止
+   盤面データ
 ================================================== */
 
-document.addEventListener(
-  "dblclick",
-  (event) => {
-    event.preventDefault();
-  },
-  { passive: false }
-);
+function randomNumber() {
+  return Math.floor(Math.random() * 4) + 1;
+}
+
+function makePiece(type, number = null, color = null) {
+  pieceId += 1;
+
+  return {
+    id: `piece-${pieceId}`,
+    type,
+    number,
+    color
+  };
+}
+
+function createRingData() {
+  if (Math.random() < CONFIG.starRate) {
+    return {
+      type: "star",
+      number: null
+    };
+  }
+
+  return {
+    type: "ring",
+    number: randomNumber()
+  };
+}
+
+function createInitialBoard() {
+  return Array.from(
+    { length: CONFIG.rows },
+    (_, row) => {
+      const line = Array(CONFIG.cols).fill(null);
+
+      line[0] = makePiece(
+        "orb",
+        randomNumber(),
+        row
+      );
+
+      return line;
+    }
+  );
+}
+
+function createGameState() {
+  return {
+    board: createInitialBoard(),
+
+    queue: [
+      createRingData(),
+      createRingData(),
+      createRingData()
+    ],
+
+    activeRing: null,
+    selectedRow: null,
+
+    score: 0,
+    stageScore: 0,
+    level: 1,
+    time: CONFIG.startTime,
+
+    over: 0,
+    feverUntil: 0,
+
+    isBusy: true,
+    isPaused: false,
+    isEnded: false,
+    isWaitingForLandscape: false,
+    pausedByOrientation: false,
+
+    bgmPaths: {}
+  };
+}
 
 /* ==================================================
-   効果音
+   音
 ================================================== */
 
 function unlockAudio() {
@@ -355,7 +336,10 @@ function playTone(
   oscillator.type = "sine";
   oscillator.frequency.value = frequency;
 
-  gain.gain.setValueAtTime(0.001, startTime);
+  gain.gain.setValueAtTime(
+    0.001,
+    startTime
+  );
 
   gain.gain.exponentialRampToValueAtTime(
     volume,
@@ -408,7 +392,7 @@ function playOverSound() {
 
   const notes = [
     261.63,
-    196.0,
+    196,
     146.83,
     130.81
   ];
@@ -462,11 +446,7 @@ function getBgmPath(level) {
     return state.bgmPaths[level];
   }
 
-  let fileName = "";
-
-  if (level === 1) {
-    fileName = "LEVEL-1.mp3";
-  }
+  let fileName = "LEVEL-1.mp3";
 
   if (level === 2) {
     fileName = "LEVEL-2.mp3";
@@ -498,27 +478,7 @@ function getBgmPath(level) {
   return path;
 }
 
-function disconnectBgm(bgm) {
-  if (!bgm) {
-    return;
-  }
-
-  try {
-    bgm.source?.disconnect();
-  } catch (error) {
-    /* 接続解除済み */
-  }
-
-  try {
-    bgm.analyser?.disconnect();
-  } catch (error) {
-    /* 接続解除済み */
-  }
-}
-
-function stopElectricAnimation() {
-  window.cancelAnimationFrame(electricAnimationId);
-
+function resetElectricValues() {
   document.documentElement.style.setProperty(
     "--electric-bass",
     "0"
@@ -535,6 +495,14 @@ function stopElectricAnimation() {
   );
 }
 
+function stopElectricAnimation() {
+  window.cancelAnimationFrame(
+    electricAnimationId
+  );
+
+  resetElectricValues();
+}
+
 function stopBgm() {
   if (!currentBgm) {
     stopElectricAnimation();
@@ -544,15 +512,13 @@ function stopBgm() {
   try {
     currentBgm.audio.pause();
     currentBgm.audio.currentTime = 0;
+    currentBgm.source?.disconnect();
+    currentBgm.analyser?.disconnect();
   } catch (error) {
-    /* 停止失敗時も続行 */
+    /* 停止済みでも続行 */
   }
 
-  disconnectBgm(currentBgm);
-
   currentBgm = null;
-  currentAnalyser = null;
-  analyserData = null;
 
   stopElectricAnimation();
 }
@@ -566,7 +532,7 @@ function stopEndMusic() {
     endMusic.pause();
     endMusic.currentTime = 0;
   } catch (error) {
-    /* 停止失敗時も続行 */
+    /* 停止済みでも続行 */
   }
 
   endMusic = null;
@@ -585,7 +551,7 @@ function playEndMusic(fileName) {
   endMusic.play().catch(() => {});
 }
 
-function createBgmForCurrentLevel() {
+function createBgm() {
   if (!state || state.isEnded) {
     return;
   }
@@ -599,48 +565,49 @@ function createBgmForCurrentLevel() {
   audio.volume = 0;
   audio.muted = true;
 
+  let source = null;
+  let analyser = null;
+  let analyserData = null;
+
   if (audioContext) {
-    const analyser =
-      audioContext.createAnalyser();
+    try {
+      analyser =
+        audioContext.createAnalyser();
 
-    analyser.fftSize = 2048;
-    analyser.smoothingTimeConstant = 0.84;
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.84;
 
-    const source =
-      audioContext.createMediaElementSource(audio);
+      source =
+        audioContext.createMediaElementSource(audio);
 
-    source.connect(analyser);
-    analyser.connect(audioContext.destination);
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
 
-    currentBgm = {
-      audio,
-      source,
-      analyser
-    };
-
-    currentAnalyser = analyser;
-
-    analyserData = new Uint8Array(
-      analyser.frequencyBinCount
-    );
-
-    return;
+      analyserData = new Uint8Array(
+        analyser.frequencyBinCount
+      );
+    } catch (error) {
+      source = null;
+      analyser = null;
+      analyserData = null;
+    }
   }
 
   currentBgm = {
     audio,
-    source: null,
-    analyser: null
+    source,
+    analyser,
+    analyserData
   };
 }
 
 function fadeAudio(audio, from, to, duration) {
-  const start = performance.now();
+  const startedAt = performance.now();
 
   function update(now) {
     const progress = Math.min(
       1,
-      (now - start) / duration
+      (now - startedAt) / duration
     );
 
     audio.volume =
@@ -654,171 +621,55 @@ function fadeAudio(audio, from, to, duration) {
   requestAnimationFrame(update);
 }
 
-function primeBgmFromUserTap() {
-  if (!currentBgm?.audio || !state) {
-    return;
-  }
-
-  const { audio } = currentBgm;
-
-  audio.volume = 0;
-  audio.muted = true;
-  audio.currentTime = 0;
-
-  audio.play()
-    .then(() => {
-      state.bgmPrimed = true;
-      hideSoundEnableButton();
-      startElectricAnimation();
-    })
-    .catch(() => {
-      state.bgmPrimed = false;
-      showSoundEnableButton();
-    });
-}
-
-function revealBgmAtGo() {
-  if (!currentBgm?.audio || !state) {
-    return;
-  }
-
-  const { audio } = currentBgm;
-
-  audio.muted = false;
-
-  audio.play()
-    .then(() => {
-      state.bgmPrimed = true;
-
-      fadeAudio(
-        audio,
-        audio.volume,
-        CONFIG.bgmVolume,
-        CONFIG.bgmFadeMs
-      );
-
-      hideSoundEnableButton();
-      startElectricAnimation();
-    })
-    .catch(() => {
-      showSoundEnableButton();
-    });
-}
-
-function enableSoundFromUserTap() {
-  unlockAudio();
-
-  if (!currentBgm?.audio) {
-    return;
-  }
-
-  currentBgm.audio.muted = false;
-
-  currentBgm.audio.play()
-    .then(() => {
-      fadeAudio(
-        currentBgm.audio,
-        currentBgm.audio.volume,
-        CONFIG.bgmVolume,
-        CONFIG.bgmFadeMs
-      );
-
-      hideSoundEnableButton();
-      startElectricAnimation();
-    })
-    .catch(() => {
-      showSoundEnableButton();
-    });
-}
-
-function changeBgmForLevel() {
-  stopBgm();
-  createBgmForCurrentLevel();
-
-  if (!currentBgm?.audio) {
-    return;
-  }
-
-  currentBgm.audio.muted = false;
-
-  currentBgm.audio.play()
-    .then(() => {
-      fadeAudio(
-        currentBgm.audio,
-        0,
-        CONFIG.bgmVolume,
-        CONFIG.bgmFadeMs
-      );
-
-      startElectricAnimation();
-    })
-    .catch(() => {
-      showSoundEnableButton();
-    });
-}
-
-function pauseBgm() {
-  currentBgm?.audio?.pause();
-
-  window.cancelAnimationFrame(electricAnimationId);
-}
-
-function resumeBgm() {
-  currentBgm?.audio?.play()
-    .then(() => {
-      startElectricAnimation();
-    })
-    .catch(() => {
-      showSoundEnableButton();
-    });
-}
-
 function getBandEnergy(from, to) {
   if (
-    !currentAnalyser ||
-    !analyserData ||
-    !audioContext
+    !audioContext ||
+    !currentBgm?.analyser ||
+    !currentBgm.analyserData
   ) {
     return 0;
   }
 
-  currentAnalyser.getByteFrequencyData(
-    analyserData
+  currentBgm.analyser.getByteFrequencyData(
+    currentBgm.analyserData
   );
 
-  const nyquist = audioContext.sampleRate / 2;
+  const nyquist =
+    audioContext.sampleRate / 2;
 
   const start = Math.max(
     0,
     Math.floor(
       (from / nyquist) *
-      analyserData.length
+      currentBgm.analyserData.length
     )
   );
 
   const end = Math.min(
-    analyserData.length - 1,
+    currentBgm.analyserData.length - 1,
     Math.ceil(
       (to / nyquist) *
-      analyserData.length
+      currentBgm.analyserData.length
     )
   );
 
-  let total = 0;
+  let sum = 0;
   let count = 0;
 
-  for (let i = start; i <= end; i += 1) {
-    total += analyserData[i];
+  for (let index = start; index <= end; index += 1) {
+    sum += currentBgm.analyserData[index];
     count += 1;
   }
 
-  return count
-    ? total / count / 255
+  return count > 0
+    ? sum / count / 255
     : 0;
 }
 
 function startElectricAnimation() {
-  window.cancelAnimationFrame(electricAnimationId);
+  window.cancelAnimationFrame(
+    electricAnimationId
+  );
 
   function animate() {
     if (
@@ -870,18 +721,113 @@ function startElectricAnimation() {
     requestAnimationFrame(animate);
 }
 
+function prepareBgmFromTap() {
+  if (!currentBgm?.audio) {
+    return;
+  }
+
+  const { audio } = currentBgm;
+
+  audio.volume = 0;
+  audio.muted = true;
+  audio.currentTime = 0;
+
+  audio.play()
+    .then(() => {
+      hideSoundEnableButton();
+      startElectricAnimation();
+    })
+    .catch(() => {
+      showSoundEnableButton();
+    });
+}
+
+function revealBgm() {
+  if (!currentBgm?.audio) {
+    return;
+  }
+
+  const { audio } = currentBgm;
+
+  audio.muted = false;
+
+  audio.play()
+    .then(() => {
+      fadeAudio(
+        audio,
+        audio.volume,
+        CONFIG.bgmVolume,
+        CONFIG.bgmFadeMs
+      );
+
+      hideSoundEnableButton();
+      startElectricAnimation();
+    })
+    .catch(() => {
+      showSoundEnableButton();
+    });
+}
+
+function enableSoundFromTap() {
+  unlockAudio();
+
+  if (!currentBgm?.audio) {
+    return;
+  }
+
+  currentBgm.audio.muted = false;
+
+  currentBgm.audio.play()
+    .then(() => {
+      fadeAudio(
+        currentBgm.audio,
+        currentBgm.audio.volume,
+        CONFIG.bgmVolume,
+        CONFIG.bgmFadeMs
+      );
+
+      hideSoundEnableButton();
+      startElectricAnimation();
+    })
+    .catch(() => {
+      showSoundEnableButton();
+    });
+}
+
+function changeBgmForLevel() {
+  stopBgm();
+  createBgm();
+
+  if (!currentBgm?.audio) {
+    return;
+  }
+
+  currentBgm.audio.muted = false;
+
+  currentBgm.audio.play()
+    .then(() => {
+      fadeAudio(
+        currentBgm.audio,
+        0,
+        CONFIG.bgmVolume,
+        CONFIG.bgmFadeMs
+      );
+
+      startElectricAnimation();
+    })
+    .catch(() => {
+      showSoundEnableButton();
+    });
+}
+
 /* ==================================================
-   盤面
+   盤面計算
 ================================================== */
 
 function getGroups() {
   const groups = [];
 
-  for (
-    let row = 0;
-    row < CONFIG.rows;
-    row += 1
-  ) {
+  for (let row = 0; row < CONFIG.rows; row += 1) {
     let col = 0;
 
     while (col < CONFIG.cols) {
@@ -943,15 +889,9 @@ function getGroups() {
   return groups;
 }
 
-/*
-  新リングから左へたどる。
-  これにより同一レーンの連続オーバーも
-  必ず正しくゲージへ反映する。
-*/
 function getConnectionFromNewRing(row, col) {
   const cells = [];
   let scan = col;
-  let hasOrb = false;
 
   while (scan >= 0) {
     const piece = state.board[row][scan];
@@ -970,7 +910,6 @@ function getConnectionFromNewRing(row, col) {
     });
 
     if (piece.type === "orb") {
-      hasOrb = true;
       break;
     }
 
@@ -978,7 +917,6 @@ function getConnectionFromNewRing(row, col) {
   }
 
   return {
-    hasOrb,
     total: cells.reduce(
       (sum, item) =>
         sum + (item.piece.number || 0),
@@ -989,11 +927,7 @@ function getConnectionFromNewRing(row, col) {
 }
 
 function getInheritedColor(row, col) {
-  for (
-    let scan = col - 1;
-    scan >= 0;
-    scan -= 1
-  ) {
+  for (let scan = col - 1; scan >= 0; scan -= 1) {
     const piece = state.board[row][scan];
 
     if (!piece) {
@@ -1013,20 +947,15 @@ function getInheritedColor(row, col) {
 }
 
 function settleBoard() {
-  for (
-    let row = 0;
-    row < CONFIG.rows;
-    row += 1
-  ) {
-    const oldRow = state.board[row];
-    const nextRow = Array(CONFIG.cols).fill(null);
-
+  for (let row = 0; row < CONFIG.rows; row += 1) {
+    const oldLine = state.board[row];
+    const nextLine = Array(CONFIG.cols).fill(null);
     const orbColumns = [];
 
-    oldRow.forEach((piece, col) => {
+    oldLine.forEach((piece, col) => {
       if (piece?.type === "orb") {
         orbColumns.push(col);
-        nextRow[col] = piece;
+        nextLine[col] = piece;
       }
     });
 
@@ -1037,26 +966,26 @@ function settleBoard() {
     ];
 
     for (
-      let i = 0;
-      i < boundaries.length - 1;
-      i += 1
+      let index = 0;
+      index < boundaries.length - 1;
+      index += 1
     ) {
-      const start = boundaries[i] + 1;
-      const end = boundaries[i + 1];
+      const start = boundaries[index] + 1;
+      const end = boundaries[index + 1];
 
-      const rings = oldRow
+      const rings = oldLine
         .slice(start, end)
         .filter((piece) =>
           piece &&
           piece.type !== "orb"
         );
 
-      rings.forEach((ring, index) => {
-        nextRow[start + index] = ring;
+      rings.forEach((ring, ringIndex) => {
+        nextLine[start + ringIndex] = ring;
       });
     }
 
-    state.board[row] = nextRow;
+    state.board[row] = nextLine;
   }
 }
 
@@ -1073,25 +1002,25 @@ function getLandingColumn(row) {
 }
 
 function hasAnyOrb() {
-  return state.board.some((row) =>
-    row.some((piece) => piece?.type === "orb")
+  return state.board.some((line) =>
+    line.some((piece) => piece?.type === "orb")
   );
 }
 
 function respawnOrbsInEmptyRows() {
-  state.board.forEach((row, rowIndex) => {
-    if (row.every((piece) => !piece)) {
-      state.board[rowIndex][0] = makePiece(
+  state.board.forEach((line, row) => {
+    if (line.every((piece) => !piece)) {
+      state.board[row][0] = makePiece(
         "orb",
         randomNumber(),
-        rowIndex
+        row
       );
     }
   });
 }
 
 /* ==================================================
-   得点・消去
+   得点・オーバー・消去
 ================================================== */
 
 function addExperience(amount) {
@@ -1130,38 +1059,11 @@ function checkLevelProgress() {
   renderGame();
 }
 
-async function startFeverAndRespawn() {
-  state.feverUntil =
-    Date.now() + CONFIG.feverDuration;
-
-  el.app?.classList.add("is-fever");
-
-  setStatus("ALL CLEAR! FEVER!");
-
-  await wait(520);
-
-  if (!state || state.isEnded) {
+function showOverNumber(total) {
+  if (!el.overPopup) {
     return;
   }
 
-  respawnOrbsInEmptyRows();
-
-  renderGame();
-
-  window.setTimeout(() => {
-    el.app?.classList.remove("is-fever");
-
-    if (
-      state &&
-      !state.isEnded &&
-      !state.isPaused
-    ) {
-      setStatus("READY");
-    }
-  }, CONFIG.feverDuration);
-}
-
-function showOverNumber(total) {
   el.overPopup.textContent = String(total);
 
   el.overPopup.classList.remove("hidden");
@@ -1197,6 +1099,37 @@ function increaseOverGauge(total) {
   }
 
   setStatus("OVER");
+}
+
+async function startFeverAndRespawn() {
+  state.feverUntil =
+    Date.now() + CONFIG.feverDuration;
+
+  el.app?.classList.add("is-fever");
+
+  setStatus("ALL CLEAR! FEVER!");
+
+  await wait(520);
+
+  if (!state || state.isEnded) {
+    return;
+  }
+
+  respawnOrbsInEmptyRows();
+
+  renderGame();
+
+  window.setTimeout(() => {
+    el.app?.classList.remove("is-fever");
+
+    if (
+      state &&
+      !state.isEnded &&
+      !state.isPaused
+    ) {
+      setStatus("READY");
+    }
+  }, CONFIG.feverDuration);
 }
 
 async function resolveClearChains() {
@@ -1269,11 +1202,14 @@ async function resolveStar(row) {
     ).length
   );
 
-  state.board[row] = Array(CONFIG.cols).fill(null);
+  state.board[row] =
+    Array(CONFIG.cols).fill(null);
 
-  addExperience(CONFIG.clearScore * count);
+  addExperience(
+    CONFIG.clearScore * count
+  );
+
   playStarSound();
-
   settleBoard();
   renderGame();
 
@@ -1288,15 +1224,15 @@ async function evaluatePlacedRing(row, col) {
   const connection =
     getConnectionFromNewRing(row, col);
 
-  if (connection.total > 8) {
+  /*
+    合計が9以上なら必ずオーバー。
+    オーブが接続に含まれるかどうかは問わない。
+    同一レーンでの連続オーバーも毎回カウントする。
+  */
+  if (connection.total >= 9) {
     state.board[row][col] = null;
 
-    if (connection.hasOrb) {
-      increaseOverGauge(connection.total);
-    } else {
-      showOverNumber(connection.total);
-      setStatus("TOO HIGH");
-    }
+    increaseOverGauge(connection.total);
 
     settleBoard();
     renderGame();
@@ -1308,7 +1244,7 @@ async function evaluatePlacedRing(row, col) {
 }
 
 /* ==================================================
-   リング
+   リング操作
 ================================================== */
 
 function spawnActiveRing() {
@@ -1408,7 +1344,11 @@ function moveActiveRing() {
   }
 
   if (state.board[active.row][nextCol]) {
-    lockActiveRing(active.row, active.col);
+    lockActiveRing(
+      active.row,
+      active.col
+    );
+
     return;
   }
 
@@ -1498,7 +1438,6 @@ function makePieceElement(
   isActive = false
 ) {
   const node = document.createElement("div");
-
   const classes = ["piece"];
 
   if (piece.type === "orb") {
@@ -1540,18 +1479,14 @@ function makePieceElement(
 }
 
 function renderBoard() {
+  if (!state || !el.board) {
+    return;
+  }
+
   el.board.innerHTML = "";
 
-  for (
-    let row = 0;
-    row < CONFIG.rows;
-    row += 1
-  ) {
-    for (
-      let col = 0;
-      col < CONFIG.cols;
-      col += 1
-    ) {
+  for (let row = 0; row < CONFIG.rows; row += 1) {
+    for (let col = 0; col < CONFIG.cols; col += 1) {
       const cell = document.createElement("button");
 
       cell.type = "button";
@@ -1606,6 +1541,10 @@ function renderBoard() {
 }
 
 function renderQueue() {
+  if (!state || !el.queueList) {
+    return;
+  }
+
   el.queueList.innerHTML = "";
 
   state.queue.forEach((ring) => {
@@ -1625,6 +1564,10 @@ function renderQueue() {
 }
 
 function renderOverGauge() {
+  if (!el.over || !state) {
+    return;
+  }
+
   el.over.className = "";
 
   if (state.over > 0) {
@@ -1650,7 +1593,8 @@ function renderGame() {
   el.score.textContent =
     state.score.toLocaleString("ja-JP");
 
-  el.level.textContent = String(state.level);
+  el.level.textContent =
+    String(state.level);
 
   el.stageScore.textContent =
     state.stageScore.toLocaleString("ja-JP");
@@ -1658,9 +1602,8 @@ function renderGame() {
   el.stageTarget.textContent =
     getStageTarget().toLocaleString("ja-JP");
 
-  el.time.textContent = String(
-    Math.max(0, state.time)
-  );
+  el.time.textContent =
+    String(Math.max(0, state.time));
 
   renderOverGauge();
   renderBoard();
@@ -1684,7 +1627,7 @@ function pauseForPortrait() {
   state.isPaused = true;
   state.pausedByOrientation = true;
 
-  pauseBgm();
+  currentBgm?.audio?.pause();
 
   setStatus("ROTATE DEVICE");
 }
@@ -1704,6 +1647,7 @@ function handleOrientationChange() {
     state.isPaused = false;
 
     beginCountdownAndGame();
+
     return;
   }
 
@@ -1726,16 +1670,12 @@ async function requestLandscapeLock() {
       await screen.orientation.lock("landscape");
     }
   } catch (error) {
-    /*
-      iPhone Safariなどで失敗する場合。
-      注意書きを表示したまま、
-      ユーザーによる物理的な横回転を待つ。
-    */
+    /* iPhone Safariなどは端末を手動で横向きにする */
   }
 }
 
 /* ==================================================
-   開始・終了
+   ゲーム開始・終了
 ================================================== */
 
 async function runCountdown() {
@@ -1747,11 +1687,10 @@ async function runCountdown() {
     ["GO!", 620]
   ];
 
-  el.countdown.classList.remove("hidden");
+  el.countdown?.classList.remove("hidden");
 
   for (const [message, duration] of messages) {
     el.countdownText.textContent = message;
-
     el.countdownText.style.animation = "none";
 
     void el.countdownText.offsetWidth;
@@ -1766,12 +1705,14 @@ async function runCountdown() {
       state.isPaused ||
       !isLandscape()
     ) {
-      el.countdown.classList.add("hidden");
-      return;
+      el.countdown?.classList.add("hidden");
+      return false;
     }
   }
 
-  el.countdown.classList.add("hidden");
+  el.countdown?.classList.add("hidden");
+
+  return true;
 }
 
 async function beginCountdownAndGame() {
@@ -1786,12 +1727,13 @@ async function beginCountdownAndGame() {
   state.isBusy = true;
   state.isPaused = false;
 
-  createBgmForCurrentLevel();
-  primeBgmFromUserTap();
+  createBgm();
+  prepareBgmFromTap();
 
-  await runCountdown();
+  const completed = await runCountdown();
 
   if (
+    !completed ||
     !state ||
     state.isEnded ||
     state.isPaused ||
@@ -1800,7 +1742,7 @@ async function beginCountdownAndGame() {
     return;
   }
 
-  revealBgmAtGo();
+  revealBgm();
 
   state.isBusy = false;
 
@@ -1881,7 +1823,7 @@ function pauseGame() {
 
   state.isPaused = true;
 
-  pauseBgm();
+  currentBgm?.audio?.pause();
 
   el.abortModal?.classList.add("open");
 
@@ -1906,7 +1848,13 @@ function resumeGame() {
 
   el.abortModal?.classList.remove("open");
 
-  resumeBgm();
+  currentBgm?.audio?.play()
+    .then(() => {
+      startElectricAnimation();
+    })
+    .catch(() => {
+      showSoundEnableButton();
+    });
 
   setStatus("READY");
 
@@ -1917,13 +1865,11 @@ function returnToTitle() {
   clearGameTimers();
   stopBgm();
   stopEndMusic();
-
   hideSoundEnableButton();
 
   state = null;
 
   closeAllModals();
-
   showScreen(el.title);
 }
 
@@ -1999,8 +1945,16 @@ function openTutorial() {
 }
 
 /* ==================================================
-   操作
+   イベント
 ================================================== */
+
+document.addEventListener(
+  "dblclick",
+  (event) => {
+    event.preventDefault();
+  },
+  { passive: false }
+);
 
 el.start?.addEventListener("click", () => {
   startNewGame();
@@ -2025,7 +1979,7 @@ el.board?.addEventListener("click", (event) => {
 });
 
 el.soundEnable?.addEventListener("click", () => {
-  enableSoundFromUserTap();
+  enableSoundFromTap();
 });
 
 el.abort?.addEventListener("click", () => {
