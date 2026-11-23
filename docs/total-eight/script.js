@@ -7,15 +7,15 @@ const CONFIG = {
   ringStepMs: 950,
   clearScore: 100,
   levelScoreStep: 900,
-  bgmVolume: 0.38
+  feverDuration: 8000
 };
 
-const TUTORIAL = [
+const TUTORIAL_TEXTS = [
   "リングは右から左へ流れてくる。オーブとリングの数字を足して、合計8を作ろう。",
   "オーブを1回タップすると、流れているリングがそのレーンへ移動する。",
   "同じレーンをもう一度タップすると、リングは列の先頭へ即固定される。",
   "オーブがない空白レーンも、同じ操作で使える。",
-  "合計8で消去。合計7は、あと1で消去できる重要な状態だ。"
+  "合計8で消去。全オーブ消去でフィーバーに入る。"
 ];
 
 const $ = (selector) => document.querySelector(selector);
@@ -24,8 +24,10 @@ const el = {
   title: $("#title-screen"),
   game: $("#game-screen"),
   tutorial: $("#tutorial-screen"),
+
   start: $("#start-button"),
   tutorialButton: $("#tutorial-button"),
+
   board: $("#game-board"),
   queue: $("#ring-queue-list"),
   score: $("#score-value"),
@@ -33,9 +35,15 @@ const el = {
   time: $("#time-value"),
   over: $("#over-gauge"),
   status: $("#status-label"),
-  menu: $("#menu-button"),
+
+  abort: $("#abort-button"),
+  abortModal: $("#abort-modal"),
+  abortResume: $("#abort-resume-button"),
+  abortTitle: $("#abort-title-button"),
+
   countdown: $("#countdown-overlay"),
   countdownText: $("#countdown-text"),
+
   tutorialStep: $("#tutorial-step"),
   tutorialText: $("#tutorial-text"),
   tutorialNext: $("#tutorial-next-button"),
@@ -44,6 +52,7 @@ const el = {
   tutorialStart: $("#tutorial-start-button"),
   tutorialRestart: $("#tutorial-restart-button"),
   tutorialTitle: $("#tutorial-title-button"),
+
   gameOver: $("#game-over-modal"),
   finalScore: $("#final-score-value"),
   retry: $("#retry-button"),
@@ -51,7 +60,7 @@ const el = {
 };
 
 let state = null;
-let ringTimer = null;
+let moveTimer = null;
 let clockTimer = null;
 let audioContext = null;
 let currentBgm = null;
@@ -64,7 +73,13 @@ function randomNumber() {
 
 function makePiece(type, number, color = null) {
   pieceId += 1;
-  return { id: `piece-${pieceId}`, type, number, color };
+
+  return {
+    id: `piece-${pieceId}`,
+    type,
+    number,
+    color
+  };
 }
 
 function makeBoard() {
@@ -75,18 +90,20 @@ function makeBoard() {
   });
 }
 
-function newGameState() {
+function createGameState() {
   return {
     board: makeBoard(),
     queue: [randomNumber(), randomNumber(), randomNumber()],
-    active: null,
+    activeRing: null,
     selectedRow: null,
     score: 0,
     level: 1,
     time: CONFIG.startTime,
     over: 0,
-    busy: true,
-    ended: false
+    feverUntil: 0,
+    isBusy: true,
+    isPaused: false,
+    isEnded: false
   };
 }
 
@@ -98,10 +115,11 @@ function showScreen(target) {
   target.classList.add("is-active");
 }
 
-function clearTimers() {
-  clearInterval(ringTimer);
+function stopTimers() {
+  clearInterval(moveTimer);
   clearInterval(clockTimer);
-  ringTimer = null;
+
+  moveTimer = null;
   clockTimer = null;
 }
 
@@ -122,12 +140,13 @@ function playTone(frequency, startTime, duration) {
   oscillator.type = "sine";
   oscillator.frequency.value = frequency;
 
-  gain.gain.setValueAtTime(0.0001, startTime);
-  gain.gain.exponentialRampToValueAtTime(0.15, startTime + 0.012);
-  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  gain.gain.setValueAtTime(0.001, startTime);
+  gain.gain.exponentialRampToValueAtTime(0.13, startTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
   oscillator.connect(gain);
   gain.connect(audioContext.destination);
+
   oscillator.start(startTime);
   oscillator.stop(startTime + duration + 0.02);
 }
@@ -135,12 +154,12 @@ function playTone(frequency, startTime, duration) {
 function playClearSound() {
   if (!audioContext) return;
 
-  const notes = [0, 2, 4, 5, 7, 9, 11, 12];
-  const levelShift = (state.level - 1) * 2;
-  const root = 261.63 * (2 ** (levelShift / 12));
+  const scale = [0, 2, 4, 5, 7, 9, 11, 12];
+  const shift = (state.level - 1) * 2;
+  const root = 261.63 * (2 ** (shift / 12));
   const now = audioContext.currentTime;
 
-  notes.forEach((note, index) => {
+  scale.forEach((note, index) => {
     playTone(
       root * (2 ** (note / 12)),
       now + index * 0.075,
@@ -149,15 +168,7 @@ function playClearSound() {
   });
 }
 
-function stopBgm() {
-  if (!currentBgm) return;
-
-  currentBgm.pause();
-  currentBgm.currentTime = 0;
-  currentBgm = null;
-}
-
-function changeBgm() {
+function startBgm() {
   const next = new Audio(`assets/audio/bgm/level-${state.level}.mp3`);
   const previous = currentBgm;
 
@@ -171,16 +182,10 @@ function changeBgm() {
 
   const fadeTimer = setInterval(() => {
     step += 1;
-    next.volume = Math.min(
-      CONFIG.bgmVolume,
-      CONFIG.bgmVolume * (step / 20)
-    );
+    next.volume = Math.min(0.38, 0.38 * (step / 20));
 
     if (previous) {
-      previous.volume = Math.max(
-        0,
-        CONFIG.bgmVolume * (1 - step / 20)
-      );
+      previous.volume = Math.max(0, 0.38 * (1 - step / 20));
     }
 
     if (step >= 20) {
@@ -194,15 +199,25 @@ function changeBgm() {
   }, 45);
 }
 
+function stopBgm() {
+  if (!currentBgm) return;
+
+  currentBgm.pause();
+  currentBgm.currentTime = 0;
+  currentBgm = null;
+}
+
 function startGame() {
-  clearTimers();
+  stopTimers();
   stopBgm();
   unlockAudio();
 
-  el.gameOver.classList.remove("is-open");
-  el.tutorialModal.classList.remove("is-open");
+  state = createGameState();
 
-  state = newGameState();
+  el.gameOver.classList.remove("open");
+  el.abortModal.classList.remove("open");
+  el.tutorialModal.classList.remove("open");
+
   showScreen(el.game);
   renderGame();
   runCountdown();
@@ -212,32 +227,32 @@ function runCountdown() {
   const words = ["READY?", "3", "2", "1", "GO!"];
   let index = 0;
 
-  el.countdown.classList.remove("is-hidden");
+  el.countdown.classList.remove("hidden");
 
-  function showNext() {
+  function nextWord() {
     el.countdownText.textContent = words[index];
     index += 1;
 
     if (index < words.length) {
-      setTimeout(showNext, index === 1 ? 850 : 720);
+      setTimeout(nextWord, index === 1 ? 850 : 720);
       return;
     }
 
     setTimeout(() => {
-      el.countdown.classList.add("is-hidden");
-      state.busy = false;
+      el.countdown.classList.add("hidden");
+      state.isBusy = false;
       spawnRing();
       startClock();
-      changeBgm();
+      startBgm();
     }, 620);
   }
 
-  showNext();
+  nextWord();
 }
 
 function startClock() {
   clockTimer = setInterval(() => {
-    if (!state || state.busy || state.ended) return;
+    if (!state || state.isBusy || state.isPaused || state.isEnded) return;
 
     state.time -= 1;
     renderGame();
@@ -249,9 +264,9 @@ function startClock() {
 }
 
 function spawnRing() {
-  if (!state || state.ended) return;
+  if (!state || state.isEnded || state.isPaused) return;
 
-  state.active = {
+  state.activeRing = {
     number: state.queue.shift(),
     row: Math.floor(Math.random() * CONFIG.rows),
     col: CONFIG.cols - 1
@@ -259,16 +274,25 @@ function spawnRing() {
 
   state.queue.push(randomNumber());
   state.selectedRow = null;
+
   renderGame();
 
-  clearInterval(ringTimer);
-  ringTimer = setInterval(moveRing, CONFIG.ringStepMs);
+  clearInterval(moveTimer);
+  moveTimer = setInterval(moveRing, CONFIG.ringStepMs);
 }
 
 function moveRing() {
-  if (!state || !state.active || state.busy || state.ended) return;
+  if (
+    !state ||
+    !state.activeRing ||
+    state.isBusy ||
+    state.isPaused ||
+    state.isEnded
+  ) {
+    return;
+  }
 
-  const active = state.active;
+  const active = state.activeRing;
   const nextCol = active.col - 1;
 
   if (nextCol < 0 || state.board[active.row][nextCol]) {
@@ -281,17 +305,25 @@ function moveRing() {
 }
 
 function chooseRow(row) {
-  if (!state || !state.active || state.busy || state.ended) return;
+  if (
+    !state ||
+    !state.activeRing ||
+    state.isBusy ||
+    state.isPaused ||
+    state.isEnded
+  ) {
+    return;
+  }
 
   if (state.selectedRow !== row) {
     state.selectedRow = row;
-    state.active.row = row;
+    state.activeRing.row = row;
     el.status.textContent = "TARGET LOCK";
     renderGame();
     return;
   }
 
-  let landingCol = state.active.col;
+  let landingCol = state.activeRing.col;
 
   while (
     landingCol > 0 &&
@@ -307,34 +339,27 @@ function compactRow(row) {
   const cells = state.board[row];
   const orb = cells.find((item) => item?.type === "orb");
   const rings = cells.filter((item) => item?.type === "ring");
+
   const result = Array(CONFIG.cols).fill(null);
-  let col = 0;
+  let writeCol = 0;
 
   if (orb) {
-    result[0] = orb;
-    col = 1;
+    result[writeCol] = orb;
+    writeCol += 1;
   }
 
   rings.forEach((ring) => {
-    if (col < CONFIG.cols) {
-      result[col] = ring;
-      col += 1;
+    if (writeCol < CONFIG.cols) {
+      result[writeCol] = ring;
+      writeCol += 1;
     }
   });
 
   state.board[row] = result;
-}
 
-function compactBoard() {
-  for (let row = 0; row < CONFIG.rows; row += 1) {
-    compactRow(row);
-
-    const orb = state.board[row][0];
-
-    if (orb?.type !== "orb") continue;
-
+  if (orb) {
     for (let col = 1; col < CONFIG.cols; col += 1) {
-      const ring = state.board[row][col];
+      const ring = result[col];
 
       if (!ring || ring.type !== "ring") break;
 
@@ -343,12 +368,19 @@ function compactBoard() {
   }
 }
 
+function compactBoard() {
+  for (let row = 0; row < CONFIG.rows; row += 1) {
+    compactRow(row);
+  }
+}
+
 function getGroup(row) {
   const cells = state.board[row];
   const orb = cells[0]?.type === "orb" ? cells[0] : null;
   const rings = [];
+
   let total = orb ? orb.number : 0;
-  let startCol = orb ? 1 : 0;
+  const startCol = orb ? 1 : 0;
 
   for (let col = startCol; col < CONFIG.cols; col += 1) {
     const ring = cells[col];
@@ -359,35 +391,38 @@ function getGroup(row) {
     total += ring.number;
   }
 
-  return { row, orb, rings, total };
+  return {
+    row,
+    orb,
+    rings,
+    total
+  };
 }
 
 function landRing(col) {
-  clearInterval(ringTimer);
+  clearInterval(moveTimer);
 
-  if (!state?.active || col >= CONFIG.cols) return;
+  if (!state?.activeRing || col >= CONFIG.cols) return;
 
-  state.busy = true;
+  state.isBusy = true;
 
-  const active = state.active;
-  const added = makePiece("ring", active.number);
+  const active = state.activeRing;
+  const addedRing = makePiece("ring", active.number);
 
-  state.board[active.row][col] = added;
-  state.active = null;
-  compactBoard();
+  state.board[active.row][col] = addedRing;
+  state.activeRing = null;
 
-  const group = getGroup(active.row);
+  const placedGroup = getGroup(active.row);
 
-  if (group.total > 8) {
-    const addedCol = state.board[active.row].findIndex(
-      (item) => item?.id === added.id
-    );
+  /*
+    合計9以上：
+    新しいリングだけ消す。
+    オーブ・既存リング・色・合計状態は維持する。
+  */
+  if (placedGroup.total > 8) {
+    state.board[active.row][col] = null;
 
-    if (addedCol >= 0) {
-      state.board[active.row][addedCol] = null;
-    }
-
-    if (group.orb) {
+    if (placedGroup.orb) {
       state.over += 1;
 
       if (state.over >= 3) {
@@ -400,32 +435,33 @@ function landRing(col) {
       el.status.textContent = "WHITE OVER";
     }
 
-    compactBoard();
     finishTurn();
     return;
   }
 
+  compactBoard();
   resolveClears();
 }
 
 function resolveClears() {
   const groups = state.board.map((_, row) => getGroup(row));
-  const clears = groups.filter(
-    (group) => group.total === 8 && group.rings.length > 0
-  );
 
-  if (clears.length === 0) {
+  const clearGroups = groups.filter((group) => {
+    return group.total === 8 && group.rings.length > 0;
+  });
+
+  if (clearGroups.length === 0) {
     el.status.textContent = "READY";
     finishTurn();
     return;
   }
 
-  let orbClears = 0;
+  let orbClearCount = 0;
 
-  clears.forEach((group) => {
+  clearGroups.forEach((group) => {
     if (group.orb) {
       state.board[group.row][0] = null;
-      orbClears += 1;
+      orbClearCount += 1;
     }
 
     group.rings.forEach((col) => {
@@ -433,11 +469,22 @@ function resolveClears() {
     });
   });
 
-  if (orbClears > 0) {
-    state.score += orbClears * CONFIG.clearScore;
-    state.over = Math.max(0, state.over - orbClears);
+  if (orbClearCount > 0) {
+    const feverMultiplier =
+      Date.now() < state.feverUntil ? 2 : 1;
+
+    state.score +=
+      orbClearCount *
+      CONFIG.clearScore *
+      feverMultiplier;
+
+    state.over = Math.max(0, state.over - orbClearCount);
+
     el.status.textContent =
-      orbClears >= 2 ? "SIMULTANEOUS!" : "CLEAR!";
+      orbClearCount >= 2
+        ? "SIMULTANEOUS!"
+        : "CLEAR!";
+
     playClearSound();
   } else {
     el.status.textContent = "WHITE CLEAR";
@@ -448,11 +495,22 @@ function resolveClears() {
   renderGame();
 
   setTimeout(() => {
-    const chain = state.board
-      .map((_, row) => getGroup(row))
-      .some((group) => group.total === 8 && group.rings.length > 0);
+    const noOrbExists = !state.board.some((row) => {
+      return row.some((item) => item?.type === "orb");
+    });
 
-    if (chain) {
+    if (noOrbExists) {
+      startFeverAndRespawn();
+      return;
+    }
+
+    const chainExists = state.board.some((_, row) => {
+      const group = getGroup(row);
+
+      return group.total === 8 && group.rings.length > 0;
+    });
+
+    if (chainExists) {
       resolveClears();
       return;
     }
@@ -461,15 +519,37 @@ function resolveClears() {
   }, 230);
 }
 
+function startFeverAndRespawn() {
+  state.feverUntil = Date.now() + CONFIG.feverDuration;
+  el.status.textContent = "ALL CLEAR! FEVER!";
+  renderGame();
+
+  setTimeout(() => {
+    for (let row = 0; row < CONFIG.rows; row += 1) {
+      const rings = state.board[row]
+        .filter((item) => item?.type === "ring")
+        .slice(0, CONFIG.cols - 1);
+
+      state.board[row] = [
+        makePiece("orb", randomNumber(), row),
+        ...rings,
+        ...Array(CONFIG.cols - 1 - rings.length).fill(null)
+      ];
+    }
+
+    compactBoard();
+    finishTurn();
+  }, 500);
+}
+
 function checkLevel() {
-  const nextLevel = Math.floor(
-    state.score / CONFIG.levelScoreStep
-  ) + 1;
+  const nextLevel =
+    Math.floor(state.score / CONFIG.levelScoreStep) + 1;
 
   if (nextLevel > state.level) {
     state.level = nextLevel;
     el.status.textContent = `LEVEL ${state.level}`;
-    changeBgm();
+    startBgm();
   }
 }
 
@@ -477,38 +557,66 @@ function finishTurn() {
   renderGame();
 
   setTimeout(() => {
-    if (!state || state.ended) return;
+    if (!state || state.isEnded || state.isPaused) return;
 
-    state.busy = false;
+    state.isBusy = false;
     spawnRing();
   }, 260);
 }
 
-function endGame() {
-  if (!state || state.ended) return;
+function pauseGame() {
+  if (!state || state.isEnded) return;
 
-  state.ended = true;
-  clearTimers();
+  state.isPaused = true;
+  clearInterval(moveTimer);
+  clearInterval(clockTimer);
+
+  el.abortModal.classList.add("open");
+}
+
+function resumeGame() {
+  if (!state || state.isEnded) return;
+
+  state.isPaused = false;
+  el.abortModal.classList.remove("open");
+
+  if (!state.isBusy) {
+    startClock();
+
+    if (state.activeRing) {
+      moveTimer = setInterval(moveRing, CONFIG.ringStepMs);
+    }
+  }
+}
+
+function endGame() {
+  state.isEnded = true;
+
+  stopTimers();
   stopBgm();
 
   el.finalScore.textContent = String(state.score);
-  el.gameOver.classList.add("is-open");
+  el.gameOver.classList.add("open");
 }
 
 function createPieceElement(item, active = false, total = 0) {
   const node = document.createElement("div");
 
-  node.className = `piece ${item.type === "orb" ? "orb" : "ring"}`;
+  node.className =
+    `piece ${item.type === "orb" ? "orb" : "ring"}`;
 
-  if (active) node.classList.add("active-ring");
+  if (active) node.classList.add("active");
+
   if (item.color !== null && item.color !== undefined) {
-    node.classList.add(`color-${item.color}`);
+    node.classList.add(`c${item.color}`);
   }
+
   if (total >= 5 && total <= 7) {
-    node.classList.add(`total-${total}`);
+    node.classList.add(`t${total}`);
   }
 
   node.textContent = item.number;
+
   return node;
 }
 
@@ -524,11 +632,11 @@ function renderGame() {
       const cell = document.createElement("button");
 
       cell.type = "button";
-      cell.className = "board-cell";
+      cell.className = "cell";
       cell.dataset.row = String(row);
 
       if (state.selectedRow === row) {
-        cell.classList.add("is-target");
+        cell.classList.add("target");
       }
 
       const item = state.board[row][col];
@@ -540,13 +648,17 @@ function renderGame() {
       }
 
       if (
-        state.active &&
-        state.active.row === row &&
-        state.active.col === col
+        state.activeRing &&
+        state.activeRing.row === row &&
+        state.activeRing.col === col
       ) {
         cell.append(
           createPieceElement(
-            { type: "ring", number: state.active.number, color: null },
+            {
+              type: "ring",
+              number: state.activeRing.number,
+              color: null
+            },
             true
           )
         );
@@ -560,8 +672,10 @@ function renderGame() {
 
   state.queue.forEach((number) => {
     const ring = document.createElement("div");
+
     ring.className = "queue-ring";
     ring.textContent = number;
+
     el.queue.append(ring);
   });
 
@@ -570,25 +684,27 @@ function renderGame() {
   el.time.textContent = String(Math.max(0, state.time));
 
   el.over.querySelectorAll("i").forEach((bar, index) => {
-    bar.classList.toggle("is-on", index < state.over);
+    bar.classList.toggle("on", index < state.over);
   });
 }
 
 function startTutorial() {
   tutorialIndex = 0;
-  el.tutorialModal.classList.remove("is-open");
+
+  el.tutorialModal.classList.remove("open");
   showScreen(el.tutorial);
   renderTutorial();
 }
 
 function renderTutorial() {
   el.tutorialStep.textContent =
-    `${tutorialIndex + 1} / ${TUTORIAL.length}`;
+    `${tutorialIndex + 1} / ${TUTORIAL_TEXTS.length}`;
 
-  el.tutorialText.textContent = TUTORIAL[tutorialIndex];
+  el.tutorialText.textContent =
+    TUTORIAL_TEXTS[tutorialIndex];
 
   el.tutorialNext.querySelector("strong").textContent =
-    tutorialIndex === TUTORIAL.length - 1
+    tutorialIndex === TUTORIAL_TEXTS.length - 1
       ? "完了"
       : "つぎへ";
 }
@@ -596,8 +712,8 @@ function renderTutorial() {
 function nextTutorial() {
   tutorialIndex += 1;
 
-  if (tutorialIndex >= TUTORIAL.length) {
-    el.tutorialModal.classList.add("is-open");
+  if (tutorialIndex >= TUTORIAL_TEXTS.length) {
+    el.tutorialModal.classList.add("open");
     return;
   }
 
@@ -605,33 +721,40 @@ function nextTutorial() {
 }
 
 function returnTitle() {
-  clearTimers();
+  stopTimers();
   stopBgm();
 
   state = null;
-  el.gameOver.classList.remove("is-open");
-  el.tutorialModal.classList.remove("is-open");
+
+  el.abortModal.classList.remove("open");
+  el.gameOver.classList.remove("open");
+  el.tutorialModal.classList.remove("open");
 
   showScreen(el.title);
 }
 
 el.start.addEventListener("click", startGame);
 el.tutorialButton.addEventListener("click", startTutorial);
-el.menu.addEventListener("click", returnTitle);
-el.tutorialExit.addEventListener("click", returnTitle);
-el.tutorialNext.addEventListener("click", nextTutorial);
-el.tutorialStart.addEventListener("click", startGame);
-el.tutorialRestart.addEventListener("click", startTutorial);
-el.tutorialTitle.addEventListener("click", returnTitle);
-el.retry.addEventListener("click", startGame);
-el.titleButton.addEventListener("click", returnTitle);
+
+el.abort.addEventListener("click", pauseGame);
+el.abortResume.addEventListener("click", resumeGame);
+el.abortTitle.addEventListener("click", returnTitle);
 
 el.board.addEventListener("click", (event) => {
-  const cell = event.target.closest(".board-cell");
+  const cell = event.target.closest(".cell");
 
   if (!cell) return;
 
   chooseRow(Number(cell.dataset.row));
 });
+
+el.tutorialExit.addEventListener("click", returnTitle);
+el.tutorialNext.addEventListener("click", nextTutorial);
+el.tutorialStart.addEventListener("click", startGame);
+el.tutorialRestart.addEventListener("click", startTutorial);
+el.tutorialTitle.addEventListener("click", returnTitle);
+
+el.retry.addEventListener("click", startGame);
+el.titleButton.addEventListener("click", returnTitle);
 
 showScreen(el.title);

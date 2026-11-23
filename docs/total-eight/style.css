@@ -3,14 +3,13 @@
 :root {
   --bg: #050914;
   --panel: #101a31;
-  --line: rgba(158, 210, 255, .26);
+  --line: rgba(158, 210, 255, 0.27);
   --text: #f5f8ff;
   --muted: #9caaca;
   --cyan: #5de4ff;
-  --blue: #668bff;
-  --green: #65ff9a;
   --yellow: #ffe075;
   --pink: #ff7194;
+  --green: #65ff9a;
 }
 
 * {
@@ -35,28 +34,28 @@ button {
   background: transparent;
   color: inherit;
   font: inherit;
+  cursor: pointer;
 }
 
 .app {
   min-height: 100dvh;
-  overflow: hidden;
   background:
-    radial-gradient(circle at 82% 5%, rgba(60, 117, 255, .27), transparent 29%),
-    radial-gradient(circle at 8% 92%, rgba(103, 54, 178, .18), transparent 37%),
+    radial-gradient(circle at 82% 5%, rgba(60, 117, 255, 0.27), transparent 29%),
+    radial-gradient(circle at 8% 92%, rgba(103, 54, 178, 0.18), transparent 37%),
     linear-gradient(145deg, #101b35, #050914 58%);
 }
 
 .screen {
   display: none;
   min-height: 100dvh;
-  padding: max(18px, env(safe-area-inset-top)) 15px max(18px, env(safe-area-inset-bottom));
+  padding: 18px 15px;
 }
 
 .screen.is-active {
   display: flex;
 }
 
-/* タイトル */
+/* タイトル画面 */
 #title-screen {
   align-items: center;
   justify-content: center;
@@ -71,9 +70,9 @@ button {
   margin: 0 0 12px;
   color: var(--cyan);
   font-family: Orbitron, sans-serif;
-  font-size: .66rem;
+  font-size: 0.66rem;
   font-weight: 800;
-  letter-spacing: .13em;
+  letter-spacing: 0.13em;
 }
 
 h1,
@@ -85,8 +84,8 @@ h2 {
 h1 {
   white-space: nowrap;
   font-size: clamp(2rem, 10vw, 3.5rem);
-  letter-spacing: -.1em;
-  text-shadow: 0 0 25px rgba(93, 228, 255, .33);
+  letter-spacing: -0.1em;
+  text-shadow: 0 0 25px rgba(93, 228, 255, 0.33);
 }
 
 h1 span {
@@ -96,7 +95,6 @@ h1 span {
 .lead {
   margin: 15px 0 38px;
   color: var(--muted);
-  font-size: .95rem;
   font-weight: 700;
 }
 
@@ -110,16 +108,15 @@ h1 span {
   padding: 15px 18px;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: rgba(18, 31, 57, .88);
+  background: rgba(18, 31, 57, 0.88);
   text-align: left;
-  box-shadow: inset 0 1px rgba(255, 255, 255, .06);
 }
 
 .menu-button strong {
   display: block;
   font-size: 1.05rem;
   font-weight: 900;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
 }
 
 .menu-button small {
@@ -127,28 +124,22 @@ h1 span {
   margin-top: 2px;
   color: var(--muted);
   font-family: Orbitron, sans-serif;
-  font-size: .58rem;
+  font-size: 0.58rem;
   font-weight: 800;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
 }
 
-.menu-button--main {
-  border-color: rgba(93, 228, 255, .82);
+.menu-button.primary {
+  border-color: rgba(93, 228, 255, 0.82);
   background: linear-gradient(135deg, #2480dd, #5b63ec);
-  box-shadow: 0 0 24px rgba(79, 164, 255, .3);
+  box-shadow: 0 0 24px rgba(79, 164, 255, 0.3);
 }
 
-.menu-button--main small {
-  color: rgba(255, 255, 255, .8);
+.menu-button.primary small {
+  color: white;
 }
 
-.title-note {
-  margin: 23px 0 0;
-  color: var(--muted);
-  font-size: .67rem;
-}
-
-/* ゲーム */
+/* ゲーム画面 */
 #game-screen {
   position: relative;
   flex-direction: column;
@@ -163,92 +154,91 @@ h1 span {
   gap: 5px;
 }
 
-.hud-box {
+.hud > div {
   min-height: 51px;
   padding: 7px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  background: rgba(9, 17, 36, .86);
+  background: rgba(9, 17, 36, 0.86);
 }
 
-.hud-box span {
+.hud span {
   display: block;
   color: var(--muted);
   font-family: Orbitron, sans-serif;
-  font-size: .47rem;
+  font-size: 0.47rem;
   font-weight: 800;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
-.hud-box strong {
+.hud strong {
   font-family: Orbitron, sans-serif;
   font-size: 1rem;
 }
 
-.over-gauge {
+.hud p {
   display: flex;
   gap: 3px;
-  margin-top: 9px;
+  margin: 9px 0 0;
 }
 
-.over-gauge i {
+.hud i {
   flex: 1;
   height: 6px;
   border-radius: 8px;
-  background: rgba(255,255,255,.14);
+  background: rgba(255, 255, 255, 0.14);
 }
 
-.over-gauge i.is-on {
+.hud i.on {
   background: var(--pink);
   box-shadow: 0 0 8px var(--pink);
 }
 
-.status-label {
+.status {
   min-height: 28px;
   padding-top: 8px;
   color: var(--cyan);
   font-family: Orbitron, sans-serif;
-  font-size: .67rem;
+  font-size: 0.67rem;
   font-weight: 800;
-  letter-spacing: .1em;
+  letter-spacing: 0.1em;
 }
 
 .play-area {
   display: flex;
   width: min(100%, 640px);
-  align-items: stretch;
   gap: 7px;
 }
 
-.game-board {
+.board {
   display: grid;
   flex: 1;
   grid-template-columns: repeat(8, 1fr);
   aspect-ratio: 1.08;
   overflow: hidden;
-  border: 1px solid rgba(158, 203, 255, .32);
+  border: 1px solid var(--line);
   border-radius: 14px;
   background:
-    linear-gradient(rgba(164,203,255,.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(164,203,255,.07) 1px, transparent 1px),
-    rgba(4, 11, 25, .78);
+    linear-gradient(rgba(164, 203, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(164, 203, 255, 0.07) 1px, transparent 1px),
+    rgba(4, 11, 25, 0.78);
   background-size: 12.5% 25%;
   touch-action: manipulation;
 }
 
-.board-cell {
+.cell {
   display: grid;
   min-width: 0;
   min-height: 0;
   place-items: center;
-  border-right: 1px solid rgba(158,203,255,.07);
-  border-bottom: 1px solid rgba(158,203,255,.07);
+  border-right: 1px solid rgba(158, 203, 255, 0.07);
+  border-bottom: 1px solid rgba(158, 203, 255, 0.07);
   background: transparent;
   touch-action: manipulation;
 }
 
-.board-cell.is-target {
-  background: rgba(93, 228, 255, .11);
+.cell.target {
+  background: rgba(93, 228, 255, 0.11);
 }
 
 .piece {
@@ -259,62 +249,76 @@ h1 span {
   border-radius: 50%;
   color: white;
   font-family: Orbitron, sans-serif;
-  font-size: clamp(.7rem, 3.7vw, 1.25rem);
+  font-size: clamp(0.7rem, 3.7vw, 1.25rem);
   font-weight: 800;
-  text-shadow: 0 2px 4px #000;
+  text-shadow: 0 2px 4px black;
   pointer-events: none;
 }
 
 .orb {
-  border: 2px solid rgba(239, 250, 255, .86);
+  border: 2px solid rgba(239, 250, 255, 0.86);
   background:
-    radial-gradient(circle at 29% 23%, #fff 0 6%, transparent 18%),
+    radial-gradient(circle at 29% 23%, white 0 6%, transparent 18%),
     radial-gradient(circle at 37% 35%, #9aeaff, #4074ec 55%, #20246e);
-  box-shadow: inset -7px -9px 13px rgba(0,0,40,.48), 0 0 13px rgba(86,191,255,.55);
+  box-shadow:
+    inset -7px -9px 13px rgba(0, 0, 0, 0.48),
+    0 0 13px rgba(86, 191, 255, 0.55);
 }
 
 .ring {
-  border: 4px solid rgba(248,252,255,.94);
-  background: radial-gradient(circle, transparent 37%, rgba(255,255,255,.13) 43%, transparent 66%);
-  box-shadow: 0 0 10px rgba(255,255,255,.3);
+  border: 4px solid rgba(248, 252, 255, 0.95);
+  background:
+    radial-gradient(circle, transparent 37%, rgba(255, 255, 255, 0.13) 43%, transparent 66%);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
-.active-ring {
+.active {
   border-color: var(--yellow);
   box-shadow: 0 0 17px var(--yellow);
 }
 
-.color-0 { filter: hue-rotate(0deg); }
-.color-1 { filter: hue-rotate(78deg); }
-.color-2 { filter: hue-rotate(165deg); }
-.color-3 { filter: hue-rotate(250deg); }
+.c0 {
+  filter: hue-rotate(0deg);
+}
 
-.total-5 { color: var(--green); }
-.total-6 { color: var(--green); animation: warning .7s infinite alternate; }
-.total-7 { color: var(--yellow); animation: warning .27s infinite alternate; }
+.c1 {
+  filter: hue-rotate(78deg);
+}
 
-.ring-queue {
-  display: flex;
+.c2 {
+  filter: hue-rotate(165deg);
+}
+
+.c3 {
+  filter: hue-rotate(250deg);
+}
+
+.t5,
+.t6 {
+  color: var(--green);
+}
+
+.t6 {
+  animation: warning 0.7s infinite alternate;
+}
+
+.t7 {
+  color: var(--yellow);
+  animation: warning 0.27s infinite alternate;
+}
+
+.queue {
   width: 58px;
-  flex-direction: column;
-  align-items: center;
   padding: 5px 3px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: rgba(9,17,36,.78);
+  background: rgba(9, 17, 36, 0.78);
+  text-align: center;
 }
 
-.ring-queue p {
-  margin: 2px 0 7px;
+.queue > b {
   color: var(--muted);
-  font-size: .42rem;
-  font-weight: 800;
-  writing-mode: vertical-rl;
-}
-
-.ring-queue-list {
-  display: grid;
-  gap: 8px;
+  font-size: 0.48rem;
 }
 
 .queue-ring {
@@ -322,134 +326,81 @@ h1 span {
   width: 39px;
   aspect-ratio: 1;
   place-items: center;
+  margin: 8px auto;
   border: 3px solid white;
   border-radius: 50%;
   font-family: Orbitron, sans-serif;
-  font-size: .86rem;
+  font-size: 0.86rem;
   font-weight: 800;
 }
 
 .queue-ring:first-child {
   border-color: var(--cyan);
-  box-shadow: 0 0 12px rgba(93,228,255,.55);
+  box-shadow: 0 0 12px rgba(93, 228, 255, 0.55);
 }
 
-.game-hint {
-  margin: 10px 0 0;
+.hint {
   color: var(--muted);
-  font-size: .62rem;
+  font-size: 0.62rem;
   text-align: center;
 }
 
-.corner-button {
+.abort {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
   padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(8,15,31,.82);
-  color: var(--text);
+  background: rgba(8, 16, 31, 0.85);
   font-family: Orbitron, sans-serif;
-  font-size: .59rem;
+  font-size: 0.59rem;
   font-weight: 800;
 }
 
-#menu-button {
-  position: absolute;
-  right: 12px;
-  bottom: max(12px, env(safe-area-inset-bottom));
+.abort small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.42rem;
 }
 
-.countdown-overlay {
-  position: absolute;
-  z-index: 5;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 4, 14, .55);
-  backdrop-filter: blur(2px);
-}
-
-.countdown-overlay strong {
-  color: var(--cyan);
-  font-family: Orbitron, sans-serif;
-  font-size: clamp(3rem, 18vw, 7rem);
-  font-weight: 800;
-  text-shadow: 0 0 28px rgba(93,228,255,.75);
-  animation: countdown .7s ease-out;
-}
-
-/* チュートリアル・モーダル */
-#tutorial-screen {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.tutorial-header {
-  position: absolute;
-  top: 18px;
-  display: flex;
-  width: min(100% - 30px, 500px);
-  justify-content: space-between;
-  align-items: center;
-}
-
-.tutorial-header h2 {
-  font-size: .95rem;
-}
-
-.tutorial-card {
-  width: min(100%, 420px);
-  min-height: 220px;
-  padding: 25px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: rgba(10, 19, 39, .86);
-}
-
-.tutorial-card strong {
-  color: var(--cyan);
-  font-family: Orbitron, sans-serif;
-  font-size: .7rem;
-}
-
-.tutorial-card p {
-  margin-top: 25px;
-  line-height: 2;
-}
-
-.tutorial-next {
-  width: min(100%, 420px);
-  margin-top: 15px;
-  text-align: center;
-}
-
+/* カウントダウン・モーダル */
+.overlay,
 .modal {
   position: fixed;
   z-index: 20;
   inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(0,0,8,.78);
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 8, 0.79);
 }
 
-.modal.is-open {
-  display: flex;
+.overlay strong {
+  color: var(--cyan);
+  font-family: Orbitron, sans-serif;
+  font-size: clamp(3rem, 18vw, 7rem);
+  text-shadow: 0 0 28px var(--cyan);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.modal {
+  display: none;
+}
+
+.modal.open {
+  display: grid;
 }
 
 .modal-card {
-  width: min(100%, 390px);
-  padding: 28px 22px;
-  border: 1px solid rgba(145,212,255,.42);
-  border-radius: 17px;
-  background: #101a31;
+  width: min(100%, 420px);
+  padding: 25px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
   text-align: center;
-}
-
-.modal-card h2 {
-  margin-bottom: 14px;
-  font-size: 1.15rem;
 }
 
 .modal-card .menu-button {
@@ -465,23 +416,38 @@ h1 span {
   font-size: 2.4rem;
 }
 
-.is-hidden {
-  display: none !important;
+/* チュートリアル */
+.tutorial {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tutorial-card {
+  width: min(100%, 420px);
+  padding: 25px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.tutorial-card p {
+  line-height: 2;
+}
+
+.tutorial > .menu-button {
+  width: min(100%, 420px);
+  margin-top: 15px;
 }
 
 @keyframes warning {
-  from { transform: scale(.95); filter: brightness(.9); }
-  to { transform: scale(1.08); filter: brightness(1.55); }
-}
+  from {
+    transform: scale(0.95);
+    filter: brightness(0.9);
+  }
 
-@keyframes countdown {
-  from { transform: scale(1.45); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-@media (min-width: 620px) {
-  .play-area,
-  .hud {
-    max-width: 570px;
+  to {
+    transform: scale(1.08);
+    filter: brightness(1.55);
   }
 }
