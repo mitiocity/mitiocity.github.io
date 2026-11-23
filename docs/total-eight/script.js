@@ -1,10 +1,5 @@
 "use strict";
 
-/* ==================================================
-   とーたるえいと❣️
-   ver1.1
-================================================== */
-
 const CONFIG = {
   rows: 4,
   cols: 8,
@@ -20,7 +15,11 @@ const CONFIG = {
     10500
   ],
 
-  ringStepMs: 950,
+  /*
+    1マス移動する間隔。
+    以前の950msから、約半分の速さに変更。
+  */
+  ringStepMs: 1800,
 
   clearScore: 100,
   simultaneousBonus: 80,
@@ -100,7 +99,9 @@ const el = {
   gameClear: $("#game-clear-modal"),
   clearScore: $("#clear-score-value"),
   clearRetry: $("#clear-retry-button"),
-  clearTitle: $("#clear-title-button")
+  clearTitle: $("#clear-title-button"),
+
+  orientationOverlay: $("#orientation-overlay")
 };
 
 let state = null;
@@ -112,11 +113,9 @@ let pieceId = 0;
 let tutorialIndex = 0;
 
 let audioContext = null;
-
 let currentBgm = null;
 let currentAnalyser = null;
 let analyserData = null;
-
 let endMusic = null;
 let electricAnimationId = null;
 
@@ -130,8 +129,12 @@ const reducedMotionQuery = window.matchMedia(
   "(prefers-reduced-motion: reduce)"
 );
 
+const landscapeQuery = window.matchMedia(
+  "(orientation: landscape)"
+);
+
 /* ==================================================
-   共通
+   基本
 ================================================== */
 
 function wait(milliseconds) {
@@ -206,7 +209,8 @@ function createGameState() {
     time: CONFIG.startTime,
 
     /*
-      オーバーゲージは回復もリセットもしない。
+      オーバーゲージは回復しない。
+      LEVEL変更でもリセットしない。
     */
     over: 0,
 
@@ -217,10 +221,16 @@ function createGameState() {
     isEnded: false,
 
     /*
-      BGMがカウントダウン中に開始済みか。
+      横画面待ち中かどうか。
     */
-    bgmPrimed: false,
+    isWaitingForLandscape: false,
 
+    /*
+      縦画面に切り替わったために中断したか。
+    */
+    pausedByOrientation: false,
+
+    bgmPrimed: false,
     bgmPaths: {}
   };
 }
@@ -242,12 +252,17 @@ function isFever() {
   return state && Date.now() < state.feverUntil;
 }
 
+function isLandscape() {
+  return landscapeQuery.matches;
+}
+
 function isGameRunning() {
   return Boolean(
     state &&
     !state.isBusy &&
     !state.isPaused &&
-    !state.isEnded
+    !state.isEnded &&
+    !state.isWaitingForLandscape
   );
 }
 
@@ -297,8 +312,7 @@ function hideSoundEnableButton() {
 }
 
 /* ==================================================
-   ダブルタップズームを抑止
-   ゲーム内のタップ操作は止めない
+   ダブルタップズーム抑止
 ================================================== */
 
 document.addEventListener(
@@ -541,7 +555,7 @@ function stopBgm() {
     currentBgm.audio.pause();
     currentBgm.audio.currentTime = 0;
   } catch (error) {
-    /* 停止失敗時も続行 */
+    /* 停止失敗時も継続 */
   }
 
   disconnectBgm(currentBgm);
@@ -562,7 +576,7 @@ function stopEndMusic() {
     endMusic.pause();
     endMusic.currentTime = 0;
   } catch (error) {
-    /* 停止失敗時も続行 */
+    /* 停止失敗時も継続 */
   }
 
   endMusic = null;
@@ -578,9 +592,7 @@ function playEndMusic(fileName) {
   endMusic.loop = false;
   endMusic.volume = CONFIG.endMusicVolume;
 
-  endMusic.play().catch(() => {
-    /* 端末が止めた場合は無理に続行しない */
-  });
+  endMusic.play().catch(() => {});
 }
 
 function createBgmForCurrentLevel() {
@@ -594,11 +606,6 @@ function createBgmForCurrentLevel() {
 
   audio.loop = true;
   audio.preload = "auto";
-
-  /*
-    スタートを押した時点で無音再生する。
-    カウントダウン後の自動再生拒否を防ぐ。
-  */
   audio.volume = 0;
   audio.muted = true;
 
@@ -664,11 +671,6 @@ function fadeAudio(audio, from, to, duration) {
   requestAnimationFrame(update);
 }
 
-/*
-  最重要：
-  スタートボタンを押した瞬間に実行する。
-  Safari／Chromeが「ユーザー操作で開始した音声」と判断する。
-*/
 function primeBgmFromUserTap() {
   if (!currentBgm?.audio || !state) {
     return;
@@ -692,11 +694,6 @@ function primeBgmFromUserTap() {
     });
 }
 
-/*
-  GO! の瞬間に呼ぶ。
-  カウントダウン中に確保した無音再生を、
-  通常のBGM音量までフェードインする。
-*/
 function revealBgmAtGo() {
   if (
     !currentBgm?.audio ||
@@ -714,7 +711,6 @@ function revealBgmAtGo() {
     audio.play()
       .then(() => {
         state.bgmPrimed = true;
-        hideSoundEnableButton();
 
         fadeAudio(
           audio,
@@ -723,6 +719,7 @@ function revealBgmAtGo() {
           CONFIG.bgmFadeMs
         );
 
+        hideSoundEnableButton();
         startElectricAnimation();
       })
       .catch(() => {
@@ -742,11 +739,6 @@ function revealBgmAtGo() {
   startElectricAnimation();
 }
 
-/*
-  「音を有効化」ボタンを押した時。
-  これも必ずユーザー操作中に実行されるため、
-  音声ブロックから復旧できる。
-*/
 function enableSoundFromUserTap() {
   unlockAudio();
 
@@ -781,35 +773,32 @@ function enableSoundFromUserTap() {
 
 function changeBgmForLevel() {
   stopBgm();
-
   createBgmForCurrentLevel();
 
-  /*
-    LEVEL UPはプレイ中なので、
-    いったん再生を試行してフェードイン。
-  */
-  if (currentBgm?.audio) {
-    currentBgm.audio.muted = false;
-    currentBgm.audio.volume = 0;
-
-    currentBgm.audio.play()
-      .then(() => {
-        state.bgmPrimed = true;
-
-        fadeAudio(
-          currentBgm.audio,
-          0,
-          CONFIG.bgmVolume,
-          CONFIG.bgmFadeMs
-        );
-
-        hideSoundEnableButton();
-        startElectricAnimation();
-      })
-      .catch(() => {
-        showSoundEnableButton();
-      });
+  if (!currentBgm?.audio) {
+    return;
   }
+
+  currentBgm.audio.muted = false;
+  currentBgm.audio.volume = 0;
+
+  currentBgm.audio.play()
+    .then(() => {
+      state.bgmPrimed = true;
+
+      fadeAudio(
+        currentBgm.audio,
+        0,
+        CONFIG.bgmVolume,
+        CONFIG.bgmFadeMs
+      );
+
+      hideSoundEnableButton();
+      startElectricAnimation();
+    })
+    .catch(() => {
+      showSoundEnableButton();
+    });
 }
 
 function pauseBgm() {
@@ -819,9 +808,7 @@ function pauseBgm() {
 
   currentBgm.audio.pause();
 
-  window.cancelAnimationFrame(
-    electricAnimationId
-  );
+  window.cancelAnimationFrame(electricAnimationId);
 }
 
 function resumeBgm() {
@@ -835,8 +822,8 @@ function resumeBgm() {
 
   currentBgm.audio.play()
     .then(() => {
-      startElectricAnimation();
       hideSoundEnableButton();
+      startElectricAnimation();
     })
     .catch(() => {
       showSoundEnableButton();
@@ -844,7 +831,7 @@ function resumeBgm() {
 }
 
 /* ==================================================
-   BGM周波数 → レーン枠・控え枠の電流
+   BGM周波数 → 電流演出
 ================================================== */
 
 function getBandEnergy(
@@ -905,9 +892,7 @@ function smoothEnergy(current, target) {
 }
 
 function startElectricAnimation() {
-  window.cancelAnimationFrame(
-    electricAnimationId
-  );
+  window.cancelAnimationFrame(electricAnimationId);
 
   function animate() {
     if (
@@ -924,34 +909,21 @@ function startElectricAnimation() {
         ? CONFIG.reducedMotionStrength
         : 1;
 
-    const bassTarget =
-      getBandEnergy(35, 170);
-
-    const middleTarget =
-      getBandEnergy(170, 1100);
-
-    const highTarget =
-      getBandEnergy(1800, 9000);
-
     visualEnergy.bass = smoothEnergy(
       visualEnergy.bass,
-      bassTarget
+      getBandEnergy(35, 170)
     );
 
     visualEnergy.middle = smoothEnergy(
       visualEnergy.middle,
-      middleTarget
+      getBandEnergy(170, 1100)
     );
 
     visualEnergy.high = smoothEnergy(
       visualEnergy.high,
-      highTarget
+      getBandEnergy(1800, 9000)
     );
 
-    /*
-      CSS変数へ値を渡す。
-      CSS側がレーン枠と控え枠を脈動させる。
-    */
     setElectricValue(
       "--electric-bass",
       visualEnergy.bass * strength
@@ -976,7 +948,7 @@ function startElectricAnimation() {
 }
 
 /* ==================================================
-   盤面計算
+   盤面・接続計算
 ================================================== */
 
 function getRowPieces(row) {
@@ -988,6 +960,9 @@ function getRowPieces(row) {
     .filter(({ piece }) => piece);
 }
 
+/*
+  通常の8消去を探すためのグループ一覧。
+*/
 function getGroups() {
   const groups = [];
 
@@ -1016,7 +991,6 @@ function getGroups() {
 
       const cells = [];
       const hasOrb = first.type === "orb";
-
       let scan = col;
 
       while (scan < CONFIG.cols) {
@@ -1068,14 +1042,63 @@ function getGroups() {
   return groups;
 }
 
-function getGroupAt(row, col) {
-  return getGroups().find((group) =>
-    group.cells.some(
-      (cell) =>
-        cell.row === row &&
-        cell.col === col
-    )
+/*
+  新しく固定したリングだけを起点に、
+  左方向へ連結をたどる。
+
+  これがオーバーゲージ不具合の修正の核心。
+  盤面全体の曖昧なグループではなく、
+  今置いたリングがオーブへつながっているかを
+  毎回確実に判定する。
+*/
+function getConnectionFromNewRing(row, col) {
+  const cells = [];
+  let scan = col;
+  let foundOrb = false;
+
+  while (scan >= 0) {
+    const piece = state.board[row][scan];
+
+    if (!piece) {
+      break;
+    }
+
+    if (piece.type === "star") {
+      break;
+    }
+
+    if (
+      piece.type !== "ring" &&
+      piece.type !== "orb"
+    ) {
+      break;
+    }
+
+    cells.unshift({
+      row,
+      col: scan,
+      piece
+    });
+
+    if (piece.type === "orb") {
+      foundOrb = true;
+      break;
+    }
+
+    scan -= 1;
+  }
+
+  const total = cells.reduce(
+    (sum, item) =>
+      sum + (item.piece.number || 0),
+    0
   );
+
+  return {
+    hasOrb: foundOrb,
+    total,
+    cells
+  };
 }
 
 function getInheritedColor(row, col) {
@@ -1278,9 +1301,6 @@ async function startFeverAndRespawn() {
     return;
   }
 
-  /*
-    完全に空のレーンだけへオーブ再出現。
-  */
   respawnOrbsInEmptyRows();
 
   renderGame();
@@ -1334,8 +1354,9 @@ function increaseOverGauge(total) {
     el.app?.classList.remove("is-over-flash");
   }, 800);
 
+  renderGame();
+
   if (state.over >= 5) {
-    renderGame();
     gameOver("OVER LIMIT");
     return;
   }
@@ -1344,7 +1365,7 @@ function increaseOverGauge(total) {
 }
 
 /* ==================================================
-   消去
+   消去・オーバー判定
 ================================================== */
 
 function removeCells(cells) {
@@ -1450,19 +1471,30 @@ async function resolveStar(row) {
 }
 
 async function evaluatePlacedRing(row, col) {
-  const group = getGroupAt(row, col);
+  /*
+    新規リングから左方向だけを確認する。
+  */
+  const connection =
+    getConnectionFromNewRing(row, col);
 
-  if (!group) {
-    return;
-  }
-
-  if (group.total > 8) {
+  if (connection.total > 8) {
+    /*
+      新しく置いたリングだけを消す。
+    */
     state.board[row][col] = null;
 
-    if (group.hasOrb) {
-      increaseOverGauge(group.total);
+    /*
+      オーブまでつながっている場合だけ、
+      必ずオーバーゲージを増加させる。
+    */
+    if (connection.hasOrb) {
+      increaseOverGauge(connection.total);
     } else {
-      showOverNumber(group.total);
+      /*
+        白リングだけの列は数値のみ表示。
+        ゲージ増加なし。
+      */
+      showOverNumber(connection.total);
       setStatus("TOO HIGH");
     }
 
@@ -1476,14 +1508,15 @@ async function evaluatePlacedRing(row, col) {
 }
 
 /* ==================================================
-   リング移動
+   リング移動・固定
 ================================================== */
 
 function spawnActiveRing() {
   if (
     !state ||
     state.isEnded ||
-    state.isPaused
+    state.isPaused ||
+    state.isWaitingForLandscape
   ) {
     return;
   }
@@ -1605,9 +1638,6 @@ function handleBoardTap(row) {
     return;
   }
 
-  /*
-    1回目：狙うレーンを変更。
-  */
   if (state.selectedRow !== row) {
     state.selectedRow = row;
     state.activeRing.row = row;
@@ -1619,9 +1649,6 @@ function handleBoardTap(row) {
     return;
   }
 
-  /*
-    同じレーン2回目：先頭へ即固定。
-  */
   const landingCol = getLandingColumn(row);
 
   if (landingCol >= CONFIG.cols) {
@@ -1644,7 +1671,15 @@ function getPreparationClasses(row, col, piece) {
     return [];
   }
 
-  const group = getGroupAt(row, col);
+  const groups = getGroups();
+
+  const group = groups.find((item) =>
+    item.cells.some(
+      (cell) =>
+        cell.row === row &&
+        cell.col === col
+    )
+  );
 
   if (!group) {
     return [];
@@ -1695,10 +1730,7 @@ function makePieceElement(
     classes.push("active");
   }
 
-  const prep =
-    getPreparationClasses(row, col, piece);
-
-  prep
+  getPreparationClasses(row, col, piece)
     .filter((className) =>
       className.startsWith("t")
     )
@@ -1742,10 +1774,7 @@ function renderBoard() {
       const piece = state.board[row][col];
 
       if (piece) {
-        const prep =
-          getPreparationClasses(row, col, piece);
-
-        prep
+        getPreparationClasses(row, col, piece)
           .filter((className) =>
             className.startsWith("prep")
           )
@@ -1871,6 +1900,59 @@ function renderGame() {
 }
 
 /* ==================================================
+   縦横画面の制御
+================================================== */
+
+function pauseForPortrait() {
+  if (
+    !state ||
+    state.isEnded ||
+    state.isPaused ||
+    state.isWaitingForLandscape
+  ) {
+    return;
+  }
+
+  state.isPaused = true;
+  state.pausedByOrientation = true;
+
+  pauseBgm();
+
+  setStatus("ROTATE DEVICE");
+}
+
+function handleOrientationChange() {
+  if (!state || state.isEnded) {
+    return;
+  }
+
+  if (!isLandscape()) {
+    if (state.isWaitingForLandscape) {
+      return;
+    }
+
+    pauseForPortrait();
+    return;
+  }
+
+  if (state.isWaitingForLandscape) {
+    state.isWaitingForLandscape = false;
+    state.isPaused = false;
+
+    beginCountdownAndGame();
+    return;
+  }
+
+  if (state.pausedByOrientation) {
+    state.pausedByOrientation = false;
+
+    setStatus("PAUSED");
+
+    el.abortModal?.classList.add("open");
+  }
+}
+
+/* ==================================================
    開始・終了
 ================================================== */
 
@@ -1899,70 +1981,44 @@ async function runCountdown() {
     el.countdownText.style.animation = "";
 
     await wait(duration);
+
+    if (
+      !state ||
+      state.isEnded ||
+      state.isPaused ||
+      !isLandscape()
+    ) {
+      el.countdown.classList.add("hidden");
+      return;
+    }
   }
 
   el.countdown.classList.add("hidden");
 }
 
-function startClock() {
-  window.clearInterval(clockTimer);
+async function beginCountdownAndGame() {
+  if (
+    !state ||
+    state.isEnded ||
+    !isLandscape()
+  ) {
+    return;
+  }
 
-  clockTimer = window.setInterval(() => {
-    if (
-      !state ||
-      state.isEnded ||
-      state.isPaused ||
-      state.isBusy
-    ) {
-      return;
-    }
+  state.isBusy = true;
+  state.isPaused = false;
 
-    state.time -= 1;
-
-    renderGame();
-
-    if (state.time <= 0) {
-      gameOver("TIME UP");
-    }
-  }, 1000);
-}
-
-async function startNewGame() {
-  /*
-    この関数は必ずボタンを押したタイミングで始まる。
-    ここで音声を準備することが重要。
-  */
-  unlockAudio();
-
-  stopEndMusic();
-  stopBgm();
-  clearGameTimers();
-  closeAllModals();
-
-  hideSoundEnableButton();
-
-  el.app?.classList.remove(
-    "is-fever",
-    "is-over-flash"
-  );
-
-  state = createGameState();
-
-  showScreen(el.game);
-  setStatus("READY");
-
-  renderGame();
-
-  /*
-    カウントダウンより先に、
-    無音BGMをユーザー操作中に開始する。
-  */
   createBgmForCurrentLevel();
   primeBgmFromUserTap();
 
   await runCountdown();
 
-  if (!state || state.isEnded) {
+  if (
+    !state ||
+    state.isEnded ||
+    state.isPaused ||
+    !isLandscape()
+  ) {
     return;
   }
 
@@ -1985,6 +2041,56 @@ async function startNewGame() {
       setStatus("READY");
     }
   }, 900);
+}
+
+function startClock() {
+  window.clearInterval(clockTimer);
+
+  clockTimer = window.setInterval(() => {
+    if (!isGameRunning()) {
+      return;
+    }
+
+    state.time -= 1;
+
+    renderGame();
+
+    if (state.time <= 0) {
+      gameOver("TIME UP");
+    }
+  }, 1000);
+}
+
+function startNewGame() {
+  unlockAudio();
+
+  stopEndMusic();
+  stopBgm();
+  clearGameTimers();
+  closeAllModals();
+  hideSoundEnableButton();
+
+  el.app?.classList.remove(
+    "is-fever",
+    "is-over-flash"
+  );
+
+  state = createGameState();
+
+  showScreen(el.game);
+
+  renderGame();
+
+  if (!isLandscape()) {
+    state.isWaitingForLandscape = true;
+    state.isPaused = true;
+
+    setStatus("TURN DEVICE");
+
+    return;
+  }
+
+  beginCountdownAndGame();
 }
 
 function pauseGame() {
@@ -2011,6 +2117,12 @@ function resumeGame() {
     state.isEnded ||
     !state.isPaused
   ) {
+    return;
+  }
+
+  if (!isLandscape()) {
+    state.pausedByOrientation = true;
+    setStatus("TURN DEVICE");
     return;
   }
 
@@ -2134,7 +2246,7 @@ function openTutorial() {
 }
 
 /* ==================================================
-   イベント
+   操作
 ================================================== */
 
 el.start?.addEventListener("click", () => {
@@ -2232,10 +2344,6 @@ el.tutorialTitle?.addEventListener("click", () => {
   returnToTitle();
 });
 
-/*
-  タブ切替やLINE内ブラウザから別画面へ移動した時、
-  時間だけ進行することを防ぐ。
-*/
 document.addEventListener("visibilitychange", () => {
   if (
     document.hidden &&
@@ -2244,6 +2352,26 @@ document.addEventListener("visibilitychange", () => {
     pauseGame();
   }
 });
+
+window.addEventListener(
+  "orientationchange",
+  () => {
+    window.setTimeout(
+      handleOrientationChange,
+      180
+    );
+  }
+);
+
+window.addEventListener(
+  "resize",
+  () => {
+    window.setTimeout(
+      handleOrientationChange,
+      120
+    );
+  }
+);
 
 reducedMotionQuery.addEventListener?.(
   "change",

@@ -2,18 +2,24 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
   >
+
   <title>とーたるえいと❣️</title>
-  <link rel="stylesheet" href="style.css?v=20261118-12">
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=20261118-16"
+  >
 </head>
 
 <body>
   <main class="app">
 
-    <!-- 音に反応する万華鏡・幾何学背景 -->
+    <!-- 背景の星空・オーバー時の衝撃波 -->
     <div class="stage-lights" aria-hidden="true">
       <i class="stage-light stage-light--left"></i>
       <i class="stage-light stage-light--right"></i>
@@ -24,13 +30,19 @@
     </div>
 
     <!-- タイトル画面 -->
-    <section id="title-screen" class="screen is-active">
+    <section
+      id="title-screen"
+      class="screen is-active"
+    >
       <div class="title-content">
-        <p class="eyebrow">CONNECT · CALCULATE · CLEAR</p>
+        <p class="eyebrow">
+          CONNECT · CALCULATE · CLEAR
+        </p>
 
-        <h1>とーたるえいと<span>❣️</span></h1>
+        <h1>
+          とーたるえいと<span>❣️</span>
+        </h1>
 
-        <!-- タイトル右下のバージョン表記 -->
         <p
           style="
             width: fit-content;
@@ -45,7 +57,9 @@
           ver1.1
         </p>
 
-        <p class="lead">合計8にして高スコアを狙え</p>
+        <p class="lead">
+          合計8にして高スコアを狙え
+        </p>
 
         <div class="title-menu">
           <button
@@ -70,7 +84,10 @@
     </section>
 
     <!-- ゲーム画面 -->
-    <section id="game-screen" class="screen">
+    <section
+      id="game-screen"
+      class="screen"
+    >
       <header class="hud">
         <div class="hud-score">
           <span>経験値</span>
@@ -84,6 +101,7 @@
 
         <div class="hud-stage">
           <span>ステージ経験値</span>
+
           <strong>
             <b id="stage-score-value">0</b>
             <em>/</em>
@@ -109,7 +127,22 @@
         </div>
       </header>
 
-      <strong id="status-label" class="status">READY</strong>
+      <strong
+        id="status-label"
+        class="status"
+      >
+        READY
+      </strong>
+
+      <!-- BGMが端末側に止められた時だけ表示 -->
+      <button
+        id="sound-enable-button"
+        class="sound-enable hidden"
+        type="button"
+      >
+        <strong>音を有効化</strong>
+        <small>TAP TO ENABLE SOUND</small>
+      </button>
 
       <div class="play-area">
         <div
@@ -118,7 +151,10 @@
           aria-label="ゲーム盤面"
         ></div>
 
-        <aside class="queue" aria-label="控えリング">
+        <aside
+          class="queue"
+          aria-label="控えリング"
+        >
           <b>控え</b>
 
           <div id="ring-queue-list"></div>
@@ -144,7 +180,9 @@
         class="overlay hidden"
         aria-live="assertive"
       >
-        <strong id="countdown-text">READY?</strong>
+        <strong id="countdown-text">
+          READY?
+        </strong>
       </div>
 
       <!-- 合計9以上を作った時の大きい数値 -->
@@ -156,7 +194,10 @@
     </section>
 
     <!-- チュートリアル -->
-    <section id="tutorial-screen" class="screen tutorial">
+    <section
+      id="tutorial-screen"
+      class="screen tutorial"
+    >
       <button
         id="tutorial-exit-button"
         class="tutorial-exit"
@@ -166,7 +207,10 @@
       </button>
 
       <div class="tutorial-card">
-        <strong id="tutorial-step">1 / 5</strong>
+        <strong id="tutorial-step">
+          1 / 5
+        </strong>
+
         <p id="tutorial-text"></p>
       </div>
 
@@ -181,7 +225,10 @@
     </section>
 
     <!-- チュートリアル終了 -->
-    <section id="tutorial-complete-modal" class="modal">
+    <section
+      id="tutorial-complete-modal"
+      class="modal"
+    >
       <div class="modal-card">
         <h2>準備完了。</h2>
 
@@ -215,7 +262,10 @@
     </section>
 
     <!-- 中断 -->
-    <section id="abort-modal" class="modal">
+    <section
+      id="abort-modal"
+      class="modal"
+    >
       <div class="modal-card">
         <h2>ゲームを中断しました</h2>
 
@@ -249,9 +299,17 @@
     </section>
 
     <!-- ゲームオーバー -->
-    <section id="game-over-modal" class="modal">
+    <section
+      id="game-over-modal"
+      class="modal"
+    >
       <div class="modal-card">
-        <p id="game-over-reason" class="eyebrow">TIME UP</p>
+        <p
+          id="game-over-reason"
+          class="eyebrow"
+        >
+          TIME UP
+        </p>
 
         <h2>ゲーム終了</h2>
 
@@ -260,7 +318,9 @@
         <strong
           id="final-score-value"
           class="final-score"
-        >0</strong>
+        >
+          0
+        </strong>
 
         <button
           id="retry-button"
@@ -283,9 +343,14 @@
     </section>
 
     <!-- ゲームクリア -->
-    <section id="game-clear-modal" class="modal">
+    <section
+      id="game-clear-modal"
+      class="modal"
+    >
       <div class="modal-card clear-card">
-        <p class="eyebrow">MISSION COMPLETE</p>
+        <p class="eyebrow">
+          MISSION COMPLETE
+        </p>
 
         <h2>GAME CLEAR</h2>
 
@@ -297,7 +362,9 @@
         <strong
           id="clear-score-value"
           class="final-score"
-        >0</strong>
+        >
+          0
+        </strong>
 
         <button
           id="clear-retry-button"
@@ -319,8 +386,38 @@
       </div>
     </section>
 
+    <!--
+      縦画面専用。
+      CSSで縦画面時だけ全面表示する。
+      script.jsで縦向きになった時は自動中断する。
+    -->
+    <section
+      id="orientation-overlay"
+      class="orientation-overlay"
+      aria-live="assertive"
+      aria-label="横向きでプレイしてください"
+    >
+      <div class="orientation-card">
+        <span class="orientation-phone" aria-hidden="true">
+          ▯
+        </span>
+
+        <strong>
+          端末を横向きにしてください
+        </strong>
+
+        <small>
+          TURN YOUR DEVICE SIDEWAYS
+        </small>
+
+        <p>
+          横画面で、広い盤面を使って<br>
+          プレイできます。
+        </p>
+      </div>
+    </section>
   </main>
 
-  <script src="script.js?v=20261118-12"></script>
+  <script src="script.js?v=20261118-16"></script>
 </body>
 </html>

@@ -4,7 +4,6 @@
   --bg: #050914;
   --panel: rgba(14, 24, 48, 0.93);
   --line: rgba(158, 210, 255, 0.28);
-  --line-strong: rgba(128, 223, 255, 0.78);
   --text: #f8fbff;
   --muted: #9caaca;
 
@@ -15,15 +14,14 @@
   --yellow: #ffe075;
   --pink: #ff7194;
 
-  /*
-    script.jsからBGM周波数に応じて更新する値。
-  */
   --electric-bass: 0;
   --electric-middle: 0;
   --electric-high: 0;
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -36,20 +34,12 @@ body {
   width: 100%;
   min-height: 100%;
   margin: 0;
+  overflow: hidden;
   background: #02040b;
   color: var(--text);
   font-family: "Noto Sans JP", sans-serif;
   overscroll-behavior: none;
-
-  /*
-    ダブルタップ時のブラウザ拡大を抑える。
-    同じレーンを連続タップするゲーム操作は維持する。
-  */
   touch-action: manipulation;
-}
-
-body {
-  overflow-x: hidden;
 }
 
 button,
@@ -138,7 +128,6 @@ button:focus-visible {
   display: none !important;
 }
 
-/* オーバー時に一度だけ表示するピンク衝撃波 */
 .stage-lights::after {
   position: absolute;
   top: 50%;
@@ -171,8 +160,9 @@ button:focus-visible {
   min-height: 100dvh;
   padding:
     max(18px, calc(var(--safe-top) + 8px))
-    14px
-    max(18px, calc(var(--safe-bottom) + 8px));
+    max(14px, calc(var(--safe-right) + 8px))
+    max(18px, calc(var(--safe-bottom) + 8px))
+    max(14px, calc(var(--safe-left) + 8px));
 }
 
 .screen.is-active {
@@ -279,13 +269,13 @@ h1 span {
 }
 
 /* ==================================================
-   ゲーム画面・HUD
+   ゲーム画面
 ================================================== */
 
 #game-screen {
   flex-direction: column;
-  gap: 9px;
-  width: min(100%, 700px);
+  gap: 8px;
+  width: min(100%, 980px);
   margin: 0 auto;
 }
 
@@ -380,7 +370,7 @@ h1 span {
 }
 
 .status {
-  min-height: 19px;
+  min-height: 18px;
   color: var(--cyan);
   font-family: Orbitron, "Noto Sans JP", sans-serif;
   font-size: 0.67rem;
@@ -388,8 +378,6 @@ h1 span {
   text-align: center;
   text-shadow: 0 0 12px rgba(93, 228, 255, 0.6);
 }
-
-/* BGM再生に失敗した時だけ表示するボタン */
 
 .sound-enable {
   width: min(100%, 340px);
@@ -407,10 +395,6 @@ h1 span {
     0 0 18px rgba(255, 224, 117, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   text-align: center;
-}
-
-.sound-enable:active {
-  transform: scale(0.97);
 }
 
 .sound-enable strong {
@@ -431,7 +415,7 @@ h1 span {
 }
 
 /* ==================================================
-   盤面とレーン電流
+   盤面・電流レーン
 ================================================== */
 
 .play-area {
@@ -498,7 +482,6 @@ h1 span {
     );
   background-repeat: no-repeat;
   background-size: 220% 2px;
-  background-position: 0 0;
   content: "";
   opacity: calc(0.18 + var(--electric-high) * 0.7);
   pointer-events: none;
@@ -516,9 +499,6 @@ h1 span {
   min-height: 0;
 }
 
-/*
-  各レーン先頭から横一列へ、独立した電流枠を表示。
-*/
 .cell:nth-child(8n + 1)::before {
   position: absolute;
   z-index: 0;
@@ -614,7 +594,6 @@ h1 span {
 
 /* ==================================================
    オーブ・リング
-   数字を最優先で読めるようにする
 ================================================== */
 
 .piece {
@@ -622,26 +601,15 @@ h1 span {
   z-index: 3;
   display: grid;
   place-items: center;
-  width: min(84%, 60px);
+  width: min(84%, 68px);
   aspect-ratio: 1;
   color: #ffffff;
-
-  /*
-    数字が潰れないよう、盤面の数字は
-    Orbitronではなく太いNoto Sans JPを使う。
-  */
   font-family: "Noto Sans JP", sans-serif;
   font-size: clamp(1.14rem, 5.3vw, 1.65rem);
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0;
-
-  /*
-    4方向の白縁取りを廃止。
-    文字形状を崩さない、黒い影1つだけにする。
-  */
   text-shadow: 0 2px 3px rgba(0, 0, 0, 0.94);
-
   user-select: none;
   -webkit-user-select: none;
 }
@@ -673,7 +641,7 @@ h1 span {
   background:
     radial-gradient(
       circle,
-      #0b1937 0 51%,
+      #0a1835 0 51%,
       rgba(255, 255, 255, 0.08) 52% 61%,
       transparent 62%
     );
@@ -682,19 +650,8 @@ h1 span {
     inset 0 0 9px rgba(255, 255, 255, 0.14);
 }
 
-/*
-  色が付いていない白リングも、中心を濃紺へ固定。
-  白い数字とのコントラストを確保する。
-*/
 .ring:not(.c0):not(.c1):not(.c2):not(.c3) {
   color: #ffffff;
-  background:
-    radial-gradient(
-      circle,
-      #0a1835 0 51%,
-      rgba(255, 255, 255, 0.12) 52% 61%,
-      transparent 62%
-    );
 }
 
 .star-ring {
@@ -868,10 +825,6 @@ h1 span {
   letter-spacing: 0.08em;
 }
 
-.queue-abort:active {
-  transform: scale(0.95);
-}
-
 .hint {
   margin: 1px 0 0;
   color: var(--muted);
@@ -882,12 +835,12 @@ h1 span {
 }
 
 /* ==================================================
-   カウントダウン・オーバー数値
+   オーバーレイ・モーダル
 ================================================== */
 
 .overlay {
   position: fixed;
-  z-index: 8;
+  z-index: 20;
   inset: 0;
   display: grid;
   place-items: center;
@@ -900,7 +853,6 @@ h1 span {
   font-family: Orbitron, "Noto Sans JP", sans-serif;
   font-size: clamp(3rem, 20vw, 7rem);
   font-weight: 900;
-  letter-spacing: 0.03em;
   text-shadow:
     0 0 18px var(--cyan),
     0 0 45px rgba(93, 228, 255, 0.56);
@@ -909,12 +861,9 @@ h1 span {
 
 .over-popup {
   position: fixed;
-  z-index: 9;
+  z-index: 30;
   top: 50%;
   left: 50%;
-  display: grid;
-  place-items: center;
-  min-width: 1em;
   color: var(--pink);
   font-family: "Mochiy Pop One", "Noto Sans JP", sans-serif;
   font-size: clamp(6rem, 34vw, 13rem);
@@ -923,8 +872,7 @@ h1 span {
   pointer-events: none;
   text-shadow:
     0 0 10px rgba(255, 113, 148, 0.95),
-    0 0 35px rgba(255, 113, 148, 0.72),
-    0 0 65px rgba(255, 113, 148, 0.34);
+    0 0 35px rgba(255, 113, 148, 0.72);
   transform: translate(-50%, -50%);
 }
 
@@ -932,13 +880,9 @@ h1 span {
   animation: over-number 0.96s cubic-bezier(0.15, 0.72, 0.25, 1) both;
 }
 
-/* ==================================================
-   モーダル・チュートリアル
-================================================== */
-
 .modal {
   position: fixed;
-  z-index: 12;
+  z-index: 40;
   inset: 0;
   display: none;
   align-items: center;
@@ -959,13 +903,7 @@ h1 span {
   padding: 24px 18px 18px;
   border: 1px solid rgba(155, 223, 255, 0.42);
   border-radius: 20px;
-  background:
-    radial-gradient(
-      ellipse at 25% 0%,
-      rgba(93, 228, 255, 0.11),
-      transparent 46%
-    ),
-    rgba(9, 18, 39, 0.97);
+  background: rgba(9, 18, 39, 0.97);
   box-shadow:
     0 18px 60px rgba(0, 0, 0, 0.46),
     0 0 28px rgba(93, 228, 255, 0.12);
@@ -995,19 +933,16 @@ h1 span {
 
 .clear-card {
   border-color: rgba(255, 224, 117, 0.7);
-  background:
-    radial-gradient(
-      ellipse at 50% 0%,
-      rgba(255, 224, 117, 0.17),
-      transparent 48%
-    ),
-    rgba(24, 23, 37, 0.97);
 }
 
 .clear-card .eyebrow,
 .clear-card .final-score {
   color: var(--yellow);
 }
+
+/* ==================================================
+   チュートリアル
+================================================== */
 
 .tutorial {
   flex-direction: column;
@@ -1035,9 +970,7 @@ h1 span {
   border: 1px solid rgba(158, 210, 255, 0.32);
   border-radius: 20px;
   background: rgba(10, 20, 42, 0.83);
-  box-shadow: 0 0 30px rgba(93, 228, 255, 0.1);
   text-align: center;
-  backdrop-filter: blur(9px);
 }
 
 #tutorial-step {
@@ -1052,6 +985,77 @@ h1 span {
   font-size: 0.98rem;
   font-weight: 700;
   line-height: 1.95;
+}
+
+/* ==================================================
+   縦画面：横向き案内
+================================================== */
+
+.orientation-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(
+      ellipse at 50% 40%,
+      rgba(45, 92, 183, 0.25),
+      transparent 52%
+    ),
+    rgba(2, 5, 15, 0.97);
+  text-align: center;
+}
+
+.orientation-card {
+  width: min(100%, 360px);
+  padding: 28px 20px;
+  border: 1px solid rgba(93, 228, 255, 0.48);
+  border-radius: 22px;
+  background: rgba(9, 18, 39, 0.92);
+  box-shadow:
+    0 0 30px rgba(93, 228, 255, 0.16),
+    inset 0 0 20px rgba(93, 228, 255, 0.05);
+}
+
+.orientation-phone {
+  display: block;
+  width: 48px;
+  height: 78px;
+  margin: 0 auto 18px;
+  border: 3px solid var(--cyan);
+  border-radius: 9px;
+  color: transparent;
+  box-shadow: 0 0 18px rgba(93, 228, 255, 0.5);
+  transform: rotate(90deg);
+  animation: turn-device 1.8s ease-in-out infinite;
+}
+
+.orientation-card strong {
+  display: block;
+  color: var(--text);
+  font-size: 1.08rem;
+  font-weight: 900;
+}
+
+.orientation-card small {
+  display: block;
+  margin-top: 7px;
+  color: var(--cyan);
+  font-family: Orbitron, sans-serif;
+  font-size: 0.57rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.orientation-card p {
+  margin: 17px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.8;
 }
 
 /* ==================================================
@@ -1116,12 +1120,10 @@ h1 span {
 @keyframes prep-soft {
   0%,
   100% {
-    box-shadow: inset 0 0 0 rgba(101, 255, 154, 0);
     opacity: 0.93;
   }
 
   50% {
-    box-shadow: inset 0 0 18px rgba(101, 255, 154, 0.24);
     opacity: 1;
   }
 }
@@ -1129,12 +1131,10 @@ h1 span {
 @keyframes prep-strong {
   0%,
   100% {
-    box-shadow: inset 0 0 4px rgba(255, 224, 117, 0.06);
     opacity: 0.87;
   }
 
   50% {
-    box-shadow: inset 0 0 22px rgba(255, 224, 117, 0.31);
     opacity: 1;
   }
 }
@@ -1202,17 +1202,37 @@ h1 span {
   }
 }
 
+@keyframes turn-device {
+  0%,
+  100% {
+    transform: rotate(90deg) scale(0.95);
+  }
+
+  50% {
+    transform: rotate(90deg) scale(1.08);
+  }
+}
+
 /* ==================================================
-   横幅の広い端末
+   横画面：ゲームを広く使う
 ================================================== */
 
-@media (min-width: 620px) {
+@media (orientation: landscape) {
   #game-screen {
-    width: min(100%, 660px);
+    width: min(100%, 1180px);
+    gap: 5px;
+    padding-top: max(8px, var(--safe-top));
+    padding-bottom: max(8px, var(--safe-bottom));
   }
 
   .hud {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns:
+      minmax(95px, 1fr)
+      minmax(75px, 0.7fr)
+      minmax(145px, 1.35fr)
+      minmax(100px, 0.9fr)
+      minmax(100px, 0.9fr);
+    gap: 7px;
   }
 
   .hud-stage,
@@ -1220,66 +1240,81 @@ h1 span {
     grid-column: span 1;
   }
 
-  .play-area {
-    grid-template-columns: minmax(0, 1fr) 76px;
-  }
-
-  .queue-ring {
-    width: 48px;
-    height: 48px;
-  }
-
-  .piece {
-    font-size: 1.55rem;
-  }
-}
-
-/* 縦が短いスマホ */
-
-@media (max-height: 680px) {
-  .screen {
-    padding-top: max(10px, var(--safe-top));
-    padding-bottom: max(10px, var(--safe-bottom));
-  }
-
   .hud > div {
-    padding: 5px 4px;
+    padding: 6px 8px;
+  }
+
+  .hud span {
+    font-size: 0.5rem;
+  }
+
+  .hud strong {
+    font-size: clamp(0.8rem, 2.1vw, 1.15rem);
   }
 
   .play-area {
-    grid-template-columns: minmax(0, 1fr) 59px;
+    grid-template-columns: minmax(0, 1fr) 82px;
+    gap: 10px;
+    width: min(100%, 910px);
+    max-height: min(61dvh, 430px);
+    margin: 0 auto;
+  }
+
+  .board {
+    aspect-ratio: 1.9;
+    min-height: 0;
   }
 
   .queue {
-    gap: 5px;
-    padding: 6px 3px;
+    gap: 6px;
+    padding: 7px 5px;
   }
 
   .queue-ring {
-    width: 36px;
-    height: 36px;
-    font-size: 0.92rem;
+    width: clamp(39px, 6.2vh, 55px);
+    height: clamp(39px, 6.2vh, 55px);
+    font-size: clamp(0.96rem, 2.8vh, 1.25rem);
   }
 
   .queue-abort {
-    padding: 6px 2px;
+    padding: 7px 3px;
+  }
+
+  .piece {
+    width: min(78%, 74px);
+    font-size: clamp(1.1rem, 4.6vh, 1.7rem);
   }
 
   .hint {
     font-size: 0.61rem;
+    line-height: 1.38;
   }
 
-  .piece {
-    font-size: clamp(1rem, 4.9vw, 1.32rem);
+  .status {
+    min-height: 14px;
+    font-size: 0.6rem;
+  }
+
+  .orientation-overlay {
+    display: none !important;
   }
 }
 
-/* 動きを減らす設定を尊重 */
+/*
+  縦画面ではタイトル・チュートリアルは表示可能。
+  ゲーム画面を開いている時だけ横向きを要求する。
+*/
+@media (orientation: portrait) {
+  #game-screen.is-active ~ .orientation-overlay {
+    display: flex;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .board::after,
   .cell:nth-child(8n + 1)::after,
-  .queue::before {
+  .queue::before,
+  .orientation-phone {
     animation-duration: 5s;
   }
 
