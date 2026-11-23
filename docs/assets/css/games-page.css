@@ -1,0 +1,338 @@
+/* ==================================================
+   GAMEページ：とーたるえいと❣️
+================================================== */
+
+.mitiocity-games-intro {
+  margin: 0 0 24px;
+  color: var(--text-muted, #aeb9d5);
+  font-size: 0.95rem;
+  line-height: 1.9;
+}
+
+.mitiocity-games-grid {
+  display: grid;
+  gap: 18px;
+  margin: 28px 0 12px;
+}
+
+.mitiocity-game-card {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding: 1px;
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(93, 228, 255, 0.9),
+      rgba(112, 108, 255, 0.72),
+      rgba(164, 113, 255, 0.72)
+    );
+  color: inherit;
+  text-decoration: none;
+  box-shadow:
+    0 14px 35px rgba(0, 0, 0, 0.27),
+    0 0 26px rgba(93, 228, 255, 0.12);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mitiocity-game-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 19px 42px rgba(0, 0, 0, 0.35),
+    0 0 34px rgba(93, 228, 255, 0.28);
+}
+
+.mitiocity-game-card:active {
+  transform: scale(0.985);
+}
+
+.mitiocity-game-card__inner {
+  position: relative;
+  min-height: 250px;
+  overflow: hidden;
+  padding: 25px;
+  border-radius: 21px;
+  background:
+    radial-gradient(
+      circle at 87% 20%,
+      rgba(93, 228, 255, 0.22),
+      transparent 19%
+    ),
+    radial-gradient(
+      circle at 15% 85%,
+      rgba(127, 89, 227, 0.24),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #172b52 0%,
+      #0b1328 56%,
+      #060914 100%
+    );
+}
+
+.mitiocity-game-card__inner::before {
+  position: absolute;
+  content: "";
+  inset: -55%;
+  opacity: 0.42;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(93, 228, 255, 0.32) 0deg 1deg,
+      transparent 1deg 13deg,
+      rgba(164, 113, 255, 0.28) 13deg 15deg,
+      transparent 15deg 27deg
+    );
+  animation: total-eight-card-spin 28s linear infinite;
+  pointer-events: none;
+}
+
+.mitiocity-game-card__inner::after {
+  position: absolute;
+  content: "";
+  inset: 0;
+  background:
+    linear-gradient(
+      118deg,
+      transparent 0 43%,
+      rgba(255, 255, 255, 0.09) 47%,
+      transparent 51%
+    );
+  transform: translateX(-120%);
+  animation: total-eight-card-shine 5.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.mitiocity-game-card__content {
+  position: relative;
+  z-index: 2;
+  max-width: 67%;
+}
+
+.mitiocity-game-card__eyebrow {
+  margin: 0 0 8px;
+  color: #75e7ff;
+  font-family: Orbitron, "Noto Sans JP", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.mitiocity-game-card__title {
+  margin: 0;
+  color: #f8fbff;
+  font-family: Orbitron, "Noto Sans JP", sans-serif;
+  font-size: clamp(1.55rem, 7.5vw, 2.35rem);
+  font-weight: 900;
+  letter-spacing: -0.08em;
+  line-height: 1.15;
+  text-shadow:
+    0 0 12px rgba(93, 228, 255, 0.56),
+    0 0 24px rgba(93, 228, 255, 0.24);
+}
+
+.mitiocity-game-card__description {
+  margin: 13px 0 19px;
+  color: #c3d1eb;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.75;
+}
+
+.mitiocity-game-card__start {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 13px;
+  border: 1px solid rgba(148, 235, 255, 0.78);
+  border-radius: 10px;
+  background: rgba(78, 156, 240, 0.22);
+  color: #ffffff;
+  font-family: Orbitron, "Noto Sans JP", sans-serif;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 14px rgba(93, 228, 255, 0.16);
+}
+
+.mitiocity-game-card__start::after {
+  content: "→";
+  color: #75e7ff;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* 右側のオーブ・リング装飾 */
+
+.mitiocity-game-card__visual {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: 5%;
+  width: 38%;
+  aspect-ratio: 1;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.mitiocity-game-card__halo {
+  position: absolute;
+  inset: -25%;
+  border: 1px solid rgba(93, 228, 255, 0.34);
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(93, 228, 255, 0.32) 0deg 2deg,
+      transparent 2deg 18deg,
+      rgba(164, 113, 255, 0.24) 18deg 20deg,
+      transparent 20deg 36deg
+    );
+  box-shadow:
+    0 0 26px rgba(93, 228, 255, 0.26),
+    inset 0 0 21px rgba(93, 228, 255, 0.18);
+  animation: total-eight-card-spin 12s linear infinite;
+}
+
+.mitiocity-game-card__orb {
+  position: absolute;
+  top: 36%;
+  left: 15%;
+  display: grid;
+  width: 37%;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid rgba(239, 250, 255, 0.9);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 29% 23%,
+      #ffffff 0 7%,
+      transparent 19%
+    ),
+    radial-gradient(
+      circle at 37% 35%,
+      #9aeaff,
+      #4074ec 55%,
+      #20246e
+    );
+  color: #ffffff;
+  font-family: Orbitron, sans-serif;
+  font-size: clamp(1rem, 5vw, 1.55rem);
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+  box-shadow:
+    inset -7px -9px 13px rgba(0, 0, 0, 0.48),
+    0 0 18px rgba(86, 191, 255, 0.72);
+}
+
+.mitiocity-game-card__ring {
+  position: absolute;
+  display: grid;
+  width: 29%;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 4px solid rgba(248, 252, 255, 0.95);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      transparent 34%,
+      rgba(255, 255, 255, 0.16) 43%,
+      transparent 66%
+    );
+  color: #ffffff;
+  font-family: Orbitron, sans-serif;
+  font-size: clamp(0.8rem, 4vw, 1.2rem);
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.94);
+  box-shadow:
+    0 0 10px rgba(255, 255, 255, 0.42),
+    inset 0 0 7px rgba(255, 255, 255, 0.18);
+}
+
+.mitiocity-game-card__ring--one {
+  top: 13%;
+  right: 7%;
+  animation: total-eight-card-float 2.8s ease-in-out infinite alternate;
+}
+
+.mitiocity-game-card__ring--two {
+  right: 0;
+  bottom: 14%;
+  border-color: #ffe075;
+  color: #ffe075;
+  box-shadow:
+    0 0 12px #ffe075,
+    0 0 24px rgba(255, 224, 117, 0.4);
+  animation: total-eight-card-float 3.5s ease-in-out infinite alternate-reverse;
+}
+
+.mitiocity-game-card__ring--three {
+  bottom: 1%;
+  left: 28%;
+  border-color: #65ff9a;
+  color: #65ff9a;
+  box-shadow:
+    0 0 12px #65ff9a,
+    0 0 24px rgba(101, 255, 154, 0.4);
+  animation: total-eight-card-float 3.1s ease-in-out infinite alternate;
+}
+
+@keyframes total-eight-card-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes total-eight-card-shine {
+  0%,
+  60%,
+  100% {
+    transform: translateX(-120%);
+  }
+
+  78% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes total-eight-card-float {
+  from {
+    transform: translateY(-6px);
+  }
+
+  to {
+    transform: translateY(7px);
+  }
+}
+
+@media (max-width: 420px) {
+  .mitiocity-game-card__inner {
+    min-height: 230px;
+    padding: 21px;
+  }
+
+  .mitiocity-game-card__content {
+    max-width: 70%;
+  }
+
+  .mitiocity-game-card__visual {
+    right: 2%;
+    width: 40%;
+  }
+
+  .mitiocity-game-card__description {
+    font-size: 0.76rem;
+  }
+}

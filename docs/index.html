@@ -2,22 +2,47 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
 
   <title>みちを市ポータルサイト</title>
-  <meta name="description" content="アリウスゲートからつながる、みちを市のポータルサイト。">
+
+  <meta
+    name="description"
+    content="アリウスゲートからつながる、みちを市のポータルサイト。"
+  >
+
   <meta name="theme-color" content="#101a38">
 
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="assets/images/icons/icon-192.png" type="image/png">
-  <link rel="apple-touch-icon" href="assets/images/icons/apple-touch-icon.png">
+
+  <link
+    rel="icon"
+    href="assets/images/icons/icon-192.png"
+    type="image/png"
+  >
+
+  <link
+    rel="apple-touch-icon"
+    href="assets/images/icons/apple-touch-icon.png"
+  >
 
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/link-buttons.css">
+
+  <!-- ゲーム一覧専用の見た目 -->
+  <link
+    rel="stylesheet"
+    href="assets/css/games-page.css?v=20261118-01"
+  >
 </head>
 
 <body>
-  <a class="skip-link" href="#main-content">本文へ移動</a>
+  <a class="skip-link" href="#main-content">
+    本文へ移動
+  </a>
 
   <header class="site-header" id="site-header">
     <div class="header-main-row">
@@ -59,19 +84,32 @@
       <a href="#page/apps">APP</a>
       <a href="#page/video">VIDEO</a>
       <a href="#page/blog">BLOG</a>
-      <a class="quick-menu__blackbox" href="#page/ex-black-box">EX BLACK BOX</a>
+      <a
+        class="quick-menu__blackbox"
+        href="#page/ex-black-box"
+      >
+        EX BLACK BOX
+      </a>
     </nav>
 
     <section class="header-news" aria-label="最新ニュース">
-      <span class="header-news__label">LATEST NEWS</span>
+      <span class="header-news__label">
+        LATEST NEWS
+      </span>
 
       <a class="header-news__ticker" id="news-ticker" href="#news">
-        <span id="news-ticker-text">現在、お知らせはありません</span>
+        <span id="news-ticker-text">
+          現在、お知らせはありません
+        </span>
       </a>
     </section>
   </header>
 
-  <div class="drawer-backdrop" id="drawer-backdrop" aria-hidden="true"></div>
+  <div
+    class="drawer-backdrop"
+    id="drawer-backdrop"
+    aria-hidden="true"
+  ></div>
 
   <aside
     class="portal-drawer"
@@ -93,7 +131,9 @@
     </div>
 
     <nav class="drawer-nav" aria-label="全体メニュー">
-      <a class="drawer-nav__news" href="#news">✦ ニュース一覧</a>
+      <a class="drawer-nav__news" href="#news">
+        ✦ ニュース一覧
+      </a>
 
       <section class="drawer-section">
         <h2>みちを市ポータルサイトについて</h2>
@@ -103,17 +143,29 @@
 
       <section class="drawer-section">
         <h2>Studio MiCchiCchiについて</h2>
-        <a href="#page/studio">スタジオみっちっちとは</a>
-        <a href="#page/xxxmitio">xxxmitioえせ音楽家みちを</a>
+        <a href="#page/studio">
+          スタジオみっちっちとは
+        </a>
+        <a href="#page/xxxmitio">
+          xxxmitioえせ音楽家みちを
+        </a>
       </section>
 
       <section class="drawer-section">
         <h2>所属アーティスト</h2>
-        <a href="#page/tableware-riot">Tableware Riot</a>
+        <a href="#page/tableware-riot">
+          Tableware Riot
+        </a>
         <a href="#page/oxo7">O×07</a>
-        <a href="#page/the-vromen-town-metalicans">The Vromen Town Metalicans</a>
-        <a href="#page/five-peace-minichestra">Five Peace Minichestra</a>
-        <a href="#page/audio-protocol">Audio Protocol</a>
+        <a href="#page/the-vromen-town-metalicans">
+          The Vromen Town Metalicans
+        </a>
+        <a href="#page/five-peace-minichestra">
+          Five Peace Minichestra
+        </a>
+        <a href="#page/audio-protocol">
+          Audio Protocol
+        </a>
         <a href="#page/nagomicchi">なごみっち</a>
         <a href="#page/sound-gacha">Sound GACHA</a>
         <a href="#page/dochok9m">Dochok9m</a>
@@ -122,15 +174,28 @@
     </nav>
   </aside>
 
-  <section class="bgm-controls" id="bgm-controls" aria-label="BGM操作" hidden>
+  <section
+    class="bgm-controls"
+    id="bgm-controls"
+    aria-label="BGM操作"
+    hidden
+  >
     <p>BGM CONTROL</p>
 
     <div class="bgm-controls__buttons">
-      <button class="bgm-control__primary" id="bgm-play-stop" type="button">
+      <button
+        class="bgm-control__primary"
+        id="bgm-play-stop"
+        type="button"
+      >
         再生
       </button>
 
-      <button class="bgm-control__next" id="bgm-next" type="button">
+      <button
+        class="bgm-control__next"
+        id="bgm-next"
+        type="button"
+      >
         次の曲
       </button>
     </div>
@@ -148,18 +213,41 @@
       href="https://ofuse.me/o?uid=227673"
       data-ofuse-id="227673"
       data-ofuse-text="推せたら推して!"
-    >推せたら推して!</a>
-    <script async src="https://ofuse.me/assets/platform/widget.js" charset="utf-8"></script>
+    >
+      推せたら推して!
+    </a>
+
+    <script
+      async
+      src="https://ofuse.me/assets/platform/widget.js"
+      charset="utf-8"
+    ></script>
   </div>
 
   <footer class="site-footer">
     <p>© Studio MiCchiCchi</p>
   </footer>
 
-  <!-- 更新番号付き。TikTok内ブラウザにも最新の入口スクリプトを読ませる。 -->
-  <script src="assets/js/entrance.js?v=20261117-skip-01" defer></script>
-  <script src="assets/js/site.js" defer></script>
-  <script src="assets/js/gate.js" defer></script>
+  <script
+    src="assets/js/entrance.js?v=20261117-skip-01"
+    defer
+  ></script>
+
+  <script
+    src="assets/js/site.js"
+    defer
+  ></script>
+
+  <!-- GAMEページへ専用ゲームカードを追加 -->
+  <script
+    src="assets/js/games-page.js?v=20261118-01"
+    defer
+  ></script>
+
+  <script
+    src="assets/js/gate.js"
+    defer
+  ></script>
 
   <script>
     if ("serviceWorker" in navigator) {
