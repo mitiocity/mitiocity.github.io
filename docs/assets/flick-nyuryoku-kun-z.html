@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#05060b">
+  <title>フリック入力くんZ</title>
+  <style>
+    :root {
+      --bg: #05060b;
+      --panel: rgba(13, 16, 29, .92);
+      --cyan: #27e8ff;
+      --blue: #2475ff;
+      --red: #ff3159;
+      --gold: #ffd34f;
+      --text: #f5f9ff;
+      --muted: #91a1bd;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    body::before {
+      inset: 0;
+      background:
+        linear-gradient(120deg, transparent 46%, rgba(39,232,255,.08) 46.2%, transparent 46.6%),
+        linear-gradient(300deg, transparent 55%, rgba(255,49,89,.07) 55.2%, transparent 55.6%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px);
+    }
+
+    body::after {
+      width: 75vw;
+      height: 75vw;
+      top: -35vw;
+      left: -22vw;
+      border: 2px solid rgba(39,232,255,.15);
+      transform: rotate(45deg);
+      box-shadow: 0 0 70px rgba(39,232,255,.12);
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      min-height: 100svh;
+      padding: max(16px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .screen.active { display: flex; }
+
+    .brand {
+      position: relative;
+      text-align: center;
+      margin-bottom: 30px;
+      line-height: .86;
+      transform: skew(-7deg);
+    }
+
+    .brand .small {
+      display: block;
+      font-size: clamp(18px, 5vw, 27px);
+      letter-spacing: .18em;
+      color: var(--cyan);
+      text-shadow: 0 0 15px var(--cyan);
+    }
+
+    .brand .main {
+      display: block;
+      font-size: clamp(44px, 13vw, 76px);
+      font-weight: 1000;
+      letter-spacing: -.08em;
+      background: linear-gradient(180deg, #fff 0 35%, #27e8ff 36% 57%, #2164ff 58% 100%);
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+      filter: drop-shadow(4px 4px 0 #07276f) drop-shadow(0 0 14px #27e8ff);
+    }
+
+    .brand .z {
+      color: var(--red);
+      font-size: 1.18em;
+      text-shadow: 4px 4px 0 #7d0018, 0 0 18px var(--red);
+    }
+
+    .subtitle {
+      max-width: 340px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+      margin: 0 0 26px;
+    }
+
+    .button {
+      border: 2px solid var(--cyan);
+      border-radius: 4px;
+      min-width: min(88vw, 340px);
+      padding: 17px 20px;
+      color: #06121b;
+      background: linear-gradient(135deg, #fff 0%, var(--cyan) 54%, #318cff 100%);
+      box-shadow: 0 0 20px rgba(39,232,255,.55), inset 0 0 0 2px rgba(255,255,255,.5);
+      font: 900 22px/1 inherit;
+      letter-spacing: .12em;
+      cursor: pointer;
+    }
+
+    .button:active { transform: scale(.97); }
+
+    .note {
+      color: #71809a;
+      font-size: 11px;
+      text-align: center;
+      line-height: 1.65;
+      margin-top: 17px;
+    }
+
+    #countdownValue {
+      font-size: min(42vw, 180px);
+      font-weight: 1000;
+      font-style: italic;
+      color: var(--cyan);
+      text-shadow: 0 0 15px var(--cyan), 0 0 45px #1d65ff;
+      animation: pulse .7s infinite alternate;
+    }
+
+    @keyframes pulse {
+      to { transform: scale(1.12) rotate(-4deg); color: #fff; }
+    }
+
+    .hud {
+      display: flex;
+      width: 100%;
+      max-width: 650px;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 auto 13px;
+      font-weight: 800;
+    }
+
+    .hud-box {
+      border-left: 3px solid var(--cyan);
+      padding-left: 8px;
+      font-size: 12px;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+
+    .hud-box strong {
+      display: block;
+      color: var(--text);
+      font-size: clamp(18px, 5vw, 27px);
+      letter-spacing: .02em;
+    }
+
+    .game-wrap {
+      width: 100%;
+      max-width: 650px;
+      margin: auto 0;
+    }
+
+    .target-label {
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .18em;
+      margin-bottom: 8px;
+    }
+
+    #target {
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      font-weight: 900;
+      line-height: 1.25;
+      font-size: 32px;
+      letter-spacing: .025em;
+      color: #fff;
+      text-shadow: 0 0 14px rgba(255,255,255,.25);
+      padding: 14px 10px 18px;
+      border-top: 1px solid rgba(39,232,255,.55);
+      border-bottom: 1px solid rgba(39,232,255,.55);
+    }
+
+    .input-label {
+      margin: 23px 0 8px;
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .18em;
+    }
+
+    #answer {
+      width: 100%;
+      height: 64px;
+      border: 2px solid #4e628c;
+      border-radius: 4px;
+      outline: none;
+      appearance: none;
+      background: rgba(4, 9, 20, .95);
+      color: var(--cyan);
+      caret-color: var(--gold);
+      box-shadow: inset 0 0 18px rgba(0,0,0,.7);
+      padding: 10px 14px;
+      font: 900 22px/1.2 "Hiragino Sans", "Yu Gothic", sans-serif;
+      letter-spacing: .04em;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    #answer:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px rgba(39,232,255,.34), inset 0 0 18px rgba(0,0,0,.7);
+    }
+
+    #mistake {
+      min-height: 22px;
+      margin: 8px 0 0;
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .06em;
+    }
+
+    .warning {
+      animation: warning .32s;
+    }
+
+    @keyframes warning {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-9px); }
+      75% { transform: translateX(9px); }
+    }
+
+    .result-card {
+      width: min(92vw, 520px);
+      padding: 23px 18px 18px;
+      border: 1px solid rgba(39,232,255,.65);
+      background: var(--panel);
+      box-shadow: 0 0 28px rgba(39,232,255,.2);
+      text-align: center;
+    }
+
+    .result-card h2 {
+      color: var(--cyan);
+      margin: 0 0 6px;
+      font-size: 15px;
+      letter-spacing: .18em;
+    }
+
+    .title-rank {
+      margin: 10px 0;
+      color: var(--gold);
+      font-size: clamp(23px, 7vw, 34px);
+      font-weight: 1000;
+      text-shadow: 0 0 13px rgba(255,211,79,.5);
+    }
+
+    .total-time {
+      font-size: clamp(43px, 13vw, 68px);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -.06em;
+    }
+
+    .speed {
+      color: var(--muted);
+      margin: 7px 0 17px;
+      font-size: 13px;
+    }
+
+    #details {
+      max-height: 24svh;
+      overflow: auto;
+      border-top: 1px solid #30415f;
+      margin: 12px 0 18px;
+      text-align: left;
+      scrollbar-width: thin;
+    }
+
+    .detail {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 2px;
+      border-bottom: 1px solid rgba(76,96,135,.35);
+      font-size: 12px;
+    }
+
+    .detail span:nth-child(1) { color: var(--cyan); width: 27px; }
+    .detail span:nth-child(2) {
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .detail span:nth-child(3) {
+      font-family: ui-monospace, monospace;
+      color: var(--gold);
+      font-weight: 800;
+    }
+
+    #rotate {
+      display: none;
+      position: fixed;
+      z-index: 99;
+      inset: 0;
+      background: #05060b;
+      color: var(--cyan);
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 30px;
+      font-weight: 900;
+      line-height: 1.8;
+    }
+
+    @media (orientation: landscape) and (max-height: 650px) {
+      #rotate { display: flex; }
+    }
+  </style>
+</head>
+<body>
+  <div id="rotate">スマホを縦にして<br>フリック入力くんZを起動せよ</div>
+
+  <main id="start" class="screen active">
+    <div class="brand">
+      <span class="small">超・高速フリック試験機</span>
+      <span class="main">フリック入力くん<span class="z">Z</span></span>
+    </div>
+    <p class="subtitle">
+      スマホ標準の日本語フリック入力で挑め。<br>
+      全10問を打ち抜き、最速の称号をつかめ。
+    </p>
+    <button id="startButton" class="button">START</button>
+    <p class="note">
+      日本語フリックキーボードを有効にしてから開始してください。<br>
+      ミスした文字以降は自動で消去されます。
+    </p>
+  </main>
+
+  <main id="countdown" class="screen">
+    <div id="countdownValue">3</div>
+  </main>
+
+  <main id="game" class="screen">
+    <div class="hud">
+      <div class="hud-box">MISSION<strong id="questionNo">01 / 10</strong></div>
+      <div class="hud-box" style="text-align:right;border-left:0;border-right:3px solid var(--red);padding-left:0;padding-right:8px;">TOTAL TIME<strong id="timer">00:00.00</strong></div>
+    </div>
+
+    <div class="game-wrap">
+      <div class="target-label">TARGET</div>
+      <div id="target"></div>
+
+      <div class="input-label">FLICK INPUT</div>
+      <input id="answer" type="text" inputmode="text" lang="ja" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div id="mistake"></div>
+    </div>
+  </main>
+
+  <main id="result" class="screen">
+    <div class="brand" style="margin-bottom:18px;">
+      <span class="small">MISSION COMPLETE</span>
+      <span class="main" style="font-size:clamp(34px,10vw,55px)">RESULT<span class="z">Z</span></span>
+    </div>
+
+    <section class="result-card">
+      <h2>YOUR TITLE</h2>
+      <div id="rank" class="title-rank"></div>
+      <div id="finalTime" class="total-time"></div>
+      <div id="speed" class="speed"></div>
+      <div id="details"></div>
+      <button id="retryButton" class="button">RETRY</button>
+    </section>
+  </main>
+
+  <script>
+    const questions = `
+とりぷるえっくすみちを
+てーぶるうぇあらいおっと
+おーばいせぶん
+ざぶろめんたうんめたりかんず
+ふぁいぶぴーすみにけすとら
+おーでぃおぷろとこる
+なごみっち
+さうんどがちゃ
+どちょっきゅうめーたー
+じぇんたすびーとる
+じぇんとぴあ
+じぇんとりす
+じぇんたうるす
+じぇうぇるばーすすとーん
+ざぞじぇっくさいん
+じゅうにしんしょう
+いーじぇんてむ
+もーしょんへいず
+るなぽりりずむ
+きめらのっくす
+いき
+ぺてぃてだんす
+ありとるふぇいばりっと
+さいれんとろあ
+せいひつのもり
+あうとおぶぴーすあーてぃふぁくつ
+ぼんふぁいあ
+まいすくりぶるぶっく
+ぞーんあうと
+すぺーすあうと
+ぐらびてぃ
+けいぶ
+あくちのいど
+らんたのいど
+ぱらでぃす
+ほのぼの
+いーえーでぃー
+むだい
+むげんそうくみきょく
+うぃんぐどくりーちゃー
+いんでぃあんすぱいす
+いやし
+あんたいとる
+すこびる
+ふぁーすとくらい
+はっきんぐらいふ
+るーすてぃふらわーず
+それでもちきゅうはまわってる
+うだつ
+ねこのうた
+わんこ
+ふぁんきーえめらるど
+ももたろう
+ざほわいとほえーるおぶえんぱいあ
+ありげーたー
+らすとねーむ
+ぷりんせすいんなぺいんてぃんぐ
+れぽーと
+れつあくごっど
+のーずむれっど
+ばっじゃー
+はたらきたい
+るーぷ
+すてれおたいぷらいたー
+はなのようにかれんなきみへ
+ちーたー
+げんじつとうひ
+おいこーだぬき
+めんざいふ
+きまじー
+どるふぃん
+むちゅう
+ごったぼでぃおいる
+みゅーじっくふぁん
+あいまいのまいんど
+えんぺらーおぶぺんぎん
+ちっらーなー
+そらをわかつあかききつね
+やまをうがつみどりのたぬき
+やみをすべるしっこくのぶた
+ふおんぶんしこうぞう
+べすとおぶあんのくろっく
+ふぁーしーる
+ぴやーるせー
+なくしものはくぶつかん
+とるにたらないうた
+いかりのてんしょっく
+ごーふぁー
+ぴーちゃーかるねーわーらー
+くりーむぱい
+ひぽぽたます
+ばーはる
+にんげんてとりす
+すきぴっぴぴざぴっつぁ
+いんぱら
+たすびぃーる
+ぷれすすたーと
+れんあいすかべんじゃー
+たいまーたいまー
+じぇりーふぃっしゅ
+なうくり
+ぴくせるぷれいぐらうんど
+にこちんどなー
+こうげんこうてんはんのう
+かかぽ
+あさふぁるた
+いれぎゅらーず
+ほうかごせーぶ
+ちゃんねるきんぐだむ
+あれれ
+らま
+ちぱーふぁーうったる
+さまーかーとりっじ
+とぅるーらばー
+みーたいむ
+まなてぃー
+そーちょへっどばんぐ
+ぶれいんろっと
+こんてにゅー
+うっぷす
+くうていちゃ
+なむばっと
+ぐーるなん
+たいにーひーろーず
+じゆうなはくちょう
+ひげ
+おぽっさむ
+あまぬーんらがーお`.trim().split("\n");
+
+    const $ = id => document.getElementById(id);
+    const screens = ["start", "countdown", "game", "result"];
+    const answer = $("answer");
+    const target = $("target");
+    const timer = $("timer");
+    const mistake = $("mistake");
+
+    let selected = [];
+    let current = 0;
+    let questionStartedAt = 0;
+    let gameStartedAt = 0;
+    let isPlaying = false;
+    let isComposing = false;
+    let results = [];
+    let audioContext = null;
+
+    function show(name) {
+      screens.forEach(id => $(id).classList.toggle("active", id === name));
+    }
+
+    function shuffle(list) {
+      const copy = [...list];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function formatTime(ms) {
+      const total = Math.max(0, ms);
+      const min = Math.floor(total / 60000);
+      const sec = Math.floor((total % 60000) / 1000);
+      const cs = Math.floor((total % 1000) / 10);
+      return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}.${String(cs).padStart(2, "0")}`;
+    }
+
+    function vibrate(pattern) {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    }
+
+    function sound(type) {
+      if (!audioContext) return;
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const now = audioContext.currentTime;
+
+      osc.type = type === "miss" ? "sawtooth" : "square";
+      osc.frequency.value = type === "miss" ? 135 : type === "clear" ? 880 : 520;
+      gain.gain.setValueAtTime(.045, now);
+      gain.gain.exponentialRampToValueAtTime(.001, now + (type === "clear" ? .15 : .08));
+      osc.connect(gain).connect(audioContext.destination);
+      osc.start(now);
+      osc.stop(now + (type === "clear" ? .15 : .08));
+    }
+
+    function fitTarget() {
+      const text = selected[current] || "";
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const available = Math.min(window.innerWidth - 55, 620);
+      let size = 48;
+
+      ctx.font = `900 ${size}px "Hiragino Sans", "Yu Gothic", sans-serif`;
+      size = Math.floor(size * available / Math.max(ctx.measureText(text).width, 1));
+      size = Math.max(16, Math.min(48, size));
+      target.style.fontSize = size + "px";
+    }
+
+    function displayQuestion() {
+      $("questionNo").textContent = `${String(current + 1).padStart(2, "0")} / 10`;
+      target.textContent = selected[current];
+      answer.value = "";
+      mistake.textContent = "";
+      fitTarget();
+      questionStartedAt = performance.now();
+      setTimeout(() => answer.focus({ preventScroll: true }), 30);
+    }
+
+    function tick() {
+      if (!isPlaying) return;
+      timer.textContent = formatTime(performance.now() - gameStartedAt);
+      requestAnimationFrame(tick);
+    }
+
+    function rankFromSpeed(cpm) {
+      if (cpm >= 280) return "08. フリックの極意";
+      if (cpm >= 245) return "07. スーパーフリッカーブルー";
+      if (cpm >= 210) return "06. スーパーフリッカーゴッド";
+      if (cpm >= 180) return "05. スーパーフリッカーⅢ";
+      if (cpm >= 155) return "04. スーパーフリッカーⅡ";
+      if (cpm >= 130) return "03. スーパーフリッカー";
+      if (cpm >= 105) return "02. フリッカー";
+      if (cpm >= 80) return "01. フリック赤たん";
+      return "00. 誤字るん";
+    }
+
+    function finishGame() {
+      isPlaying = false;
+      const totalMs = performance.now() - gameStartedAt;
+      const chars = selected.join("").length;
+      const cpm = chars / (totalMs / 60000);
+
+      $("finalTime").textContent = formatTime(totalMs);
+      $("rank").textContent = rankFromSpeed(cpm);
+      $("speed").textContent = `入力速度 ${cpm.toFixed(1)} 文字／分　｜　総文字数 ${chars}文字`;
+      $("details").innerHTML = results.map((r, i) => `
+        <div class="detail">
+          <span>${String(i + 1).padStart(2, "0")}</span>
+          <span>${r.text}</span>
+          <span>${formatTime(r.time)}</span>
+        </div>
+      `).join("");
+
+      sound("clear");
+      vibrate([60, 40, 120]);
+      show("result");
+    }
+
+    function checkInput() {
+      if (!isPlaying || isComposing) return;
+
+      const expected = selected[current];
+      const typed = answer.value;
+      let correctLength = 0;
+
+      while (
+        correctLength < typed.length &&
+        correctLength < expected.length &&
+        typed[correctLength] === expected[correctLength]
+      ) {
+        correctLength++;
+      }
+
+      if (correctLength < typed.length) {
+        answer.value = expected.slice(0, correctLength);
+        mistake.textContent = "WARNING：入力エラー。正しい位置から再入力せよ。";
+        answer.classList.remove("warning");
+        void answer.offsetWidth;
+        answer.classList.add("warning");
+        sound("miss");
+        vibrate(35);
+        return;
+      }
+
+      mistake.textContent = "";
+
+      if (typed === expected) {
+        const elapsed = performance.now() - questionStartedAt;
+        results.push({ text: expected, time: elapsed });
+        sound("clear");
+        vibrate(28);
+        current++;
+
+        if (current >= selected.length) {
+          setTimeout(finishGame, 160);
+        } else {
+          setTimeout(displayQuestion, 150);
+        }
+      }
+    }
+
+    async function begin() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      await audioContext.resume();
+
+      selected = shuffle(questions).slice(0, 10);
+      current = 0;
+      results = [];
+      answer.value = "";
+      answer.focus({ preventScroll: true });
+
+      show("countdown");
+      const count = $("countdownValue");
+      const sequence = ["3", "2", "1", "GO!"];
+      let index = 0;
+
+      const next = () => {
+        count.textContent = sequence[index];
+        sound(index === 3 ? "clear" : "count");
+        vibrate(index === 3 ? 55 : 20);
+
+        if (index === 3) {
+          setTimeout(() => {
+            show("game");
+            isPlaying = true;
+            gameStartedAt = performance.now();
+            displayQuestion();
+            requestAnimationFrame(tick);
+          }, 620);
+          return;
+        }
+
+        index++;
+        setTimeout(next, 800);
+      };
+
+      next();
+    }
+
+    $("startButton").addEventListener("click", begin);
+    $("retryButton").addEventListener("click", begin);
+
+    answer.addEventListener("compositionstart", () => {
+      isComposing = true;
+    });
+
+    answer.addEventListener("compositionend", () => {
+      isComposing = false;
+      checkInput();
+    });
+
+    answer.addEventListener("input", checkInput);
+    window.addEventListener("resize", fitTarget);
+
+    // ピンチズーム、ダブルタップズーム、画面スクロールの抑止
+    document.addEventListener("gesturestart", e => e.preventDefault(), { passive: false });
+    document.addEventListener("gesturechange", e => e.preventDefault(), { passive: false });
+    document.addEventListener("gestureend", e => e.preventDefault(), { passive: false });
+
+    document.addEventListener("touchmove", e => {
+      if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener("dblclick", e => e.preventDefault(), { passive: false });
+  </script>
+</body>
+</html>
