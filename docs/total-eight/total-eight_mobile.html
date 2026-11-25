@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#100b22">
 <title>とーたるえいと❣️ ver1.3</title>
 
@@ -90,6 +90,7 @@ button:active {
 }
 
 #titleScreen {
+  position: relative;
   justify-content: center;
   align-items: center;
   text-align: center;
@@ -358,8 +359,8 @@ button:active {
 .falling {
   position: absolute;
   z-index: 10;
-  width: calc(25% - 4px);
-  height: calc((100% - 35px) / 8);
+  width: 0;
+  height: 0;
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -573,6 +574,20 @@ button:active {
   font-size: 11px;
   z-index: 3;
 }
+#gameScreen #soundBtnGame {
+  position: static;
+  width: 100%;
+  height: 100%;
+  min-height: 38px;
+  padding: 3px 2px;
+  border-radius: 9px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.hud { grid-template-columns: 1fr 1fr 1fr 1.35fr .8fr; }
+.board { position: relative; }
+.board, .boardWrap, .cell { touch-action: none; }
+
 
 @keyframes logoPulse {
   0%, 100% { transform: scale(1); }
@@ -626,10 +641,10 @@ button:active {
 <body>
 <div id="app">
 
-  <button id="soundBtn" onclick="toggleSound()">🔊 音を有効化</button>
 
   <!-- TITLE -->
   <section id="titleScreen" class="screen active">
+  <button id="soundBtn" onclick="toggleSound()">🔇 音 OFF</button>
     <div>
       <div class="logo">とーたるえいと❣️</div>
       <div class="version">ver1.3</div>
@@ -666,8 +681,9 @@ button:active {
 
       <div class="hudItem">
         <div class="hudLabel">STAGE XP</div>
-        <div class="hudValue" id="stageXP">0 / 4500</div>
+        <div class="hudValue" id="stageXP">0 / 1,800</div>
       </div>
+      <button id="soundBtnGame" class="hudItem" onclick="toggleSound()">🔇 音 OFF</button>
     </div>
 
     <div class="overGauge" id="overGauge">
@@ -747,7 +763,7 @@ const ROWS = 8;
 const START_TIME = 300;
 const FEVER_TIME = 8;
 
-const STAGE_TARGETS = [4500, 4500, 5500, 6500, 7500];
+const STAGE_TARGETS = [1800, 3600, 5400, 10800, 16200];
 const DROP_SPEEDS = [1800, 1650, 1450, 1050, 1050];
 
 const RING_COLORS = [
@@ -839,6 +855,12 @@ const HISTORY_TEXT =
 ・リングが残るレーンにはオーブを追加しない
 ・FEVER中は経験値4倍
 ・縦持ちスマートフォン画面に最適化
+・落下リングは1～4、オーブは1～7
+・レベル経験値目標：1800 / 3600 / 5400 / 10800 / 16200
+・Lv.5目標達成でゲームクリア、最大Lv.5
+・OVER LIMIT時は最上段リングを消去
+・音ボタンをHUD内に分離配置
+・ダブルタップ/ピンチズームを抑止
 ・READY? → 3 → 2 → 1 → GO! 演出追加
 ・LEVEL UP、FEVER、OVER LIMIT演出を追加
 ・Web Audio APIによる効果音追加`;
@@ -988,13 +1010,13 @@ function toggleSound() {
   initAudio();
   game.audioEnabled = !game.audioEnabled;
 
-  const button = document.getElementById("soundBtn");
+  const buttons = [document.getElementById("soundBtn"), document.getElementById("soundBtnGame")].filter(Boolean);
 
   if (game.audioEnabled) {
-    button.textContent = "🔊 音 ON";
+    buttons.forEach(button => button.textContent = "🔊 音 ON");
     if (game.active && !game.paused) playBGM();
   } else {
-    button.textContent = "🔇 音 OFF";
+    buttons.forEach(button => button.textContent = "🔇 音 OFF");
     stopBGM();
   }
 }
@@ -1092,6 +1114,12 @@ function playBGM(path = getBGMPath(game.level)) {
   const audio = new Audio(path);
   audio.loop = true;
   audio.volume = .5;
+  audio.addEventListener("ended", () => {
+    if (game.active && !game.paused && game.audioEnabled && game.level >= 5 && game.bgm === audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    }
+  });
 
   game.bgm = audio;
   audio.play().catch(() => {});
@@ -1221,7 +1249,7 @@ function wait(ms) {
 function createOrb() {
   return {
     type: "orb",
-    value: 2,
+    value: Math.floor(Math.random() * 7) + 1,
     color: ORB_COLORS[Math.floor(Math.random() * ORB_COLORS.length)]
   };
 }
@@ -1285,7 +1313,7 @@ function renderHUD() {
   document.getElementById("timeDisplay").textContent =
     Math.max(0, Math.ceil(game.time));
 
-  const target = STAGE_TARGETS[game.level - 1] || 7500;
+  const target = STAGE_TARGETS[game.level - 1] || STAGE_TARGETS[4];
 
   document.getElementById("stageXP").textContent =
     game.stageXP.toLocaleString() + " / " +
@@ -1369,23 +1397,21 @@ function renderBoard() {
 function renderFalling() {
   const old = document.getElementById("fallingPiece");
   if (old) old.remove();
-
   if (!game.falling) return;
 
-  const boardWrap = document.querySelector(".boardWrap");
   const boardEl = document.getElementById("board");
+  const cell = boardEl.querySelector(`.cell[data-row="${game.falling.row}"][data-col="${game.falling.col}"]`);
+  if (!cell) return;
 
   const pieceEl = document.createElement("div");
   pieceEl.id = "fallingPiece";
   pieceEl.className = "falling";
-
-  pieceEl.style.left = `calc(${game.falling.col * 25}% + 2px)`;
-  pieceEl.style.top =
-    `calc(${game.falling.row * 12.5}% + 5px)`;
-
+  pieceEl.style.left = `${cell.offsetLeft}px`;
+  pieceEl.style.top = `${cell.offsetTop}px`;
+  pieceEl.style.width = `${cell.offsetWidth}px`;
+  pieceEl.style.height = `${cell.offsetHeight}px`;
   pieceEl.appendChild(makePieceElement(game.falling.piece));
-
-  boardWrap.appendChild(pieceEl);
+  boardEl.appendChild(pieceEl);
 }
 
 /* =========================================================
@@ -1625,33 +1651,12 @@ async function resolveLane(col, isNewRing) {
       showEffect(String(sum), "over", 1000);
       soundOver();
 
-      game.board[ROWS - 1][col] = null;
-
-      // The actual newly placed ring may not be at bottom
-      // if the lane contains an orb. Find and remove it.
+      // Over-limit removes the uppermost ring in the stack (smallest row index).
       const lane = getLanePieces(col);
-      let removeIndex = -1;
-
-      for (let i = lane.length - 1; i >= 0; i--) {
-        const p = lane[i].piece;
-        if (p.type === "ring" && p === fallingPieceReference) {
-          removeIndex = i;
-          break;
-        }
-      }
-
-      // Fallback: remove the most recently placed ring.
-      if (removeIndex < 0) {
-        for (let r = ROWS - 1; r >= 0; r--) {
-          const p = game.board[r][col];
-          if (p && p.type === "ring") {
-            game.board[r][col] = null;
-            break;
-          }
-        }
-      } else {
-        game.board[lane[removeIndex].row][col] = null;
-      }
+      const uppermostRing = lane
+        .filter(item => item.piece.type === "ring")
+        .sort((a, b) => a.row - b.row)[0];
+      if (uppermostRing) game.board[uppermostRing.row][col] = null;
 
       game.over++;
       renderGauge();
@@ -2106,6 +2111,17 @@ checkOrbRefillAndFever = async function() {
 /* =========================================================
    START
 ========================================================= */
+
+// Prevent browser double-tap zoom and pinch zoom during gameplay.
+let lastTouchEnd = 0;
+document.addEventListener("touchend", (event) => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 320) event.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+document.addEventListener("gesturestart", event => event.preventDefault(), { passive: false });
+document.addEventListener("gesturechange", event => event.preventDefault(), { passive: false });
+document.addEventListener("gestureend", event => event.preventDefault(), { passive: false });
 
 renderAll();
 
