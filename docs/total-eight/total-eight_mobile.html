@@ -110,8 +110,6 @@
       text-align: center;
     }
 
-    /* タイトル */
-
     #title-screen {
       align-items: center;
       justify-content: center;
@@ -204,8 +202,6 @@
       font-weight: 800;
       letter-spacing: 0.1em;
     }
-
-    /* ゲーム */
 
     #game-screen {
       flex-direction: column;
@@ -454,12 +450,9 @@
       color: white;
       font-family: "Mochiy Pop One", sans-serif;
       font-size: clamp(0.85rem, 4.8vw, 1.38rem);
-      font-weight: 400;
       line-height: 1;
       text-shadow: 0 2px 3px rgba(0, 0, 0, 0.98);
     }
-
-    /* リングは中心が抜けた輪 */
 
     .piece.ring {
       border: 3px solid #effaff;
@@ -472,8 +465,6 @@
         inset 0 0 9px rgba(255, 255, 255, 0.3);
     }
 
-    /* オーブは中身が詰まった発光球 */
-
     .piece.orb {
       border: 3px solid #ffffff;
       border-radius: 50%;
@@ -485,13 +476,6 @@
         0 0 7px rgba(255, 255, 255, 0.8),
         0 0 19px rgba(93, 228, 255, 0.94),
         inset -5px -7px 10px rgba(0, 0, 0, 0.36);
-    }
-
-    .piece.orb.c0 {
-      background:
-        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.96) 0 8%, transparent 10%),
-        radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
-        radial-gradient(circle at 50% 58%, #258fdd 0 55%, #0b396f 100%);
     }
 
     .piece.orb.c1 {
@@ -556,8 +540,6 @@
       font-size: 0.7rem;
       font-weight: 900;
     }
-
-    /* モーダル・演出 */
 
     .modal,
     .overlay {
@@ -654,7 +636,6 @@
     .countdown {
       z-index: 34;
       pointer-events: none;
-      overflow: hidden;
     }
 
     .countdown strong {
@@ -926,15 +907,6 @@
         transform: translate(-50%, -78%) scale(0.95);
       }
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-      }
-    }
   </style>
 </head>
 
@@ -1059,13 +1031,12 @@
         <h3>ver1.3　縦持ち用の落下パズルへ大幅改修</h3>
         <ul>
           <li>リングが上から下へ落ちる、4レーンの落下パズルになりました。</li>
-          <li>リングのレーン移動を修正しました。積み上がったレーンにも、上から正しく落とせます。</li>
+          <li>レーン内の合計が9以上になった時は、オーブの有無に関係なく新しいリングが消え、オーバーゲージが増えるよう修正しました。</li>
+          <li>オーブが全てなくなった後、完全に空のレーンだけへ新しいオーブを追加するよう修正しました。</li>
+          <li>リングが残るレーンへオーブを追加することはありません。</li>
+          <li>リングのレーン移動を修正しました。積み上がったレーンにも正しく落とせます。</li>
           <li>同じレーンを再タップした時は、空中停止せず着地地点まで即落下します。</li>
-          <li>オーブは中身が詰まった発光球、リングは中心が抜けた輪として見分けやすくしました。</li>
-          <li>リングだけのレーンは、オーブへ変化しません。</li>
-          <li>全レーンが空になった時はFEVER!が派手に表示され、経験値が4倍になります。</li>
-          <li>LEVEL 1〜3の落下速度を遅くしました。</li>
-          <li>リングとオーブ、リングとリングが接続した時に接続音が鳴ります。</li>
+          <li>オーブは中身が詰まった発光球、リングは中心が抜けた輪です。</li>
         </ul>
       </div>
 
@@ -1187,7 +1158,7 @@
       "リングは上から下へ落ちてくる。置きたいレーンをタップして動かそう。",
       "同じレーンをもう一度タップすると、リングは空中で止まらず、着地位置まで即落下する。",
       "一番下のオーブから上へつながるリングの合計を、ぴったり8にしよう。",
-      "9以上になると、新しく置いたリングだけが消えて、オーバーゲージが増える。",
+      "レーン内の合計が9以上になると、新しく置いたリングだけが消えて、オーバーゲージが増える。",
       "★リングは特別。そのレーンのオーブやリングを、全部「8を作った」扱いで消してくれる。"
     ];
 
@@ -1295,17 +1266,21 @@
       };
     }
 
+    function createOrb(lane) {
+      return makePiece(
+        "orb",
+        randomNumber(),
+        lane
+      );
+    }
+
     function createBoard() {
       return Array.from(
         { length: CONFIG.lanes },
         (_, lane) => {
           const column = Array(CONFIG.rows).fill(null);
 
-          column[CONFIG.rows - 1] = makePiece(
-            "orb",
-            randomNumber(),
-            lane
-          );
+          column[CONFIG.rows - 1] = createOrb(lane);
 
           return column;
         }
@@ -1410,8 +1385,6 @@
     function setStatus(text) {
       el.status.textContent = text;
     }
-
-    /* ---------- 音 ---------- */
 
     function unlockAudio() {
       const AudioContextClass =
@@ -1626,8 +1599,6 @@
       });
     }
 
-    /* ---------- 描画 ---------- */
-
     function render() {
       if (!game) {
         return;
@@ -1776,7 +1747,68 @@
       return game.board[lane].filter(Boolean).length;
     }
 
-    /* ---------- ゲーム ---------- */
+    function getLaneTotal(lane) {
+      return game.board[lane].reduce(
+        (total, piece) => {
+          if (
+            !piece ||
+            piece.type === "star" ||
+            typeof piece.number !== "number"
+          ) {
+            return total;
+          }
+
+          return total + piece.number;
+        },
+        0
+      );
+    }
+
+    function hasAnyOrb() {
+      return game.board.some((column) => {
+        return column.some((piece) => {
+          return piece?.type === "orb";
+        });
+      });
+    }
+
+    function isLaneCompletelyEmpty(lane) {
+      return game.board[lane].every(
+        (piece) => piece === null
+      );
+    }
+
+    function restoreOrbsToEmptyLanesIfNeeded() {
+      /*
+        オーブが盤面に1個でもあるなら追加しない。
+        全オーブが消え、かつ完全に空のレーンだけに追加する。
+        リングが残るレーンには絶対に追加しない。
+      */
+      if (hasAnyOrb()) {
+        return false;
+      }
+
+      let added = false;
+
+      for (let lane = 0; lane < CONFIG.lanes; lane += 1) {
+        if (!isLaneCompletelyEmpty(lane)) {
+          continue;
+        }
+
+        game.board[lane][CONFIG.rows - 1] = createOrb(lane);
+        added = true;
+      }
+
+      return added;
+    }
+
+    function isBoardCompletelyEmpty() {
+      return game.board.every((column) => {
+        return column.every(
+          (piece) => piece === null
+        );
+      });
+    }
 
     async function startNewGame() {
       clearTimers();
@@ -1835,6 +1867,7 @@
         }
 
         await wait(step.duration);
+
         el.countdown.classList.remove("open");
       }
 
@@ -1910,11 +1943,6 @@
       return game.board[lane][row] === null;
     }
 
-    /*
-      修正の核心：
-      移動先レーンの「現在いる高さ」だけ確認する。
-      下にリングが積まれていても、そこへ落下できる。
-    */
     function canMoveToLane(lane) {
       if (!game.active) {
         return false;
@@ -1923,10 +1951,6 @@
       return game.board[lane][game.active.row] === null;
     }
 
-    /*
-      同じレーンを再タップした時は、空中停止ではない。
-      そのレーン内で置ける最下段まで一気に落下する。
-    */
     function hardDropActiveRing() {
       if (!game.active) {
         return;
@@ -2057,18 +2081,37 @@
         return;
       }
 
-      const connection = getOrbConnection(lane);
-
       /*
-        オーブがない列はリングだけの列。
-        経験値・オーバー・オーブ化を一切行わない。
+        最優先判定：
+        オーブがあるかどうかは関係なし。
+        レーンにある数値の合計が9以上なら、
+        新しく置いたリングを必ず消し、
+        オーバーゲージを必ず増やす。
       */
-      if (!connection.hasOrb) {
-        setStatus("RINGS ONLY");
+      const laneTotal = getLaneTotal(lane);
+
+      if (laneTotal >= 9) {
+        game.board[lane][placedRow] = null;
+
+        settleLane(lane);
+
+        increaseOverGauge(laneTotal);
+        setStatus("OVER LIMIT");
+
+        render();
         return;
       }
 
-      if (connection.total === 8) {
+      /*
+        合計8で経験値を得られるのは、
+        オーブからつながっている時だけ。
+      */
+      const connection = getOrbConnection(lane);
+
+      if (
+        connection.hasOrb &&
+        connection.total === 8
+      ) {
         await clearConnection(
           lane,
           connection.positions,
@@ -2078,13 +2121,8 @@
         return;
       }
 
-      if (connection.total >= 9) {
-        game.board[lane][placedRow] = null;
-
-        increaseOverGauge(connection.total);
-        setStatus("OVER LIMIT");
-
-        render();
+      if (!connection.hasOrb) {
+        setStatus("RINGS ONLY");
         return;
       }
 
@@ -2110,9 +2148,20 @@
 
       await wait(220);
 
+      if (isBoardCompletelyEmpty()) {
+        await startFever();
+        return;
+      }
+
+      restoreOrbsToEmptyLanesIfNeeded();
+      render();
+
       const next = getOrbConnection(lane);
 
-      if (next.hasOrb && next.total === 8) {
+      if (
+        next.hasOrb &&
+        next.total === 8
+      ) {
         await clearConnection(
           lane,
           next.positions,
@@ -2122,7 +2171,14 @@
         return;
       }
 
-      await checkFever();
+      /*
+        連鎖で盤面が動いた結果9以上なら、
+        今回の新規リング起因ではないためゲージは増やさない。
+        そのまま盤面へ残す。
+      */
+      if (getLaneTotal(lane) >= 9) {
+        setStatus("CHECK YOUR STACK");
+      }
     }
 
     async function clearLaneByStar(lane) {
@@ -2139,7 +2195,14 @@
       render();
 
       await wait(250);
-      await checkFever();
+
+      if (isBoardCompletelyEmpty()) {
+        await startFever();
+        return;
+      }
+
+      restoreOrbsToEmptyLanesIfNeeded();
+      render();
     }
 
     function settleLane(lane) {
@@ -2182,12 +2245,8 @@
       }
     }
 
-    async function checkFever() {
-      const hasAnyPiece = game.board.some((column) => {
-        return column.some(Boolean);
-      });
-
-      if (hasAnyPiece || game.ended) {
+    async function startFever() {
+      if (game.ended) {
         return;
       }
 
