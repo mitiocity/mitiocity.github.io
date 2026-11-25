@@ -13,10 +13,7 @@
 
     :root {
       --bg: #040817;
-      --panel: #091633;
       --cyan: #5de4ff;
-      --blue: #268ee7;
-      --purple: #a981ff;
       --pink: #ff7194;
       --yellow: #ffe878;
       --green: #7dff9c;
@@ -54,22 +51,21 @@
 
     .app {
       position: relative;
-      width: 100%;
       min-height: 100dvh;
       overflow: hidden;
       background:
-        radial-gradient(circle at 50% -10%, rgba(42, 106, 207, 0.5), transparent 42%),
-        radial-gradient(circle at 0% 100%, rgba(117, 47, 162, 0.25), transparent 45%),
-        linear-gradient(160deg, #071631 0%, #040817 64%, #12071f 100%);
+        radial-gradient(circle at 50% -10%, rgba(53, 111, 210, 0.48), transparent 44%),
+        radial-gradient(circle at 0% 100%, rgba(134, 58, 172, 0.26), transparent 48%),
+        linear-gradient(160deg, #071631, #040817 63%, #12071f);
     }
 
     .app::before {
       position: fixed;
       z-index: 0;
-      inset: -20%;
+      inset: -25%;
       content: "";
       pointer-events: none;
-      opacity: 0.18;
+      opacity: 0.15;
       background:
         repeating-linear-gradient(
           90deg,
@@ -81,15 +77,11 @@
           transparent 0 34px,
           rgba(93, 228, 255, 0.06) 35px 36px
         );
-      transform: perspective(500px) rotateX(62deg) translateY(-12%);
+      transform: perspective(500px) rotateX(64deg) translateY(-13%);
     }
 
     .app.is-fever {
-      animation: fever-screen 0.8s ease-out both;
-      background:
-        radial-gradient(circle at 50% 25%, rgba(255, 232, 120, 0.48), transparent 44%),
-        radial-gradient(circle at 10% 90%, rgba(125, 255, 156, 0.3), transparent 45%),
-        linear-gradient(155deg, #0b6a5b, #071630 48%, #4d155f);
+      animation: fever-screen 0.85s ease-out both;
     }
 
     .screen {
@@ -99,7 +91,7 @@
       width: 100%;
       min-height: 100dvh;
       padding:
-        calc(9px + env(safe-area-inset-top))
+        calc(8px + env(safe-area-inset-top))
         10px
         calc(8px + env(safe-area-inset-bottom));
     }
@@ -112,13 +104,13 @@
       margin: 0;
       color: var(--cyan);
       font-family: Orbitron, sans-serif;
-      font-size: 0.64rem;
+      font-size: 0.62rem;
       font-weight: 900;
-      letter-spacing: 0.13em;
+      letter-spacing: 0.14em;
       text-align: center;
     }
 
-    /* ---------- タイトル ---------- */
+    /* タイトル */
 
     #title-screen {
       align-items: center;
@@ -133,35 +125,31 @@
     .title-content h1 {
       width: 100%;
       margin: 10px auto 0;
-      overflow: visible;
       color: white;
       font-family: "Mochiy Pop One", sans-serif;
-      font-size: clamp(2rem, 8.5vw, 3.25rem);
+      font-size: clamp(2rem, 8.5vw, 3.3rem);
       font-weight: 400;
       line-height: 1.15;
       letter-spacing: -0.1em;
       white-space: nowrap;
       word-break: keep-all;
-      overflow-wrap: normal;
       text-shadow:
         0 0 18px rgba(93, 228, 255, 0.62),
-        0 8px 24px rgba(0, 0, 0, 0.54);
+        0 8px 24px rgba(0, 0, 0, 0.52);
     }
 
     .title-content h1 span {
-      display: inline-block;
-      margin-left: 0.04em;
       color: var(--pink);
     }
 
     .version {
       width: max-content;
-      margin: 3px 7% 0 auto;
+      margin: 4px 7% 0 auto;
       color: var(--muted);
       font-family: Orbitron, sans-serif;
-      font-size: 0.62rem;
+      font-size: 0.61rem;
       font-weight: 800;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
     }
 
     .lead {
@@ -178,13 +166,13 @@
     .menu-button,
     .abort-button {
       min-height: 53px;
-      border: 1px solid rgba(143, 207, 255, 0.38);
+      border: 1px solid rgba(143, 207, 255, 0.4);
       border-radius: 15px;
       color: var(--text);
       background:
         linear-gradient(135deg, rgba(37, 78, 141, 0.96), rgba(11, 26, 61, 0.96));
       box-shadow:
-        0 6px 18px rgba(0, 0, 0, 0.32),
+        0 6px 18px rgba(0, 0, 0, 0.34),
         inset 0 1px rgba(255, 255, 255, 0.12);
     }
 
@@ -217,7 +205,7 @@
       letter-spacing: 0.1em;
     }
 
-    /* ---------- ゲーム ---------- */
+    /* ゲーム */
 
     #game-screen {
       flex-direction: column;
@@ -279,7 +267,7 @@
       min-height: 23px;
       gap: 7px;
       padding: 3px 7px;
-      border: 1px solid rgba(255, 113, 148, 0.35);
+      border: 1px solid rgba(255, 113, 148, 0.36);
       border-radius: 8px;
       background: rgba(36, 8, 31, 0.48);
     }
@@ -301,7 +289,7 @@
       display: block;
       flex: 1;
       height: 7px;
-      border: 1px solid rgba(255, 113, 148, 0.7);
+      border: 1px solid rgba(255, 113, 148, 0.72);
       border-radius: 999px;
       background: rgba(255, 113, 148, 0.1);
     }
@@ -383,7 +371,9 @@
       margin: 1px auto 0;
       border: 2px solid #e9f8ff;
       border-radius: 50%;
-      background: rgba(225, 246, 255, 0.14);
+      background:
+        radial-gradient(circle, rgba(5, 12, 29, 0.92) 0 37%, transparent 39%),
+        radial-gradient(circle, rgba(202, 235, 255, 0.28) 42%, rgba(83, 165, 235, 0.42) 100%);
       color: white;
       font-family: "Mochiy Pop One", sans-serif;
       font-size: 0.78rem;
@@ -469,7 +459,7 @@
       text-shadow: 0 2px 3px rgba(0, 0, 0, 0.98);
     }
 
-    /* リング：中心が抜けた「輪」 */
+    /* リングは中心が抜けた輪 */
 
     .piece.ring {
       border: 3px solid #effaff;
@@ -482,43 +472,15 @@
         inset 0 0 9px rgba(255, 255, 255, 0.3);
     }
 
-    .piece.ring.c0 {
-      border-color: #80dcff;
-      background:
-        radial-gradient(circle, rgba(5, 12, 29, 0.94) 0 37%, transparent 39%),
-        radial-gradient(circle, rgba(21, 130, 200, 0.25) 42%, #1a83c8 100%);
-    }
-
-    .piece.ring.c1 {
-      border-color: #d4b2ff;
-      background:
-        radial-gradient(circle, rgba(9, 5, 24, 0.94) 0 37%, transparent 39%),
-        radial-gradient(circle, rgba(135, 59, 214, 0.28) 42%, #873bd6 100%);
-    }
-
-    .piece.ring.c2 {
-      border-color: #ffb3cb;
-      background:
-        radial-gradient(circle, rgba(28, 5, 15, 0.94) 0 37%, transparent 39%),
-        radial-gradient(circle, rgba(212, 87, 130, 0.28) 42%, #d45782 100%);
-    }
-
-    .piece.ring.c3 {
-      border-color: #a8ffdb;
-      background:
-        radial-gradient(circle, rgba(4, 25, 18, 0.94) 0 37%, transparent 39%),
-        radial-gradient(circle, rgba(43, 175, 133, 0.28) 42%, #2baf85 100%);
-    }
-
-    /* オーブ：輪ではなく、発光する「中身が詰まった球」 */
+    /* オーブは中身が詰まった発光球 */
 
     .piece.orb {
       border: 3px solid #ffffff;
       border-radius: 50%;
       background:
-        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95) 0 8%, transparent 10%),
+        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.96) 0 8%, transparent 10%),
         radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
-        radial-gradient(circle at 50% 58%, #247ec6 0 55%, #0d335f 100%);
+        radial-gradient(circle at 50% 58%, #258fdd 0 55%, #0b396f 100%);
       box-shadow:
         0 0 7px rgba(255, 255, 255, 0.8),
         0 0 19px rgba(93, 228, 255, 0.94),
@@ -527,28 +489,28 @@
 
     .piece.orb.c0 {
       background:
-        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95) 0 8%, transparent 10%),
+        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.96) 0 8%, transparent 10%),
         radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
         radial-gradient(circle at 50% 58%, #258fdd 0 55%, #0b396f 100%);
     }
 
     .piece.orb.c1 {
       background:
-        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95) 0 8%, transparent 10%),
+        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.96) 0 8%, transparent 10%),
         radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
         radial-gradient(circle at 50% 58%, #9b55e4 0 55%, #3e176b 100%);
     }
 
     .piece.orb.c2 {
       background:
-        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95) 0 8%, transparent 10%),
+        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.96) 0 8%, transparent 10%),
         radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
         radial-gradient(circle at 50% 58%, #e35d91 0 55%, #741a42 100%);
     }
 
     .piece.orb.c3 {
       background:
-        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95) 0 8%, transparent 10%),
+        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.96) 0 8%, transparent 10%),
         radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
         radial-gradient(circle at 50% 58%, #36c595 0 55%, #0b5d47 100%);
     }
@@ -565,22 +527,6 @@
 
     .piece.active {
       animation: active-ring 0.72s ease-in-out infinite alternate;
-    }
-
-    .piece.t5 {
-      border-color: var(--green);
-      box-shadow: 0 0 14px var(--green);
-    }
-
-    .piece.t6 {
-      border-color: var(--green);
-      animation: prep-pulse 0.75s infinite;
-    }
-
-    .piece.t7 {
-      border-color: var(--yellow);
-      animation: prep-pulse 0.38s infinite;
-      box-shadow: 0 0 21px var(--yellow);
     }
 
     .bottom-tools {
@@ -611,7 +557,7 @@
       font-weight: 900;
     }
 
-    /* ---------- モーダル・演出 ---------- */
+    /* モーダル・演出 */
 
     .modal,
     .overlay {
@@ -714,7 +660,6 @@
     .countdown strong {
       display: block;
       width: min(92vw, 620px);
-      overflow: visible;
       color: white;
       font-family: Orbitron, sans-serif;
       font-size: clamp(4.5rem, 32vw, 10rem);
@@ -724,17 +669,15 @@
       text-align: center;
       text-shadow:
         0 0 8px var(--cyan),
-        0 0 28px var(--purple),
+        0 0 28px var(--pink),
         0 0 54px rgba(255, 232, 120, 0.65);
       animation: countdown-pop 0.56s ease-out both;
     }
 
     .countdown.ready-phase strong {
       width: min(90vw, 600px);
-      overflow: hidden;
       font-size: clamp(2rem, 14vw, 4.7rem);
       letter-spacing: 0.01em;
-      text-overflow: clip;
       white-space: nowrap;
       animation: ready-grow 0.7s ease-out both;
     }
@@ -755,7 +698,7 @@
       letter-spacing: -0.06em;
       text-shadow:
         0 0 8px var(--cyan),
-        0 0 24px var(--purple),
+        0 0 24px #a981ff,
         0 0 46px rgba(255, 232, 120, 0.8);
       animation: level-burst 1.8s ease-out both;
     }
@@ -835,13 +778,6 @@
       to {
         transform: translateY(2px) scale(1.04);
         box-shadow: 0 0 19px var(--cyan);
-      }
-    }
-
-    @keyframes prep-pulse {
-      50% {
-        filter: brightness(1.4);
-        transform: scale(1.06);
       }
     }
 
@@ -939,7 +875,7 @@
 
       100% {
         opacity: 0;
-        transform: scale(1.55) rotate(22deg) translateX(0);
+        transform: scale(1.55) rotate(22deg);
       }
     }
 
@@ -963,25 +899,14 @@
     @keyframes fever-screen {
       0% {
         filter: brightness(1);
-        transform: translateX(0);
       }
 
-      20% {
-        filter: brightness(1.65) hue-rotate(45deg);
-        transform: translateX(-7px);
-      }
-
-      40% {
-        transform: translateX(7px);
-      }
-
-      60% {
-        transform: translateX(-4px);
+      25% {
+        filter: brightness(1.6) hue-rotate(40deg);
       }
 
       100% {
         filter: brightness(1);
-        transform: translateX(0);
       }
     }
 
@@ -1100,8 +1025,8 @@
 
       <div class="bottom-tools">
         <p class="hint">
-          落下リングを置きたいレーンをタップ。<br>
-          同じレーンをもう一度タップすると即固定。
+          置きたいレーンをタップ。<br>
+          同じレーンをもう一度タップすると最下部まで即落下。
         </p>
 
         <button id="abort-button" class="abort-button" type="button">
@@ -1134,14 +1059,13 @@
         <h3>ver1.3　縦持ち用の落下パズルへ大幅改修</h3>
         <ul>
           <li>リングが上から下へ落ちる、4レーンの落下パズルになりました。</li>
-          <li>オーブとリングの見た目を明確に変えました。オーブは中身の詰まった発光球、リングは中心が抜けた輪です。</li>
-          <li>READY?が画面からはみ出さない大きさで、中央に拡大表示されます。</li>
-          <li>リングだけのレーンはオーブへ変化せず、経験値にもなりません。</li>
-          <li>全レーンが完全に空になった時、FEVER!が回転・拡大・揺れを伴って派手に表示されます。</li>
-          <li>FEVER中の経験値は4倍です。</li>
-          <li>LEVEL 1〜3のリング落下速度を遅くしました。</li>
+          <li>リングのレーン移動を修正しました。積み上がったレーンにも、上から正しく落とせます。</li>
+          <li>同じレーンを再タップした時は、空中停止せず着地地点まで即落下します。</li>
+          <li>オーブは中身が詰まった発光球、リングは中心が抜けた輪として見分けやすくしました。</li>
+          <li>リングだけのレーンは、オーブへ変化しません。</li>
+          <li>全レーンが空になった時はFEVER!が派手に表示され、経験値が4倍になります。</li>
+          <li>LEVEL 1〜3の落下速度を遅くしました。</li>
           <li>リングとオーブ、リングとリングが接続した時に接続音が鳴ります。</li>
-          <li>レーン移動時に、落下中リングの高さが戻らなくなりました。</li>
         </ul>
       </div>
 
@@ -1261,7 +1185,7 @@
 
     const TUTORIALS = [
       "リングは上から下へ落ちてくる。置きたいレーンをタップして動かそう。",
-      "同じレーンをもう一度タップすると、リングはその位置で即固定される。",
+      "同じレーンをもう一度タップすると、リングは空中で止まらず、着地位置まで即落下する。",
       "一番下のオーブから上へつながるリングの合計を、ぴったり8にしよう。",
       "9以上になると、新しく置いたリングだけが消えて、オーバーゲージが増える。",
       "★リングは特別。そのレーンのオーブやリングを、全部「8を作った」扱いで消してくれる。"
@@ -1330,10 +1254,8 @@
     let game = null;
     let pieceId = 0;
     let tutorialIndex = 0;
-
     let fallTimer = null;
     let timeTimer = null;
-
     let audioContext = null;
     let bgm = null;
     let endMusic = null;
@@ -1410,9 +1332,7 @@
 
         busy: true,
         paused: false,
-        ended: false,
-
-        bgmPathByLevel: {}
+        ended: false
       };
     }
 
@@ -1561,9 +1481,7 @@
     }
 
     function playConnectSound() {
-      if (!unlockAudio()) {
-        return;
-      }
+      unlockAudio();
 
       window.setTimeout(() => {
         playTone({
@@ -1587,9 +1505,7 @@
     }
 
     function playClearSound(chain = 1) {
-      if (!unlockAudio()) {
-        return;
-      }
+      unlockAudio();
 
       const root = 261.63 * Math.pow(2, (game.level - 1) / 6);
       const scale = [1, 1.125, 1.25, 1.333, 1.5, 1.667, 1.875, 2];
@@ -1608,40 +1524,38 @@
     }
 
     function playOverSound() {
-      if (!unlockAudio()) {
-        return;
-      }
+      unlockAudio();
 
-      const notes = [146.83, 98, 73.42, 58.27];
-
-      notes.forEach((frequency, index) => {
-        window.setTimeout(() => {
-          playTone({
-            frequency,
-            slideTo: frequency * 0.84,
-            duration: 0.13,
-            volume: 0.17,
-            type: "triangle"
-          });
-        }, index * 75);
-      });
+      [146.83, 98, 73.42, 58.27].forEach(
+        (frequency, index) => {
+          window.setTimeout(() => {
+            playTone({
+              frequency,
+              slideTo: frequency * 0.84,
+              duration: 0.13,
+              volume: 0.17,
+              type: "triangle"
+            });
+          }, index * 75);
+        }
+      );
     }
 
     function playFeverSound() {
-      if (!unlockAudio()) {
-        return;
-      }
+      unlockAudio();
 
-      [261.63, 329.63, 392, 523.25].forEach((frequency, index) => {
-        window.setTimeout(() => {
-          playTone({
-            frequency,
-            duration: 0.18,
-            volume: 0.13,
-            type: "sine"
-          });
-        }, index * 80);
-      });
+      [261.63, 329.63, 392, 523.25].forEach(
+        (frequency, index) => {
+          window.setTimeout(() => {
+            playTone({
+              frequency,
+              duration: 0.18,
+              volume: 0.13,
+              type: "sine"
+            });
+          }, index * 80);
+        }
+      );
     }
 
     function getBgmPath(level) {
@@ -1687,9 +1601,7 @@
 
       stopBgm();
 
-      const path = getBgmPath(game.level);
-
-      bgm = new Audio(path);
+      bgm = new Audio(getBgmPath(game.level));
       bgm.loop = true;
       bgm.volume = CONFIG.bgmVolume;
 
@@ -1714,7 +1626,7 @@
       });
     }
 
-    /* ---------- 表示 ---------- */
+    /* ---------- 描画 ---------- */
 
     function render() {
       if (!game) {
@@ -1783,8 +1695,6 @@
         for (let row = 0; row < CONFIG.rows; row += 1) {
           const cell = document.createElement("div");
           cell.className = "cell";
-          cell.dataset.lane = lane;
-          cell.dataset.row = row;
 
           if (game.selectedLane === lane) {
             cell.classList.add("selected");
@@ -1802,10 +1712,7 @@
             game.active.row === row
           ) {
             cell.append(
-              makePieceElement(
-                game.active.piece,
-                true
-              )
+              makePieceElement(game.active.piece, true)
             );
           }
 
@@ -1859,26 +1766,29 @@
         Math.min(1, (highest - 3) / 5)
       );
 
-      el.app.style.setProperty("--danger", danger.toFixed(2));
+      el.app.style.setProperty(
+        "--danger",
+        danger.toFixed(2)
+      );
     }
 
     function getStackHeight(lane) {
       return game.board[lane].filter(Boolean).length;
     }
 
-    /* ---------- ゲーム進行 ---------- */
+    /* ---------- ゲーム ---------- */
 
     async function startNewGame() {
       clearTimers();
       stopEndMusic();
       closeModals();
-
       unlockAudio();
 
       game = createGame();
 
       showScreen(el.game);
       render();
+
       await startCountdown();
 
       if (game.ended) {
@@ -1886,8 +1796,8 @@
       }
 
       game.busy = false;
-      setStatus("DROP RING");
 
+      setStatus("DROP RING");
       spawnActiveRing();
       restartFallTimer();
       startTimeTimer();
@@ -1905,6 +1815,7 @@
 
       for (const step of steps) {
         el.countdownText.textContent = step.text;
+
         el.countdown.classList.toggle(
           "ready-phase",
           step.ready
@@ -1924,7 +1835,6 @@
         }
 
         await wait(step.duration);
-
         el.countdown.classList.remove("open");
       }
 
@@ -1970,8 +1880,8 @@
         )
       };
 
-      game.next[lane] = makeNextRing();
       game.selectedLane = lane;
+      game.next[lane] = makeNextRing();
 
       render();
     }
@@ -1993,27 +1903,46 @@
     }
 
     function canOccupy(lane, row) {
-      if (row >= CONFIG.rows) {
+      if (row < 0 || row >= CONFIG.rows) {
         return false;
       }
 
       return game.board[lane][row] === null;
     }
 
+    /*
+      修正の核心：
+      移動先レーンの「現在いる高さ」だけ確認する。
+      下にリングが積まれていても、そこへ落下できる。
+    */
     function canMoveToLane(lane) {
       if (!game.active) {
         return false;
       }
 
-      const activeRow = game.active.row;
+      return game.board[lane][game.active.row] === null;
+    }
 
-      for (let row = activeRow; row < CONFIG.rows; row += 1) {
-        if (game.board[lane][row]) {
-          return false;
-        }
+    /*
+      同じレーンを再タップした時は、空中停止ではない。
+      そのレーン内で置ける最下段まで一気に落下する。
+    */
+    function hardDropActiveRing() {
+      if (!game.active) {
+        return;
       }
 
-      return true;
+      while (
+        canOccupy(
+          game.active.lane,
+          game.active.row + 1
+        )
+      ) {
+        game.active.row += 1;
+      }
+
+      render();
+      lockActiveRing();
     }
 
     function handleLaneTap(lane) {
@@ -2021,19 +1950,23 @@
         return;
       }
 
+      unlockAudio();
+
       if (lane === game.active.lane) {
-        lockActiveRing();
+        hardDropActiveRing();
         return;
       }
 
       if (!canMoveToLane(lane)) {
-        setStatus("THAT LANE IS FULL");
+        setStatus("THAT SPACE IS BLOCKED");
+
         playTone({
           frequency: 120,
           duration: 0.08,
           volume: 0.09,
           type: "square"
         });
+
         return;
       }
 
@@ -2049,7 +1982,11 @@
         return;
       }
 
-      const { lane, row, piece } = game.active;
+      const {
+        lane,
+        row,
+        piece
+      } = game.active;
 
       if (!canOccupy(lane, row)) {
         return;
@@ -2063,13 +2000,14 @@
       setStatus("CONNECTED");
       render();
 
-      await wait(140);
+      await wait(150);
 
       if (!isPlaying()) {
         return;
       }
 
       await evaluateLane(lane, row, piece);
+
       render();
 
       if (!game.ended && !game.paused) {
@@ -2079,6 +2017,7 @@
 
     function getOrbConnection(lane) {
       const column = game.board[lane];
+
       const orbRow = column.findIndex(
         (piece) => piece?.type === "orb"
       );
@@ -2097,11 +2036,7 @@
       for (let row = orbRow; row >= 0; row -= 1) {
         const piece = column[row];
 
-        if (!piece) {
-          break;
-        }
-
-        if (piece.type === "star") {
+        if (!piece || piece.type === "star") {
           break;
         }
 
@@ -2125,9 +2060,8 @@
       const connection = getOrbConnection(lane);
 
       /*
-        オーブがないレーンは、リングが積まれるだけ。
-        オーブへ変化させない。
-        経験値・オーバーゲージの判定もしない。
+        オーブがない列はリングだけの列。
+        経験値・オーバー・オーブ化を一切行わない。
       */
       if (!connection.hasOrb) {
         setStatus("RINGS ONLY");
@@ -2135,15 +2069,21 @@
       }
 
       if (connection.total === 8) {
-        await clearConnection(lane, connection.positions, 1);
+        await clearConnection(
+          lane,
+          connection.positions,
+          1
+        );
+
         return;
       }
 
       if (connection.total >= 9) {
         game.board[lane][placedRow] = null;
-        showOverNumber(connection.total);
+
         increaseOverGauge(connection.total);
         setStatus("OVER LIMIT");
+
         render();
         return;
       }
@@ -2156,8 +2096,7 @@
         game.board[lane][row] = null;
       });
 
-      const count = positions.length;
-      awardScore(count, chain, 1);
+      awardScore(positions.length, chain);
 
       playClearSound(chain);
       setStatus(
@@ -2179,36 +2118,21 @@
           next.positions,
           chain + 1
         );
-        return;
-      }
 
-      if (next.hasOrb && next.total >= 9) {
-        /*
-          自動連鎖後に9以上になった場合は、
-          新たに落としたリングではないためゲージを増やさない。
-          盤面を残して終了。
-        */
-        setStatus("CHECK YOUR STACK");
+        return;
       }
 
       await checkFever();
     }
 
     async function clearLaneByStar(lane) {
-      const pieces = game.board[lane].filter(Boolean);
-      const existingCount = pieces.length;
+      const existingCount = game.board[lane]
+        .filter(Boolean)
+        .length;
 
       game.board[lane] = Array(CONFIG.rows).fill(null);
 
-      /*
-        空白レーンに★を置いた時も、
-        ★自身で1回「8を作った」扱いにする。
-      */
-      awardScore(
-        Math.max(1, existingCount),
-        1,
-        1
-      );
+      awardScore(Math.max(1, existingCount), 1);
 
       playClearSound(2);
       setStatus("STAR CLEAR!");
@@ -2219,39 +2143,34 @@
     }
 
     function settleLane(lane) {
-      const column = game.board[lane];
-      const pieces = column.filter(Boolean);
-
+      const pieces = game.board[lane].filter(Boolean);
       const nextColumn = Array(CONFIG.rows).fill(null);
 
       let writeRow = CONFIG.rows - 1;
 
       for (
-        let readIndex = pieces.length - 1;
-        readIndex >= 0;
-        readIndex -= 1
+        let index = pieces.length - 1;
+        index >= 0;
+        index -= 1
       ) {
-        nextColumn[writeRow] = pieces[readIndex];
+        nextColumn[writeRow] = pieces[index];
         writeRow -= 1;
       }
 
       game.board[lane] = nextColumn;
     }
 
-    function awardScore(pieceCount, chain, multiplier) {
-      const feverMultiplier = isFever()
+    function awardScore(pieceCount, chain) {
+      const multiplier = isFever()
         ? CONFIG.feverMultiplier
         : 1;
-
-      const simultaneousMultiplier = multiplier || 1;
 
       const points =
         (
           CONFIG.clearScore * pieceCount +
           CONFIG.simultaneousBonus * Math.max(0, chain - 1)
         ) *
-        feverMultiplier *
-        simultaneousMultiplier;
+        multiplier;
 
       game.score += points;
       game.stageScore += points;
@@ -2282,21 +2201,18 @@
       el.app.classList.add("is-fever");
 
       el.feverOverlay.classList.add("open");
+
       playFeverSound();
 
       await wait(2100);
 
       el.feverOverlay.classList.remove("open");
 
-      /*
-        FEVER発動後、新規オーブを「生成」する。
-        既存リングをオーブへ変える処理は一切しない。
-      */
       game.board = createBoard();
 
       game.busy = false;
-      render();
 
+      render();
       restartFallTimer();
       startTimeTimer();
 
@@ -2363,6 +2279,7 @@
 
     function showOverNumber(total) {
       el.overNumber.textContent = total;
+
       el.overNumber.classList.remove("show");
       void el.overNumber.offsetWidth;
       el.overNumber.classList.add("show");
@@ -2411,11 +2328,12 @@
       }
 
       game.paused = true;
+
       clearTimers();
       bgm?.pause();
 
-      el.pauseModal.classList.add("open");
       setStatus("PAUSED");
+      el.pauseModal.classList.add("open");
     }
 
     function resumeGame() {
@@ -2424,6 +2342,7 @@
       }
 
       game.paused = false;
+
       el.pauseModal.classList.remove("open");
 
       bgm?.play().catch(() => {
@@ -2444,6 +2363,7 @@
       game = null;
 
       closeModals();
+
       el.countdown.classList.remove("open");
       el.levelOverlay.classList.remove("open");
       el.feverOverlay.classList.remove("open");
@@ -2503,9 +2423,11 @@
         unlockAudio();
 
         if (game && !game.ended) {
-          bgm?.play().then(() => {
-            el.sound.classList.add("hidden");
-          }).catch(() => {});
+          bgm?.play()
+            .then(() => {
+              el.sound.classList.add("hidden");
+            })
+            .catch(() => {});
         }
 
         playConnectSound();
@@ -2547,9 +2469,13 @@
         showScreen(el.title);
       });
 
-      document.addEventListener("dblclick", (event) => {
-        event.preventDefault();
-      }, { passive: false });
+      document.addEventListener(
+        "dblclick",
+        (event) => {
+          event.preventDefault();
+        },
+        { passive: false }
+      );
 
       document.addEventListener("visibilitychange", () => {
         if (document.hidden && isPlaying()) {
