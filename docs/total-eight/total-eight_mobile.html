@@ -95,9 +95,9 @@
       width: 100%;
       min-height: 100dvh;
       padding:
-        calc(14px + env(safe-area-inset-top))
-        14px
-        calc(12px + env(safe-area-inset-bottom));
+        calc(12px + env(safe-area-inset-top))
+        12px
+        calc(10px + env(safe-area-inset-bottom));
     }
 
     .screen.active {
@@ -118,9 +118,7 @@
       text-align: center;
     }
 
-    /* ------------------------------------------------
-       タイトル
-    ------------------------------------------------ */
+    /* タイトル */
 
     #title-screen {
       align-items: center;
@@ -152,7 +150,6 @@
       display: inline-block;
       margin-left: 0.04em;
       color: var(--pink);
-      white-space: nowrap;
     }
 
     .version {
@@ -227,76 +224,94 @@
         0 7px 18px rgba(0, 0, 0, 0.34);
     }
 
-    /* ------------------------------------------------
-       ゲーム画面
-    ------------------------------------------------ */
+    /* ゲーム画面 */
 
     #game-screen {
-      display: none;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       max-width: 620px;
-      margin: 0 auto;
       height: 100dvh;
       min-height: 100dvh;
-    }
-
-    #game-screen.active {
-      display: flex;
+      margin: 0 auto;
     }
 
     .hud {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
+      grid-template-columns:
+        1.15fr
+        0.75fr
+        0.85fr
+        1.45fr;
       flex: 0 0 auto;
+      gap: 4px;
     }
 
     .hud-box {
-      min-height: 48px;
-      padding: 7px 9px;
+      min-width: 0;
+      min-height: 43px;
+      padding: 5px 6px;
       border: 1px solid rgba(93, 228, 255, 0.28);
-      border-radius: 10px;
+      border-radius: 8px;
       background: rgba(7, 20, 46, 0.9);
-    }
-
-    .hud-box.wide {
-      grid-column: span 2;
     }
 
     .hud-box span {
       display: block;
+      overflow: hidden;
       color: var(--muted);
-      font-size: 0.57rem;
+      font-size: 0.48rem;
       font-weight: 900;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .hud-box strong {
       display: block;
-      margin-top: 1px;
+      margin-top: 2px;
+      overflow: hidden;
       font-family: Orbitron, sans-serif;
-      font-size: 1rem;
+      font-size: clamp(0.75rem, 4.2vw, 1rem);
       font-weight: 900;
-      line-height: 1.1;
+      line-height: 1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .hud-box em {
       color: var(--muted);
-      font-size: 0.7em;
+      font-size: 0.65em;
       font-style: normal;
+    }
+
+    .over-row {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: 7px;
+      min-height: 28px;
+      padding: 4px 8px;
+      border: 1px solid rgba(255, 113, 148, 0.34);
+      border-radius: 8px;
+      background: rgba(30, 9, 29, 0.38);
+    }
+
+    .over-row b {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 0.55rem;
     }
 
     .over-gauge {
       display: flex;
+      flex: 1;
       gap: 5px;
       align-items: center;
-      height: 24px;
     }
 
     .over-gauge i {
       display: block;
       flex: 1;
-      height: 10px;
+      height: 8px;
       border: 1px solid rgba(255, 113, 148, 0.62);
       border-radius: 99px;
       background: rgba(255, 113, 148, 0.1);
@@ -322,10 +337,10 @@
 
     .status {
       flex: 0 0 auto;
-      min-height: 18px;
+      min-height: 16px;
       color: var(--cyan);
       font-family: Orbitron, sans-serif;
-      font-size: 0.67rem;
+      font-size: 0.64rem;
       font-weight: 900;
       letter-spacing: 0.1em;
       text-align: center;
@@ -343,21 +358,21 @@
       flex: 1 1 auto;
       flex-direction: column;
       min-height: 0;
-      gap: 8px;
+      gap: 6px;
     }
 
     .next-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 7px;
       flex: 0 0 auto;
+      gap: 6px;
     }
 
     .next-box {
-      min-height: 57px;
-      padding: 4px;
+      min-height: 50px;
+      padding: 3px;
       border: 1px solid rgba(93, 228, 255, 0.38);
-      border-radius: 10px;
+      border-radius: 9px;
       background: rgba(6, 21, 46, 0.9);
       text-align: center;
     }
@@ -366,22 +381,22 @@
       display: block;
       color: var(--muted);
       font-family: Orbitron, sans-serif;
-      font-size: 0.49rem;
+      font-size: 0.46rem;
       font-weight: 800;
     }
 
     .next-piece {
       display: grid;
       place-items: center;
-      width: 34px;
-      height: 34px;
-      margin: 3px auto 0;
+      width: 30px;
+      height: 30px;
+      margin: 2px auto 0;
       border: 2px solid white;
       border-radius: 50%;
       background: #294567;
       color: white;
       font-family: "Mochiy Pop One", sans-serif;
-      font-size: 1rem;
+      font-size: 0.88rem;
       text-shadow: 0 2px 2px black;
     }
 
@@ -395,12 +410,12 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       flex: 1 1 auto;
-      min-height: 300px;
+      min-height: 0;
       gap: 7px;
       padding: 8px;
       overflow: hidden;
       border: 1px solid rgba(93, 228, 255, 0.58);
-      border-radius: 16px;
+      border-radius: 15px;
       background:
         linear-gradient(
           180deg,
@@ -417,6 +432,7 @@
     .lane {
       display: grid;
       grid-template-rows: repeat(8, 1fr);
+      min-height: 0;
       overflow: hidden;
       border: 1px solid
         rgba(93, 228, 255, calc(0.26 + var(--danger) * 0.66));
@@ -427,9 +443,6 @@
           rgba(127, 180, 255, 0.07) 0 calc(12.5% - 1px),
           rgba(127, 180, 255, 0.17) calc(12.5% - 1px) 12.5%
         );
-      box-shadow:
-        inset 0 0 calc(5px + var(--danger) * 18px)
-        rgba(93, 228, 255, calc(0.08 + var(--danger) * 0.25));
     }
 
     .lane.high {
@@ -439,6 +452,7 @@
     .cell {
       position: relative;
       min-width: 0;
+      min-height: 0;
       border: 0;
       border-bottom: 1px solid rgba(138, 186, 255, 0.1);
       background: transparent;
@@ -516,31 +530,29 @@
       flex: 0 0 auto;
       gap: 8px;
       align-items: center;
-      min-height: 43px;
+      min-height: 38px;
     }
 
     .hint {
       margin: 0;
       color: var(--muted);
-      font-size: 0.61rem;
+      font-size: 0.58rem;
       font-weight: 700;
-      line-height: 1.4;
+      line-height: 1.35;
     }
 
     .abort-button {
-      min-height: 38px;
-      padding: 0 16px;
+      min-height: 36px;
+      padding: 0 14px;
       border-color: rgba(255, 113, 148, 0.68);
       border-radius: 10px;
       background: rgba(75, 18, 42, 0.88);
       color: #ffd0da;
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       font-weight: 900;
     }
 
-    /* ------------------------------------------------
-       モーダル・情報画面
-    ------------------------------------------------ */
+    /* モーダル・カウントダウン */
 
     .modal,
     .overlay {
@@ -638,6 +650,27 @@
       width: min(100%, 430px);
     }
 
+    .countdown {
+      z-index: 34;
+      pointer-events: none;
+    }
+
+    .countdown strong {
+      display: block;
+      color: white;
+      font-family: Orbitron, sans-serif;
+      font-size: clamp(5rem, 40vw, 11rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.08em;
+      text-align: center;
+      text-shadow:
+        0 0 8px var(--cyan),
+        0 0 28px #a981ff,
+        0 0 54px rgba(255, 232, 120, 0.65);
+      animation: countdown-pop 0.55s ease-out both;
+    }
+
     .level-up {
       z-index: 35;
       pointer-events: none;
@@ -719,6 +752,23 @@
       }
     }
 
+    @keyframes countdown-pop {
+      0% {
+        opacity: 0;
+        transform: scale(0.35);
+      }
+
+      30% {
+        opacity: 1;
+        transform: scale(1.15);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
     @keyframes level-burst {
       0% {
         opacity: 0;
@@ -760,15 +810,15 @@
 
     @media (min-width: 620px) {
       #game-screen {
-        padding-top: 22px;
+        padding-top: 20px;
       }
 
       .hud {
-        grid-template-columns: repeat(5, 1fr);
+        gap: 7px;
       }
 
-      .hud-box.wide {
-        grid-column: span 1;
+      .hud-box {
+        min-height: 51px;
       }
     }
 
@@ -834,7 +884,7 @@
           <strong id="time-value">300</strong>
         </div>
 
-        <div class="hud-box wide">
+        <div class="hud-box">
           <span>ステージ経験値</span>
           <strong>
             <b id="stage-score-value">0</b>
@@ -842,18 +892,19 @@
             <b id="target-value">4500</b>
           </strong>
         </div>
-
-        <div class="hud-box wide">
-          <span>オーバー</span>
-          <div id="over-gauge" class="over-gauge">
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
-          </div>
-        </div>
       </header>
+
+      <div class="over-row">
+        <b>OVER</b>
+
+        <div id="over-gauge" class="over-gauge">
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+          <i></i>
+        </div>
+      </div>
 
       <strong id="status-label" class="status">READY</strong>
 
@@ -912,13 +963,11 @@
           <li>リングが積み上がると「ガチャン」と鳴ります。</li>
           <li>高く積み上がるほど、盤面の光と電流が強くなります。</li>
           <li>レベルアップ時に、中央へ大きなLEVEL表示が出ます。</li>
-          <li>合計8、★リング、フィーバー、BGMなどの基本ルールは維持しています。</li>
+          <li>ゲーム開始時のカウントダウンを中央に大きく表示します。</li>
+          <li>上部表示をコンパクトにして、盤面を縦に広くしました。</li>
+          <li>リングを別レーンへ移動しても、落下中の高さは戻りません。</li>
+          <li>積み上がりより低い位置から、レーンへ無理に移動できません。</li>
         </ul>
-
-        <h3>ver1.2　画面の表示を調整</h3>
-        <p>
-          画面サイズごとに盤面が見切れにくくなるよう調整しました。
-        </p>
       </div>
 
       <button id="history-back-button" class="menu-button primary" type="button">
@@ -985,6 +1034,10 @@
           <small>MENU</small>
         </button>
       </div>
+    </section>
+
+    <section id="countdown-overlay" class="overlay countdown">
+      <strong id="countdown-text">READY?</strong>
     </section>
 
     <section id="level-overlay" class="overlay level-up">
@@ -1073,6 +1126,9 @@
       clearScore: $("#clear-score-value"),
       clearRetry: $("#clear-retry-button"),
       clearTitle: $("#clear-title-button"),
+
+      countdown: $("#countdown-overlay"),
+      countdownText: $("#countdown-text"),
 
       levelOverlay: $("#level-overlay"),
       levelText: $("#level-overlay-text"),
@@ -1723,6 +1779,42 @@
       return -1;
     }
 
+    function getTopOccupiedRow(lane) {
+      const row =
+        game.board[lane].findIndex(Boolean);
+
+      return row < 0
+        ? CONFIG.rows
+        : row;
+    }
+
+    function canMoveToLane(lane) {
+      if (!game.active) {
+        return false;
+      }
+
+      const activeRow = game.active.row;
+      const topOccupied =
+        getTopOccupiedRow(lane);
+
+      /*
+        落下中リングが、移動先の積み上がりより
+        低い位置まで落下していた場合は移動禁止。
+      */
+      if (activeRow >= topOccupied) {
+        return false;
+      }
+
+      /*
+        同じ高さのマスが埋まっている場合も移動禁止。
+      */
+      if (game.board[lane][activeRow]) {
+        return false;
+      }
+
+      return true;
+    }
+
     async function placeActiveRing() {
       if (
         !game ||
@@ -1849,9 +1941,17 @@
       }
 
       if (game.selectedLane !== lane) {
+        /*
+          横移動しても row を0へ戻さない。
+          現在の落下高さを維持する。
+        */
+        if (!canMoveToLane(lane)) {
+          setStatus("TOO LOW");
+          return;
+        }
+
         game.selectedLane = lane;
         game.active.lane = lane;
-        game.active.row = 0;
 
         setStatus("TARGET LOCK");
         render();
@@ -1863,6 +1963,14 @@
 
       if (landingRow < 0) {
         setStatus("LANE FULL");
+        return;
+      }
+
+      /*
+        即固定時も、現在位置より上へ戻さない。
+      */
+      if (landingRow < game.active.row) {
+        setStatus("TOO LOW");
         return;
       }
 
@@ -2135,22 +2243,32 @@
 
     async function countdown() {
       const sequence = [
-        ["READY?", 700],
-        ["3", 560],
-        ["2", 560],
-        ["1", 560],
-        ["GO!", 520]
+        ["READY?", 780],
+        ["3", 680],
+        ["2", 680],
+        ["1", 680],
+        ["GO!", 680]
       ];
 
+      el.countdown.classList.add("open");
+
       for (const [message, duration] of sequence) {
-        setStatus(message);
+        el.countdownText.textContent = message;
+        el.countdownText.style.animation = "none";
+
+        void el.countdownText.offsetWidth;
+
+        el.countdownText.style.animation = "";
 
         await wait(duration);
 
         if (!game || game.ended) {
+          el.countdown.classList.remove("open");
           return false;
         }
       }
+
+      el.countdown.classList.remove("open");
 
       return true;
     }
