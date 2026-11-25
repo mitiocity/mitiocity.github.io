@@ -2113,23 +2113,137 @@ checkOrbRefillAndFever = async function() {
    START
 ========================================================= */
 
-// Hard-disable double-tap and pinch zoom (iOS Safari / mobile browsers).
-// Capture phase catches the gesture before page-level handlers; non-passive so preventDefault works.
+/* =========================================================
+   ZOOM / GESTURE BLOCK
+   画面タップ・ダブルタップ・トリプルタップ・ピンチで
+   ブラウザ側のズームや拡大を起こさない。
+   ゲーム本体の pointerdown 操作は維持する。
+========================================================= */
+
 let lastTouchEnd = 0;
-document.addEventListener("touchend", (event) => {
-  const now = Date.now();
-  if (now - lastTouchEnd <= 400) {
-    event.preventDefault();
-    event.stopPropagation();
+
+document.addEventListener(
+  "touchstart",
+  (event) => {
+    /*
+      2本以上の指によるピンチ開始を止める。
+      1本指の通常タップは止めない。
+    */
+    if (event.touches.length > 1) {
+      event.preventDefault();
+    }
+  },
+  {
+    passive: false,
+    capture: true
   }
-  lastTouchEnd = now;
-}, { passive: false, capture: true });
-document.addEventListener("touchmove", (event) => {
-  if (event.touches && event.touches.length > 1) event.preventDefault();
-}, { passive: false, capture: true });
-document.addEventListener("gesturestart", event => event.preventDefault(), { passive: false, capture: true });
-document.addEventListener("gesturechange", event => event.preventDefault(), { passive: false, capture: true });
-document.addEventListener("gestureend", event => event.preventDefault(), { passive: false, capture: true });
+);
+
+document.addEventListener(
+  "touchmove",
+  (event) => {
+    /*
+      ピンチズーム・2本指ジェスチャーを防止。
+    */
+    if (event.touches.length > 1) {
+      event.preventDefault();
+    }
+  },
+  {
+    passive: false,
+    capture: true
+  }
+);
+
+document.addEventListener(
+  "touchend",
+  (event) => {
+    const now = Date.now();
+    const interval = now - lastTouchEnd;
+
+    /*
+      400ms以内の連続タップをダブルタップ、
+      さらに続くタップをトリプルタップとして扱う。
+
+      ブラウザのズームだけを止める。
+      ゲームのレーン操作は pointerdown で処理しているため、
+      タップ・再タップによるレーン移動／即落下は維持される。
+    */
+    if (interval > 0 && interval <= 400) {
+      event.preventDefault();
+    }
+
+    lastTouchEnd = now;
+  },
+  {
+    passive: false,
+    capture: true
+  }
+);
+
+document.addEventListener(
+  "dblclick",
+  (event) => {
+    /*
+      iPhone Safari、TikTokなどのアプリ内ブラウザ、
+      Android Chromeのダブルクリック拡大を防止。
+    */
+    event.preventDefault();
+  },
+  {
+    passive: false,
+    capture: true
+  }
+);
+
+document.addEventListener(
+  "gesturestart",
+  (event) => {
+    event.preventDefault();
+  },
+  {
+    passive: false,
+    capture: true
+  }
+);
+
+document.addEventListener(
+  "gesturechange",
+  (event) => {
+    event.preventDefault();
+  },
+  {
+    passive: false,
+    capture: true
+  }
+);
+
+document.addEventListener(
+  "gestureend",
+  (event) => {
+    event.preventDefault();
+  },
+  {
+    passive: false,
+    capture: true
+  }
+);
+
+document.addEventListener(
+  "contextmenu",
+  (event) => {
+    /*
+      長押し時のブラウザ標準メニューも止める。
+      ゲーム画面での長押し選択・画像メニューを防止。
+    */
+    event.preventDefault();
+  },
+  {
+    passive: false,
+    capture: true
+  }
+);
+
 
 renderAll();
 
