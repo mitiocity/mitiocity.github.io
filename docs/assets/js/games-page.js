@@ -4,11 +4,10 @@
   みちを市ポータルサイトのGAMEページ専用処理。
 
   #page/games が開かれた時だけ、
-  とーたるえいと❣️の専用カードを表示する。
+  とーたるえいと❣️ ver1.3の専用カードを表示する。
 
-  site.js がページ本文を再描画しても、
-  MutationObserver・hashchange・load・短時間の再確認により
-  GAMEカードを必ず復元する。
+  カードを押すと、縦持ち落下パズル版
+  total-eight_mobile.html を開く。
 */
 
 (() => {
@@ -44,8 +43,8 @@
       >
         <a
           class="mitiocity-game-card"
-          href="/total-eight/"
-          aria-label="とーたるえいと❣️をはじめる"
+          href="/total-eight/total-eight_mobile.html?v=20261125-08"
+          aria-label="とーたるえいと❣️ ver1.3をはじめる"
         >
           <div class="mitiocity-game-card__inner">
             <div class="mitiocity-game-card__content">
@@ -58,12 +57,12 @@
               </h2>
 
               <p class="mitiocity-game-card__description">
-                右から流れるリングをつなげて、<br>
+                上から落ちるリングをつなげて、<br>
                 合計8を作れ。
               </p>
 
               <span class="mitiocity-game-card__start">
-                ゲームをはじめる
+                ver1.3をはじめる
               </span>
             </div>
 
