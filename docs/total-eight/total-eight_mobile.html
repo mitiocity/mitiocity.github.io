@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#100b22">
 <title>とーたるえいと❣️ ver1.3</title>
 
@@ -33,6 +33,7 @@ html, body {
   margin: 0;
   overflow: hidden;
   overscroll-behavior: none;
+  touch-action: none;
   background: var(--bg);
   color: var(--text);
   font-family: system-ui, -apple-system, BlinkMacSystemFont,
@@ -763,7 +764,7 @@ const ROWS = 8;
 const START_TIME = 300;
 const FEVER_TIME = 8;
 
-const STAGE_TARGETS = [1800, 3600, 5400, 10800, 16200];
+const STAGE_TARGETS = [3600, 7200, 10800, 21600, 32400];
 const DROP_SPEEDS = [1800, 1650, 1450, 1050, 1050];
 
 const RING_COLORS = [
@@ -855,8 +856,8 @@ const HISTORY_TEXT =
 ・リングが残るレーンにはオーブを追加しない
 ・FEVER中は経験値4倍
 ・縦持ちスマートフォン画面に最適化
-・落下リングは1～4、オーブは1～7
-・レベル経験値目標：1800 / 3600 / 5400 / 10800 / 16200
+・落下リングは1～4、オーブは1～4
+・レベル経験値目標（倍増）：3600 / 7200 / 10800 / 21600 / 32400
 ・Lv.5目標達成でゲームクリア、最大Lv.5
 ・OVER LIMIT時は最上段リングを消去
 ・音ボタンをHUD内に分離配置
@@ -1249,7 +1250,7 @@ function wait(ms) {
 function createOrb() {
   return {
     type: "orb",
-    value: Math.floor(Math.random() * 7) + 1,
+    value: Math.floor(Math.random() * 4) + 1,
     color: ORB_COLORS[Math.floor(Math.random() * ORB_COLORS.length)]
   };
 }
@@ -2112,16 +2113,23 @@ checkOrbRefillAndFever = async function() {
    START
 ========================================================= */
 
-// Prevent browser double-tap zoom and pinch zoom during gameplay.
+// Hard-disable double-tap and pinch zoom (iOS Safari / mobile browsers).
+// Capture phase catches the gesture before page-level handlers; non-passive so preventDefault works.
 let lastTouchEnd = 0;
 document.addEventListener("touchend", (event) => {
   const now = Date.now();
-  if (now - lastTouchEnd <= 320) event.preventDefault();
+  if (now - lastTouchEnd <= 400) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
   lastTouchEnd = now;
-}, { passive: false });
-document.addEventListener("gesturestart", event => event.preventDefault(), { passive: false });
-document.addEventListener("gesturechange", event => event.preventDefault(), { passive: false });
-document.addEventListener("gestureend", event => event.preventDefault(), { passive: false });
+}, { passive: false, capture: true });
+document.addEventListener("touchmove", (event) => {
+  if (event.touches && event.touches.length > 1) event.preventDefault();
+}, { passive: false, capture: true });
+document.addEventListener("gesturestart", event => event.preventDefault(), { passive: false, capture: true });
+document.addEventListener("gesturechange", event => event.preventDefault(), { passive: false, capture: true });
+document.addEventListener("gestureend", event => event.preventDefault(), { passive: false, capture: true });
 
 renderAll();
 
