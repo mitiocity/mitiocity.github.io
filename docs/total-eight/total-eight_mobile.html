@@ -13,7 +13,10 @@
 
     :root {
       --bg: #040817;
+      --panel: #091633;
       --cyan: #5de4ff;
+      --blue: #268ee7;
+      --purple: #a981ff;
       --pink: #ff7194;
       --yellow: #ffe878;
       --green: #7dff9c;
@@ -30,7 +33,7 @@
     html,
     body {
       width: 100%;
-      min-height: 100%;
+      height: 100%;
       margin: 0;
       overflow: hidden;
       background: var(--bg);
@@ -45,67 +48,48 @@
       touch-action: manipulation;
     }
 
+    .hidden {
+      display: none !important;
+    }
+
     .app {
       position: relative;
+      width: 100%;
       min-height: 100dvh;
       overflow: hidden;
       background:
-        radial-gradient(
-          circle at 50% 0%,
-          rgba(40, 90, 180, 0.5),
-          transparent 42%
-        ),
-        linear-gradient(
-          160deg,
-          #071631 0%,
-          #040817 62%,
-          #0b061e 100%
-        );
+        radial-gradient(circle at 50% -10%, rgba(42, 106, 207, 0.5), transparent 42%),
+        radial-gradient(circle at 0% 100%, rgba(117, 47, 162, 0.25), transparent 45%),
+        linear-gradient(160deg, #071631 0%, #040817 64%, #12071f 100%);
     }
 
     .app::before {
-      content: "";
       position: fixed;
       z-index: 0;
       inset: -20%;
+      content: "";
       pointer-events: none;
-      opacity: 0.22;
+      opacity: 0.18;
       background:
         repeating-linear-gradient(
           90deg,
-          transparent 0 36px,
-          rgba(93, 228, 255, 0.08) 37px 38px
+          transparent 0 34px,
+          rgba(93, 228, 255, 0.08) 35px 36px
         ),
         repeating-linear-gradient(
           0deg,
-          transparent 0 36px,
-          rgba(93, 228, 255, 0.06) 37px 38px
+          transparent 0 34px,
+          rgba(93, 228, 255, 0.06) 35px 36px
         );
-      transform:
-        perspective(500px)
-        rotateX(63deg)
-        translateY(-12%);
+      transform: perspective(500px) rotateX(62deg) translateY(-12%);
     }
 
     .app.is-fever {
-      animation: fever-screen 0.55s ease-out both;
+      animation: fever-screen 0.8s ease-out both;
       background:
-        radial-gradient(
-          circle at 50% 30%,
-          rgba(255, 232, 120, 0.36),
-          transparent 45%
-        ),
-        radial-gradient(
-          circle at 10% 90%,
-          rgba(125, 255, 156, 0.24),
-          transparent 45%
-        ),
-        linear-gradient(
-          155deg,
-          #0f5c53,
-          #071630 48%,
-          #3c1559
-        );
+        radial-gradient(circle at 50% 25%, rgba(255, 232, 120, 0.48), transparent 44%),
+        radial-gradient(circle at 10% 90%, rgba(125, 255, 156, 0.3), transparent 45%),
+        linear-gradient(155deg, #0b6a5b, #071630 48%, #4d155f);
     }
 
     .screen {
@@ -115,17 +99,13 @@
       width: 100%;
       min-height: 100dvh;
       padding:
-        calc(12px + env(safe-area-inset-top))
-        12px
-        calc(10px + env(safe-area-inset-bottom));
+        calc(9px + env(safe-area-inset-top))
+        10px
+        calc(8px + env(safe-area-inset-bottom));
     }
 
     .screen.active {
       display: flex;
-    }
-
-    .hidden {
-      display: none !important;
     }
 
     .eyebrow {
@@ -138,7 +118,7 @@
       text-align: center;
     }
 
-    /* タイトル */
+    /* ---------- タイトル ---------- */
 
     #title-screen {
       align-items: center;
@@ -147,23 +127,25 @@
     }
 
     .title-content {
-      width: min(100%, 620px);
+      width: min(100%, 520px);
     }
 
     .title-content h1 {
       width: 100%;
       margin: 10px auto 0;
+      overflow: visible;
+      color: white;
+      font-family: "Mochiy Pop One", sans-serif;
+      font-size: clamp(2rem, 8.5vw, 3.25rem);
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.1em;
       white-space: nowrap;
       word-break: keep-all;
       overflow-wrap: normal;
-      font-family: "Mochiy Pop One", sans-serif;
-      font-size: clamp(2rem, 8.6vw, 3.35rem);
-      font-weight: 400;
-      line-height: 1.18;
-      letter-spacing: -0.1em;
       text-shadow:
-        0 0 18px rgba(93, 228, 255, 0.58),
-        0 8px 24px rgba(0, 0, 0, 0.5);
+        0 0 18px rgba(93, 228, 255, 0.62),
+        0 8px 24px rgba(0, 0, 0, 0.54);
     }
 
     .title-content h1 span {
@@ -174,7 +156,7 @@
 
     .version {
       width: max-content;
-      margin: 2px 7% 0 auto;
+      margin: 3px 7% 0 auto;
       color: var(--muted);
       font-family: Orbitron, sans-serif;
       font-size: 0.62rem;
@@ -195,19 +177,23 @@
 
     .menu-button,
     .abort-button {
-      min-height: 55px;
-      border: 1px solid rgba(143, 207, 255, 0.34);
+      min-height: 53px;
+      border: 1px solid rgba(143, 207, 255, 0.38);
       border-radius: 15px;
       color: var(--text);
       background:
-        linear-gradient(
-          135deg,
-          rgba(37, 78, 141, 0.96),
-          rgba(11, 26, 61, 0.96)
-        );
+        linear-gradient(135deg, rgba(37, 78, 141, 0.96), rgba(11, 26, 61, 0.96));
       box-shadow:
         0 6px 18px rgba(0, 0, 0, 0.32),
         inset 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    .menu-button.primary {
+      border-color: rgba(93, 228, 255, 0.92);
+      background: linear-gradient(135deg, #208bc2, #183d92);
+      box-shadow:
+        0 0 22px rgba(93, 228, 255, 0.3),
+        0 7px 18px rgba(0, 0, 0, 0.34);
     }
 
     .menu-button:active,
@@ -231,25 +217,12 @@
       letter-spacing: 0.1em;
     }
 
-    .menu-button.primary {
-      border-color: rgba(93, 228, 255, 0.9);
-      background:
-        linear-gradient(
-          135deg,
-          #208bc2,
-          #183d92
-        );
-      box-shadow:
-        0 0 22px rgba(93, 228, 255, 0.28),
-        0 7px 18px rgba(0, 0, 0, 0.34);
-    }
-
-    /* ゲーム */
+    /* ---------- ゲーム ---------- */
 
     #game-screen {
       flex-direction: column;
-      gap: 6px;
-      max-width: 620px;
+      gap: 5px;
+      width: min(100%, 620px);
       height: 100dvh;
       min-height: 100dvh;
       margin: 0 auto;
@@ -257,29 +230,25 @@
 
     .hud {
       display: grid;
-      grid-template-columns:
-        1.15fr
-        0.75fr
-        0.85fr
-        1.45fr;
+      grid-template-columns: 1.08fr 0.65fr 0.82fr 1.45fr;
       flex: 0 0 auto;
       gap: 4px;
     }
 
     .hud-box {
       min-width: 0;
-      min-height: 43px;
-      padding: 5px 6px;
-      border: 1px solid rgba(93, 228, 255, 0.28);
+      min-height: 39px;
+      padding: 4px 5px;
+      border: 1px solid rgba(93, 228, 255, 0.3);
       border-radius: 8px;
-      background: rgba(7, 20, 46, 0.9);
+      background: rgba(7, 20, 46, 0.92);
     }
 
     .hud-box span {
       display: block;
       overflow: hidden;
       color: var(--muted);
-      font-size: 0.48rem;
+      font-size: 0.46rem;
       font-weight: 900;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -290,7 +259,7 @@
       margin-top: 2px;
       overflow: hidden;
       font-family: Orbitron, sans-serif;
-      font-size: clamp(0.75rem, 4.2vw, 1rem);
+      font-size: clamp(0.72rem, 4vw, 0.98rem);
       font-weight: 900;
       line-height: 1;
       text-overflow: ellipsis;
@@ -307,33 +276,33 @@
       display: flex;
       flex: 0 0 auto;
       align-items: center;
+      min-height: 23px;
       gap: 7px;
-      min-height: 28px;
-      padding: 4px 8px;
-      border: 1px solid rgba(255, 113, 148, 0.34);
+      padding: 3px 7px;
+      border: 1px solid rgba(255, 113, 148, 0.35);
       border-radius: 8px;
-      background: rgba(30, 9, 29, 0.38);
+      background: rgba(36, 8, 31, 0.48);
     }
 
     .over-row b {
-      flex: 0 0 auto;
       color: var(--muted);
-      font-size: 0.55rem;
+      font-family: Orbitron, sans-serif;
+      font-size: 0.54rem;
+      letter-spacing: 0.08em;
     }
 
     .over-gauge {
       display: flex;
       flex: 1;
       gap: 5px;
-      align-items: center;
     }
 
     .over-gauge i {
       display: block;
       flex: 1;
-      height: 8px;
-      border: 1px solid rgba(255, 113, 148, 0.62);
-      border-radius: 99px;
+      height: 7px;
+      border: 1px solid rgba(255, 113, 148, 0.7);
+      border-radius: 999px;
       background: rgba(255, 113, 148, 0.1);
     }
 
@@ -357,10 +326,10 @@
 
     .status {
       flex: 0 0 auto;
-      min-height: 16px;
+      min-height: 15px;
       color: var(--cyan);
       font-family: Orbitron, sans-serif;
-      font-size: 0.64rem;
+      font-size: 0.61rem;
       font-weight: 900;
       letter-spacing: 0.1em;
       text-align: center;
@@ -368,9 +337,9 @@
 
     .sound-button {
       flex: 0 0 auto;
-      min-height: 42px;
+      min-height: 40px;
       border-color: var(--yellow);
-      background: rgba(95, 77, 20, 0.9);
+      background: rgba(95, 77, 20, 0.95);
     }
 
     .play-wrap {
@@ -378,22 +347,22 @@
       flex: 1 1 auto;
       flex-direction: column;
       min-height: 0;
-      gap: 6px;
+      gap: 5px;
     }
 
     .next-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       flex: 0 0 auto;
-      gap: 6px;
+      gap: 5px;
     }
 
     .next-box {
-      min-height: 50px;
-      padding: 3px;
+      min-height: 43px;
+      padding: 2px;
       border: 1px solid rgba(93, 228, 255, 0.38);
-      border-radius: 9px;
-      background: rgba(6, 21, 46, 0.9);
+      border-radius: 8px;
+      background: rgba(6, 21, 46, 0.92);
       text-align: center;
     }
 
@@ -401,23 +370,32 @@
       display: block;
       color: var(--muted);
       font-family: Orbitron, sans-serif;
-      font-size: 0.46rem;
+      font-size: 0.44rem;
       font-weight: 800;
     }
 
     .next-piece {
+      position: relative;
       display: grid;
       place-items: center;
-      width: 30px;
-      height: 30px;
-      margin: 2px auto 0;
-      border: 2px solid white;
+      width: 27px;
+      height: 27px;
+      margin: 1px auto 0;
+      border: 2px solid #e9f8ff;
       border-radius: 50%;
-      background: #294567;
+      background: rgba(225, 246, 255, 0.14);
       color: white;
       font-family: "Mochiy Pop One", sans-serif;
-      font-size: 0.88rem;
-      text-shadow: 0 2px 2px black;
+      font-size: 0.78rem;
+      text-shadow: 0 2px 2px #000;
+    }
+
+    .next-piece::after {
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.62);
+      border-radius: 50%;
+      content: "";
     }
 
     .next-piece.star {
@@ -426,27 +404,26 @@
       color: var(--yellow);
     }
 
+    .next-piece.star::after {
+      display: none;
+    }
+
     .board {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       flex: 1 1 auto;
       min-height: 0;
-      gap: 7px;
-      padding: 8px;
+      gap: 6px;
+      padding: 7px;
       overflow: hidden;
-      border: 1px solid rgba(93, 228, 255, 0.58);
-      border-radius: 15px;
+      border: 1px solid rgba(93, 228, 255, 0.64);
+      border-radius: 14px;
       background:
-        linear-gradient(
-          180deg,
-          rgba(15, 37, 76, 0.96),
-          rgba(2, 9, 25, 0.98)
-        );
+        linear-gradient(180deg, rgba(15, 37, 76, 0.98), rgba(2, 9, 25, 0.99));
       box-shadow:
-        0 0 calc(8px + var(--danger) * 22px)
-        rgba(93, 228, 255, calc(0.14 + var(--danger) * 0.42)),
-        inset 0 0 20px
-        rgba(255, 113, 148, calc(var(--danger) * 0.3));
+        0 0 calc(8px + var(--danger) * 24px)
+        rgba(93, 228, 255, calc(0.15 + var(--danger) * 0.42)),
+        inset 0 0 20px rgba(255, 113, 148, calc(var(--danger) * 0.32));
     }
 
     .lane {
@@ -454,14 +431,13 @@
       grid-template-rows: repeat(8, 1fr);
       min-height: 0;
       overflow: hidden;
-      border: 1px solid
-        rgba(93, 228, 255, calc(0.26 + var(--danger) * 0.66));
+      border: 1px solid rgba(93, 228, 255, calc(0.3 + var(--danger) * 0.66));
       border-radius: 9px;
       background:
         repeating-linear-gradient(
           180deg,
-          rgba(127, 180, 255, 0.07) 0 calc(12.5% - 1px),
-          rgba(127, 180, 255, 0.17) calc(12.5% - 1px) 12.5%
+          rgba(127, 180, 255, 0.06) 0 calc(12.5% - 1px),
+          rgba(127, 180, 255, 0.19) calc(12.5% - 1px) 12.5%
         );
     }
 
@@ -473,75 +449,138 @@
       position: relative;
       min-width: 0;
       min-height: 0;
-      border: 0;
       border-bottom: 1px solid rgba(138, 186, 255, 0.1);
-      background: transparent;
     }
 
     .cell.selected {
-      background: rgba(93, 228, 255, 0.12);
+      background: rgba(93, 228, 255, 0.13);
     }
 
     .piece {
       position: absolute;
-      inset: 9%;
+      inset: 10%;
       display: grid;
       place-items: center;
-      border: 2px solid white;
-      border-radius: 50%;
       color: white;
       font-family: "Mochiy Pop One", sans-serif;
-      font-size: clamp(0.85rem, 4.8vw, 1.42rem);
+      font-size: clamp(0.85rem, 4.8vw, 1.38rem);
+      font-weight: 400;
       line-height: 1;
-      text-shadow: 0 2px 3px rgba(0, 0, 0, 0.95);
-      box-shadow:
-        0 3px 8px rgba(0, 0, 0, 0.5),
-        inset 0 1px rgba(255, 255, 255, 0.34);
+      text-shadow: 0 2px 3px rgba(0, 0, 0, 0.98);
     }
 
-    .piece.orb {
-      border-width: 3px;
-      box-shadow:
-        0 0 16px rgba(93, 228, 255, 0.75),
-        inset 0 2px rgba(255, 255, 255, 0.35);
-    }
+    /* リング：中心が抜けた「輪」 */
 
     .piece.ring {
-      background: rgba(233, 246, 255, 0.12);
+      border: 3px solid #effaff;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(5, 12, 29, 0.92) 0 37%, transparent 39%),
+        radial-gradient(circle, rgba(202, 235, 255, 0.28) 42%, rgba(83, 165, 235, 0.42) 100%);
+      box-shadow:
+        0 0 10px rgba(192, 235, 255, 0.45),
+        inset 0 0 9px rgba(255, 255, 255, 0.3);
+    }
+
+    .piece.ring.c0 {
+      border-color: #80dcff;
+      background:
+        radial-gradient(circle, rgba(5, 12, 29, 0.94) 0 37%, transparent 39%),
+        radial-gradient(circle, rgba(21, 130, 200, 0.25) 42%, #1a83c8 100%);
+    }
+
+    .piece.ring.c1 {
+      border-color: #d4b2ff;
+      background:
+        radial-gradient(circle, rgba(9, 5, 24, 0.94) 0 37%, transparent 39%),
+        radial-gradient(circle, rgba(135, 59, 214, 0.28) 42%, #873bd6 100%);
+    }
+
+    .piece.ring.c2 {
+      border-color: #ffb3cb;
+      background:
+        radial-gradient(circle, rgba(28, 5, 15, 0.94) 0 37%, transparent 39%),
+        radial-gradient(circle, rgba(212, 87, 130, 0.28) 42%, #d45782 100%);
+    }
+
+    .piece.ring.c3 {
+      border-color: #a8ffdb;
+      background:
+        radial-gradient(circle, rgba(4, 25, 18, 0.94) 0 37%, transparent 39%),
+        radial-gradient(circle, rgba(43, 175, 133, 0.28) 42%, #2baf85 100%);
+    }
+
+    /* オーブ：輪ではなく、発光する「中身が詰まった球」 */
+
+    .piece.orb {
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95) 0 8%, transparent 10%),
+        radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
+        radial-gradient(circle at 50% 58%, #247ec6 0 55%, #0d335f 100%);
+      box-shadow:
+        0 0 7px rgba(255, 255, 255, 0.8),
+        0 0 19px rgba(93, 228, 255, 0.94),
+        inset -5px -7px 10px rgba(0, 0, 0, 0.36);
+    }
+
+    .piece.orb.c0 {
+      background:
+        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95) 0 8%, transparent 10%),
+        radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
+        radial-gradient(circle at 50% 58%, #258fdd 0 55%, #0b396f 100%);
+    }
+
+    .piece.orb.c1 {
+      background:
+        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95) 0 8%, transparent 10%),
+        radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
+        radial-gradient(circle at 50% 58%, #9b55e4 0 55%, #3e176b 100%);
+    }
+
+    .piece.orb.c2 {
+      background:
+        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95) 0 8%, transparent 10%),
+        radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
+        radial-gradient(circle at 50% 58%, #e35d91 0 55%, #741a42 100%);
+    }
+
+    .piece.orb.c3 {
+      background:
+        radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95) 0 8%, transparent 10%),
+        radial-gradient(circle at 38% 35%, rgba(255, 255, 255, 0.45) 0 14%, transparent 28%),
+        radial-gradient(circle at 50% 58%, #36c595 0 55%, #0b5d47 100%);
     }
 
     .piece.star {
-      border-color: var(--yellow);
-      background: #5c4710;
+      border: 2px solid var(--yellow);
+      border-radius: 50%;
+      background: #5d4810;
       color: var(--yellow);
       box-shadow:
-        0 0 15px rgba(255, 232, 120, 0.75),
-        inset 0 1px rgba(255, 255, 255, 0.35);
+        0 0 18px rgba(255, 232, 120, 0.88),
+        inset 0 1px rgba(255, 255, 255, 0.4);
     }
 
-    .piece.c0 { background: #1a83c8; }
-    .piece.c1 { background: #873bd6; }
-    .piece.c2 { background: #d45782; }
-    .piece.c3 { background: #2baf85; }
-
     .piece.active {
-      animation: active-ring 0.66s infinite alternate;
+      animation: active-ring 0.72s ease-in-out infinite alternate;
     }
 
     .piece.t5 {
       border-color: var(--green);
-      box-shadow: 0 0 13px var(--green);
+      box-shadow: 0 0 14px var(--green);
     }
 
     .piece.t6 {
       border-color: var(--green);
-      animation: prep-pulse 0.7s infinite;
+      animation: prep-pulse 0.75s infinite;
     }
 
     .piece.t7 {
       border-color: var(--yellow);
-      animation: prep-pulse 0.32s infinite;
-      box-shadow: 0 0 20px var(--yellow);
+      animation: prep-pulse 0.38s infinite;
+      box-shadow: 0 0 21px var(--yellow);
     }
 
     .bottom-tools {
@@ -550,29 +589,29 @@
       flex: 0 0 auto;
       gap: 8px;
       align-items: center;
-      min-height: 38px;
+      min-height: 35px;
     }
 
     .hint {
       margin: 0;
       color: var(--muted);
-      font-size: 0.58rem;
+      font-size: 0.56rem;
       font-weight: 700;
-      line-height: 1.35;
+      line-height: 1.3;
     }
 
     .abort-button {
-      min-height: 36px;
-      padding: 0 14px;
+      min-height: 34px;
+      padding: 0 13px;
       border-color: rgba(255, 113, 148, 0.68);
       border-radius: 10px;
-      background: rgba(75, 18, 42, 0.88);
+      background: rgba(75, 18, 42, 0.9);
       color: #ffd0da;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 900;
     }
 
-    /* モーダル・演出 */
+    /* ---------- モーダル・演出 ---------- */
 
     .modal,
     .overlay {
@@ -583,7 +622,7 @@
       align-items: center;
       justify-content: center;
       padding: 18px;
-      background: rgba(1, 4, 15, 0.8);
+      background: rgba(1, 4, 15, 0.82);
       backdrop-filter: blur(5px);
     }
 
@@ -599,11 +638,7 @@
       border: 1px solid rgba(93, 228, 255, 0.62);
       border-radius: 20px;
       background:
-        radial-gradient(
-          circle at 50% 0,
-          rgba(55, 111, 177, 0.34),
-          transparent 42%
-        ),
+        radial-gradient(circle at 50% 0, rgba(55, 111, 177, 0.34), transparent 42%),
         #091633;
       box-shadow:
         0 18px 42px rgba(0, 0, 0, 0.55),
@@ -615,7 +650,7 @@
     .info-card h2 {
       margin: 5px 0 12px;
       font-family: Orbitron, "Noto Sans JP", sans-serif;
-      font-size: 1.38rem;
+      font-size: 1.36rem;
     }
 
     .modal-card p,
@@ -673,27 +708,34 @@
     .countdown {
       z-index: 34;
       pointer-events: none;
+      overflow: hidden;
     }
 
     .countdown strong {
       display: block;
+      width: min(92vw, 620px);
+      overflow: visible;
       color: white;
       font-family: Orbitron, sans-serif;
-      font-size: clamp(5rem, 40vw, 11rem);
+      font-size: clamp(4.5rem, 32vw, 10rem);
       font-weight: 900;
-      line-height: 1;
+      line-height: 0.95;
       letter-spacing: -0.08em;
       text-align: center;
       text-shadow:
         0 0 8px var(--cyan),
-        0 0 28px #a981ff,
+        0 0 28px var(--purple),
         0 0 54px rgba(255, 232, 120, 0.65);
-      animation: countdown-pop 0.55s ease-out both;
+      animation: countdown-pop 0.56s ease-out both;
     }
 
     .countdown.ready-phase strong {
-      font-size: clamp(2.8rem, 18vw, 5rem);
-      letter-spacing: 0.02em;
+      width: min(90vw, 600px);
+      overflow: hidden;
+      font-size: clamp(2rem, 14vw, 4.7rem);
+      letter-spacing: 0.01em;
+      text-overflow: clip;
+      white-space: nowrap;
       animation: ready-grow 0.7s ease-out both;
     }
 
@@ -708,12 +750,12 @@
       display: block;
       color: white;
       font-family: Orbitron, sans-serif;
-      font-size: clamp(3.1rem, 19vw, 6.4rem);
+      font-size: clamp(3rem, 18vw, 6.2rem);
       font-weight: 900;
       letter-spacing: -0.06em;
       text-shadow:
         0 0 8px var(--cyan),
-        0 0 24px #a981ff,
+        0 0 24px var(--purple),
         0 0 46px rgba(255, 232, 120, 0.8);
       animation: level-burst 1.8s ease-out both;
     }
@@ -728,27 +770,36 @@
       letter-spacing: 0.18em;
     }
 
+    .fever-overlay {
+      overflow: hidden;
+      background:
+        radial-gradient(circle at center, rgba(255, 232, 120, 0.35), transparent 44%),
+        rgba(2, 7, 24, 0.76);
+    }
+
     .fever-overlay strong {
       display: block;
       color: var(--yellow);
       font-family: "Mochiy Pop One", sans-serif;
-      font-size: clamp(4rem, 28vw, 8rem);
-      letter-spacing: -0.08em;
+      font-size: clamp(3.5rem, 25vw, 7.8rem);
+      line-height: 1;
+      letter-spacing: -0.09em;
       text-shadow:
         0 0 12px var(--yellow),
         0 0 35px var(--green),
-        0 0 60px var(--cyan);
-      animation: fever-burst 1.9s ease-out both;
+        0 0 68px var(--cyan);
+      animation: fever-burst 2.1s cubic-bezier(.15,.75,.18,1) both;
     }
 
     .fever-overlay small {
       display: block;
-      margin-top: 10px;
+      margin-top: 13px;
       color: white;
       font-family: Orbitron, sans-serif;
       font-size: 1rem;
       font-weight: 900;
       letter-spacing: 0.16em;
+      animation: fever-small 1.3s ease-out both;
     }
 
     .over-number {
@@ -782,8 +833,8 @@
 
     @keyframes active-ring {
       to {
-        transform: translateY(2px);
-        box-shadow: 0 0 17px var(--cyan);
+        transform: translateY(2px) scale(1.04);
+        box-shadow: 0 0 19px var(--cyan);
       }
     }
 
@@ -797,20 +848,19 @@
     @keyframes lane-danger {
       50% {
         border-color: var(--pink);
-        box-shadow:
-          inset 0 0 20px rgba(255, 113, 148, 0.34);
+        box-shadow: inset 0 0 20px rgba(255, 113, 148, 0.34);
       }
     }
 
     @keyframes countdown-pop {
       0% {
         opacity: 0;
-        transform: scale(0.35);
+        transform: scale(0.38);
       }
 
       30% {
         opacity: 1;
-        transform: scale(1.15);
+        transform: scale(1.12);
       }
 
       100% {
@@ -822,12 +872,12 @@
     @keyframes ready-grow {
       0% {
         opacity: 0;
-        transform: scale(0.4);
+        transform: scale(0.42);
       }
 
-      65% {
+      58% {
         opacity: 1;
-        transform: scale(1.28);
+        transform: scale(1.15);
       }
 
       100% {
@@ -861,26 +911,52 @@
     @keyframes fever-burst {
       0% {
         opacity: 0;
-        transform: scale(0.25) rotate(-18deg);
+        transform: scale(0.18) rotate(-34deg) translateX(-30px);
       }
 
-      30% {
+      18% {
         opacity: 1;
-        transform: scale(1.25) rotate(12deg);
+        transform: scale(1.3) rotate(17deg) translateX(18px);
       }
 
-      55% {
-        transform: scale(0.95) rotate(-7deg);
+      34% {
+        transform: scale(0.92) rotate(-13deg) translateX(-14px);
       }
 
-      80% {
+      49% {
+        transform: scale(1.18) rotate(10deg) translateX(11px);
+      }
+
+      64% {
         opacity: 1;
-        transform: scale(1.08) rotate(4deg);
+        transform: scale(1) rotate(-6deg) translateX(-6px);
+      }
+
+      82% {
+        opacity: 1;
+        transform: scale(1.1) rotate(4deg) translateX(4px);
       }
 
       100% {
         opacity: 0;
-        transform: scale(1.45) rotate(18deg);
+        transform: scale(1.55) rotate(22deg) translateX(0);
+      }
+    }
+
+    @keyframes fever-small {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+
+      35% {
+        opacity: 1;
+        transform: scale(1.22);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.15);
       }
     }
 
@@ -891,7 +967,7 @@
       }
 
       20% {
-        filter: brightness(1.6) hue-rotate(45deg);
+        filter: brightness(1.65) hue-rotate(45deg);
         transform: translateX(-7px);
       }
 
@@ -923,20 +999,6 @@
       100% {
         opacity: 0;
         transform: translate(-50%, -78%) scale(0.95);
-      }
-    }
-
-    @media (min-width: 620px) {
-      #game-screen {
-        padding-top: 20px;
-      }
-
-      .hud {
-        gap: 7px;
-      }
-
-      .hud-box {
-        min-height: 51px;
       }
     }
 
@@ -1026,11 +1088,7 @@
 
       <strong id="status-label" class="status">READY</strong>
 
-      <button
-        id="sound-button"
-        class="menu-button sound-button hidden"
-        type="button"
-      >
+      <button id="sound-button" class="menu-button sound-button hidden" type="button">
         <strong>音を有効化</strong>
         <small>TAP TO ENABLE SOUND</small>
       </button>
@@ -1075,16 +1133,14 @@
 
         <h3>ver1.3　縦持ち用の落下パズルへ大幅改修</h3>
         <ul>
-          <li>リングが上から下へ落ちるようになりました。</li>
-          <li>オーブを盤面の一番下へ配置しました。</li>
-          <li>各レーンの次リングを盤面上部に表示しました。</li>
-          <li>リングが積み上がると「ガチャン」と鳴ります。</li>
-          <li>高く積み上がるほど、盤面の光と電流が強くなります。</li>
-          <li>レベルアップ時に、中央へ大きなLEVEL表示が出ます。</li>
-          <li>READY表示を読みやすくしました。</li>
-          <li>全レーンが完全に空になった時だけFEVERが発動します。</li>
+          <li>リングが上から下へ落ちる、4レーンの落下パズルになりました。</li>
+          <li>オーブとリングの見た目を明確に変えました。オーブは中身の詰まった発光球、リングは中心が抜けた輪です。</li>
+          <li>READY?が画面からはみ出さない大きさで、中央に拡大表示されます。</li>
+          <li>リングだけのレーンはオーブへ変化せず、経験値にもなりません。</li>
+          <li>全レーンが完全に空になった時、FEVER!が回転・拡大・揺れを伴って派手に表示されます。</li>
           <li>FEVER中の経験値は4倍です。</li>
-          <li>LEVEL 1〜3のリング落下速度を少し遅くしました。</li>
+          <li>LEVEL 1〜3のリング落下速度を遅くしました。</li>
+          <li>リングとオーブ、リングとリングが接続した時に接続音が鳴ります。</li>
           <li>レーン移動時に、落下中リングの高さが戻らなくなりました。</li>
         </ul>
       </div>
@@ -1187,9 +1243,9 @@
       targets: [4500, 4500, 5500, 6500, 7500],
 
       fallIntervals: {
-        1: 1650,
-        2: 1500,
-        3: 1300,
+        1: 1800,
+        2: 1650,
+        3: 1450,
         4: 1050,
         5: 1050
       },
@@ -1272,10 +1328,11 @@
     };
 
     let game = null;
-    let fallTimer = null;
-    let timeTimer = null;
     let pieceId = 0;
     let tutorialIndex = 0;
+
+    let fallTimer = null;
+    let timeTimer = null;
 
     let audioContext = null;
     let bgm = null;
@@ -1289,12 +1346,6 @@
 
     function randomNumber() {
       return Math.floor(Math.random() * 4) + 1;
-    }
-
-    function getFallInterval() {
-      return CONFIG.fallIntervals[
-        Math.min(game.level, 5)
-      ];
     }
 
     function makePiece(type, number = null, color = null) {
@@ -1342,7 +1393,6 @@
     function createGame() {
       return {
         board: createBoard(),
-
         next: Array.from(
           { length: CONFIG.lanes },
           () => makeNextRing()
@@ -1362,7 +1412,7 @@
         paused: false,
         ended: false,
 
-        bgmPaths: {}
+        bgmPathByLevel: {}
       };
     }
 
@@ -1375,11 +1425,10 @@
       ];
     }
 
-    function isFever() {
-      return Boolean(
-        game &&
-        Date.now() < game.feverUntil
-      );
+    function getFallInterval() {
+      return CONFIG.fallIntervals[
+        Math.min(game.level, CONFIG.maxLevel)
+      ];
     }
 
     function isPlaying() {
@@ -1388,6 +1437,13 @@
         !game.busy &&
         !game.paused &&
         !game.ended
+      );
+    }
+
+    function isFever() {
+      return Boolean(
+        game &&
+        Date.now() < game.feverUntil
       );
     }
 
@@ -1435,181 +1491,173 @@
       el.status.textContent = text;
     }
 
-    function unlockAudio() {
-      if (!audioContext) {
-        const AudioContextClass =
-          window.AudioContext ||
-          window.webkitAudioContext;
+    /* ---------- 音 ---------- */
 
-        if (AudioContextClass) {
-          audioContext = new AudioContextClass();
-        }
+    function unlockAudio() {
+      const AudioContextClass =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+      if (!audioContext && AudioContextClass) {
+        audioContext = new AudioContextClass();
       }
 
-      audioContext?.resume().catch(() => {});
+      if (!audioContext) {
+        el.sound.classList.remove("hidden");
+        return false;
+      }
+
+      audioContext.resume()
+        .then(() => {
+          el.sound.classList.add("hidden");
+        })
+        .catch(() => {
+          el.sound.classList.remove("hidden");
+        });
+
+      return audioContext.state !== "closed";
     }
 
-    function playTone(
-      frequency,
-      time,
-      duration,
-      volume,
-      type = "sine"
-    ) {
-      if (!audioContext) {
+    function playTone({
+      frequency = 440,
+      duration = 0.12,
+      volume = 0.12,
+      type = "sine",
+      slideTo = null
+    }) {
+      if (!audioContext || audioContext.state !== "running") {
         return;
       }
 
-      const oscillator =
-        audioContext.createOscillator();
-
-      const gain =
-        audioContext.createGain();
+      const now = audioContext.currentTime;
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
 
       oscillator.type = type;
-      oscillator.frequency.value = frequency;
+      oscillator.frequency.setValueAtTime(frequency, now);
 
-      gain.gain.setValueAtTime(0.001, time);
+      if (slideTo) {
+        oscillator.frequency.exponentialRampToValueAtTime(
+          Math.max(40, slideTo),
+          now + duration
+        );
+      }
 
+      gain.gain.setValueAtTime(0.0001, now);
       gain.gain.exponentialRampToValueAtTime(
         volume,
-        time + 0.01
+        now + 0.008
       );
-
       gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        time + duration
+        0.0001,
+        now + duration
       );
 
       oscillator.connect(gain);
       gain.connect(audioContext.destination);
 
-      oscillator.start(time);
-      oscillator.stop(time + duration + 0.03);
+      oscillator.start(now);
+      oscillator.stop(now + duration + 0.03);
     }
 
-    function playClank() {
-      if (!audioContext) {
+    function playConnectSound() {
+      if (!unlockAudio()) {
         return;
       }
 
-      const now = audioContext.currentTime;
+      window.setTimeout(() => {
+        playTone({
+          frequency: 185,
+          slideTo: 115,
+          duration: 0.105,
+          volume: 0.2,
+          type: "square"
+        });
 
-      /*
-        太い低音＋短い金属高音。
-        BGM中でも聞き取りやすい「ガチャン」。
-      */
-      playTone(85, now, 0.12, 0.28, "square");
-      playTone(165, now + 0.018, 0.1, 0.2, "triangle");
-      playTone(520, now + 0.027, 0.055, 0.12, "sine");
+        window.setTimeout(() => {
+          playTone({
+            frequency: 82,
+            slideTo: 58,
+            duration: 0.13,
+            volume: 0.24,
+            type: "triangle"
+          });
+        }, 35);
+      }, 0);
     }
 
     function playClearSound(chain = 1) {
-      if (!audioContext || !game) {
+      if (!unlockAudio()) {
         return;
       }
 
-      const root =
-        261.63 *
-        (2 ** (((game.level - 1) * 2) / 12));
+      const root = 261.63 * Math.pow(2, (game.level - 1) / 6);
+      const scale = [1, 1.125, 1.25, 1.333, 1.5, 1.667, 1.875, 2];
+      const speed = chain === 1 ? 80 : chain === 2 ? 62 : 48;
 
-      const notes = [
-        0, 2, 4, 5,
-        7, 9, 11, 12
-      ];
-
-      const now = audioContext.currentTime;
-      const interval = 0.078 / chain;
-
-      notes.forEach((note, index) => {
-        playTone(
-          root * (2 ** (note / 12)),
-          now + index * interval,
-          0.11,
-          0.13
-        );
+      scale.forEach((ratio, index) => {
+        window.setTimeout(() => {
+          playTone({
+            frequency: root * ratio,
+            duration: 0.1,
+            volume: 0.095,
+            type: "sine"
+          });
+        }, index * speed);
       });
     }
 
     function playOverSound() {
-      if (!audioContext) {
+      if (!unlockAudio()) {
         return;
       }
 
-      const now = audioContext.currentTime;
+      const notes = [146.83, 98, 73.42, 58.27];
 
-      [
-        261.63,
-        196,
-        146.83,
-        130.81
-      ].forEach((note, index) => {
-        playTone(
-          note,
-          now + index * 0.085,
-          0.12,
-          0.15
-        );
+      notes.forEach((frequency, index) => {
+        window.setTimeout(() => {
+          playTone({
+            frequency,
+            slideTo: frequency * 0.84,
+            duration: 0.13,
+            volume: 0.17,
+            type: "triangle"
+          });
+        }, index * 75);
       });
     }
 
-    function playStarSound() {
-      if (!audioContext) {
+    function playFeverSound() {
+      if (!unlockAudio()) {
         return;
       }
 
-      const now = audioContext.currentTime;
-
-      [
-        523.25,
-        659.25,
-        783.99,
-        1046.5
-      ].forEach((note, index) => {
-        playTone(
-          note,
-          now + index * 0.075,
-          0.14,
-          0.12
-        );
+      [261.63, 329.63, 392, 523.25].forEach((frequency, index) => {
+        window.setTimeout(() => {
+          playTone({
+            frequency,
+            duration: 0.18,
+            volume: 0.13,
+            type: "sine"
+          });
+        }, index * 80);
       });
     }
 
-    function getBgmPath() {
-      if (game.bgmPaths[game.level]) {
-        return game.bgmPaths[game.level];
+    function getBgmPath(level) {
+      if (level === 4) {
+        return Math.random() < 0.5
+          ? "assets/audio/bgm/LEVEL-4-a.mp3"
+          : "assets/audio/bgm/LEVEL-4-b.mp3";
       }
 
-      let fileName = "LEVEL-1.mp3";
-
-      if (game.level === 2) {
-        fileName = "LEVEL-2.mp3";
+      if (level === 5) {
+        return Math.random() < 0.5
+          ? "assets/audio/bgm/LEVEL-5-a.mp3"
+          : "assets/audio/bgm/LEVEL-5-b.mp3";
       }
 
-      if (game.level === 3) {
-        fileName = "LEVEL-3.mp3";
-      }
-
-      if (game.level === 4) {
-        fileName =
-          Math.random() < 0.5
-            ? "LEVEL-4-a.mp3"
-            : "LEVEL-4-b.mp3";
-      }
-
-      if (game.level >= 5) {
-        fileName =
-          Math.random() < 0.5
-            ? "LEVEL-5-a.mp3"
-            : "LEVEL-5-b.mp3";
-      }
-
-      const path =
-        `assets/audio/bgm/${fileName}`;
-
-      game.bgmPaths[game.level] = path;
-
-      return path;
+      return `assets/audio/bgm/LEVEL-${level}.mp3`;
     }
 
     function stopBgm() {
@@ -1622,10 +1670,26 @@
       bgm = null;
     }
 
-    function startBgm() {
+    function stopEndMusic() {
+      if (!endMusic) {
+        return;
+      }
+
+      endMusic.pause();
+      endMusic.currentTime = 0;
+      endMusic = null;
+    }
+
+    function startBgmForLevel() {
+      if (!game || game.ended) {
+        return;
+      }
+
       stopBgm();
 
-      bgm = new Audio(getBgmPath());
+      const path = getBgmPath(game.level);
+
+      bgm = new Audio(path);
       bgm.loop = true;
       bgm.volume = CONFIG.bgmVolume;
 
@@ -1638,47 +1702,614 @@
         });
     }
 
-    function stopEndMusic() {
-      if (!endMusic) {
-        return;
-      }
-
-      endMusic.pause();
-      endMusic.currentTime = 0;
-      endMusic = null;
-    }
-
-    function playEndMusic(fileName) {
+    function playEndMusic(path) {
+      stopBgm();
       stopEndMusic();
 
-      endMusic = new Audio(
-        `assets/audio/bgm/${fileName}`
-      );
-
+      endMusic = new Audio(path);
       endMusic.volume = CONFIG.endMusicVolume;
-      endMusic.play().catch(() => {});
+
+      endMusic.play().catch(() => {
+        el.sound.classList.remove("hidden");
+      });
     }
 
-    function addExperience(amount) {
-      const multiplier =
-        isFever()
-          ? CONFIG.feverMultiplier
-          : 1;
+    /* ---------- 表示 ---------- */
 
-      const earned = Math.floor(
-        amount * multiplier
-      );
-
-      game.score += earned;
-      game.stageScore += earned;
-
-      checkLevel();
-    }
-
-    function checkLevel() {
-      if (game.stageScore < getTarget()) {
+    function render() {
+      if (!game) {
         return;
       }
+
+      el.score.textContent = game.score.toLocaleString();
+      el.level.textContent = game.level;
+      el.time.textContent = game.time;
+      el.stageScore.textContent = game.stageScore.toLocaleString();
+      el.target.textContent = getTarget().toLocaleString();
+
+      renderGauge();
+      renderNext();
+      renderBoard();
+      renderDanger();
+    }
+
+    function renderGauge() {
+      const items = [...el.gauge.querySelectorAll("i")];
+
+      items.forEach((item, index) => {
+        item.classList.toggle("on", index < game.over);
+      });
+
+      el.gauge.className = `over-gauge over-${game.over}`;
+    }
+
+    function renderNext() {
+      el.next.innerHTML = "";
+
+      game.next.forEach((next, lane) => {
+        const box = document.createElement("div");
+        box.className = "next-box";
+
+        const label = document.createElement("b");
+        label.textContent = `LANE ${lane + 1}`;
+
+        const piece = document.createElement("div");
+        piece.className =
+          next.type === "star"
+            ? "next-piece star"
+            : "next-piece";
+
+        piece.textContent =
+          next.type === "star"
+            ? "★"
+            : next.number;
+
+        box.append(label, piece);
+        el.next.append(box);
+      });
+    }
+
+    function renderBoard() {
+      el.board.innerHTML = "";
+
+      for (let lane = 0; lane < CONFIG.lanes; lane += 1) {
+        const laneElement = document.createElement("div");
+        laneElement.className = "lane";
+
+        if (getStackHeight(lane) >= 5) {
+          laneElement.classList.add("high");
+        }
+
+        for (let row = 0; row < CONFIG.rows; row += 1) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.dataset.lane = lane;
+          cell.dataset.row = row;
+
+          if (game.selectedLane === lane) {
+            cell.classList.add("selected");
+          }
+
+          const fixedPiece = game.board[lane][row];
+
+          if (fixedPiece) {
+            cell.append(makePieceElement(fixedPiece));
+          }
+
+          if (
+            game.active &&
+            game.active.lane === lane &&
+            game.active.row === row
+          ) {
+            cell.append(
+              makePieceElement(
+                game.active.piece,
+                true
+              )
+            );
+          }
+
+          cell.addEventListener("pointerdown", () => {
+            handleLaneTap(lane);
+          });
+
+          laneElement.append(cell);
+        }
+
+        el.board.append(laneElement);
+      }
+    }
+
+    function makePieceElement(piece, active = false) {
+      const node = document.createElement("div");
+
+      if (piece.type === "star") {
+        node.className = `piece star ${active ? "active" : ""}`;
+        node.textContent = "★";
+        return node;
+      }
+
+      const colorClass =
+        Number.isInteger(piece.color)
+          ? `c${piece.color}`
+          : "";
+
+      node.className = [
+        "piece",
+        piece.type,
+        colorClass,
+        active ? "active" : ""
+      ].join(" ");
+
+      node.textContent = piece.number;
+
+      return node;
+    }
+
+    function renderDanger() {
+      const highest = Math.max(
+        ...Array.from(
+          { length: CONFIG.lanes },
+          (_, lane) => getStackHeight(lane)
+        )
+      );
+
+      const danger = Math.max(
+        0,
+        Math.min(1, (highest - 3) / 5)
+      );
+
+      el.app.style.setProperty("--danger", danger.toFixed(2));
+    }
+
+    function getStackHeight(lane) {
+      return game.board[lane].filter(Boolean).length;
+    }
+
+    /* ---------- ゲーム進行 ---------- */
+
+    async function startNewGame() {
+      clearTimers();
+      stopEndMusic();
+      closeModals();
+
+      unlockAudio();
+
+      game = createGame();
+
+      showScreen(el.game);
+      render();
+      await startCountdown();
+
+      if (game.ended) {
+        return;
+      }
+
+      game.busy = false;
+      setStatus("DROP RING");
+
+      spawnActiveRing();
+      restartFallTimer();
+      startTimeTimer();
+      startBgmForLevel();
+    }
+
+    async function startCountdown() {
+      const steps = [
+        { text: "READY?", duration: 760, ready: true },
+        { text: "3", duration: 520, ready: false },
+        { text: "2", duration: 520, ready: false },
+        { text: "1", duration: 520, ready: false },
+        { text: "GO!", duration: 620, ready: false }
+      ];
+
+      for (const step of steps) {
+        el.countdownText.textContent = step.text;
+        el.countdown.classList.toggle(
+          "ready-phase",
+          step.ready
+        );
+
+        el.countdown.classList.remove("open");
+        void el.countdown.offsetWidth;
+        el.countdown.classList.add("open");
+
+        if (!step.ready) {
+          playTone({
+            frequency: step.text === "GO!" ? 660 : 440,
+            duration: 0.09,
+            volume: 0.1,
+            type: "sine"
+          });
+        }
+
+        await wait(step.duration);
+
+        el.countdown.classList.remove("open");
+      }
+
+      el.countdown.classList.remove("ready-phase");
+    }
+
+    function startTimeTimer() {
+      window.clearInterval(timeTimer);
+
+      timeTimer = window.setInterval(() => {
+        if (!isPlaying()) {
+          return;
+        }
+
+        game.time -= 1;
+        render();
+
+        if (game.time <= 0) {
+          game.time = 0;
+          gameOver("TIME UP");
+        }
+      }, 1000);
+    }
+
+    function spawnActiveRing() {
+      if (!isPlaying() || game.active) {
+        return;
+      }
+
+      const lane = Math.floor(
+        Math.random() * CONFIG.lanes
+      );
+
+      const next = game.next[lane];
+
+      game.active = {
+        lane,
+        row: 0,
+        piece: makePiece(
+          next.type,
+          next.number,
+          null
+        )
+      };
+
+      game.next[lane] = makeNextRing();
+      game.selectedLane = lane;
+
+      render();
+    }
+
+    function moveActiveRing() {
+      if (!isPlaying() || !game.active) {
+        return;
+      }
+
+      const { lane, row } = game.active;
+
+      if (canOccupy(lane, row + 1)) {
+        game.active.row += 1;
+        render();
+        return;
+      }
+
+      lockActiveRing();
+    }
+
+    function canOccupy(lane, row) {
+      if (row >= CONFIG.rows) {
+        return false;
+      }
+
+      return game.board[lane][row] === null;
+    }
+
+    function canMoveToLane(lane) {
+      if (!game.active) {
+        return false;
+      }
+
+      const activeRow = game.active.row;
+
+      for (let row = activeRow; row < CONFIG.rows; row += 1) {
+        if (game.board[lane][row]) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    function handleLaneTap(lane) {
+      if (!isPlaying() || !game.active) {
+        return;
+      }
+
+      if (lane === game.active.lane) {
+        lockActiveRing();
+        return;
+      }
+
+      if (!canMoveToLane(lane)) {
+        setStatus("THAT LANE IS FULL");
+        playTone({
+          frequency: 120,
+          duration: 0.08,
+          volume: 0.09,
+          type: "square"
+        });
+        return;
+      }
+
+      game.active.lane = lane;
+      game.selectedLane = lane;
+
+      setStatus("LANE MOVED");
+      render();
+    }
+
+    async function lockActiveRing() {
+      if (!isPlaying() || !game.active) {
+        return;
+      }
+
+      const { lane, row, piece } = game.active;
+
+      if (!canOccupy(lane, row)) {
+        return;
+      }
+
+      game.board[lane][row] = piece;
+      game.active = null;
+      game.selectedLane = null;
+
+      playConnectSound();
+      setStatus("CONNECTED");
+      render();
+
+      await wait(140);
+
+      if (!isPlaying()) {
+        return;
+      }
+
+      await evaluateLane(lane, row, piece);
+      render();
+
+      if (!game.ended && !game.paused) {
+        spawnActiveRing();
+      }
+    }
+
+    function getOrbConnection(lane) {
+      const column = game.board[lane];
+      const orbRow = column.findIndex(
+        (piece) => piece?.type === "orb"
+      );
+
+      if (orbRow === -1) {
+        return {
+          hasOrb: false,
+          total: 0,
+          positions: []
+        };
+      }
+
+      const positions = [];
+      let total = 0;
+
+      for (let row = orbRow; row >= 0; row -= 1) {
+        const piece = column[row];
+
+        if (!piece) {
+          break;
+        }
+
+        if (piece.type === "star") {
+          break;
+        }
+
+        positions.push(row);
+        total += piece.number;
+      }
+
+      return {
+        hasOrb: true,
+        total,
+        positions
+      };
+    }
+
+    async function evaluateLane(lane, placedRow, placedPiece) {
+      if (placedPiece.type === "star") {
+        await clearLaneByStar(lane);
+        return;
+      }
+
+      const connection = getOrbConnection(lane);
+
+      /*
+        オーブがないレーンは、リングが積まれるだけ。
+        オーブへ変化させない。
+        経験値・オーバーゲージの判定もしない。
+      */
+      if (!connection.hasOrb) {
+        setStatus("RINGS ONLY");
+        return;
+      }
+
+      if (connection.total === 8) {
+        await clearConnection(lane, connection.positions, 1);
+        return;
+      }
+
+      if (connection.total >= 9) {
+        game.board[lane][placedRow] = null;
+        showOverNumber(connection.total);
+        increaseOverGauge(connection.total);
+        setStatus("OVER LIMIT");
+        render();
+        return;
+      }
+
+      setStatus("DROP RING");
+    }
+
+    async function clearConnection(lane, positions, chain) {
+      positions.forEach((row) => {
+        game.board[lane][row] = null;
+      });
+
+      const count = positions.length;
+      awardScore(count, chain, 1);
+
+      playClearSound(chain);
+      setStatus(
+        chain > 1
+          ? `${chain} CHAIN!`
+          : "TOTAL 8!"
+      );
+
+      settleLane(lane);
+      render();
+
+      await wait(220);
+
+      const next = getOrbConnection(lane);
+
+      if (next.hasOrb && next.total === 8) {
+        await clearConnection(
+          lane,
+          next.positions,
+          chain + 1
+        );
+        return;
+      }
+
+      if (next.hasOrb && next.total >= 9) {
+        /*
+          自動連鎖後に9以上になった場合は、
+          新たに落としたリングではないためゲージを増やさない。
+          盤面を残して終了。
+        */
+        setStatus("CHECK YOUR STACK");
+      }
+
+      await checkFever();
+    }
+
+    async function clearLaneByStar(lane) {
+      const pieces = game.board[lane].filter(Boolean);
+      const existingCount = pieces.length;
+
+      game.board[lane] = Array(CONFIG.rows).fill(null);
+
+      /*
+        空白レーンに★を置いた時も、
+        ★自身で1回「8を作った」扱いにする。
+      */
+      awardScore(
+        Math.max(1, existingCount),
+        1,
+        1
+      );
+
+      playClearSound(2);
+      setStatus("STAR CLEAR!");
+      render();
+
+      await wait(250);
+      await checkFever();
+    }
+
+    function settleLane(lane) {
+      const column = game.board[lane];
+      const pieces = column.filter(Boolean);
+
+      const nextColumn = Array(CONFIG.rows).fill(null);
+
+      let writeRow = CONFIG.rows - 1;
+
+      for (
+        let readIndex = pieces.length - 1;
+        readIndex >= 0;
+        readIndex -= 1
+      ) {
+        nextColumn[writeRow] = pieces[readIndex];
+        writeRow -= 1;
+      }
+
+      game.board[lane] = nextColumn;
+    }
+
+    function awardScore(pieceCount, chain, multiplier) {
+      const feverMultiplier = isFever()
+        ? CONFIG.feverMultiplier
+        : 1;
+
+      const simultaneousMultiplier = multiplier || 1;
+
+      const points =
+        (
+          CONFIG.clearScore * pieceCount +
+          CONFIG.simultaneousBonus * Math.max(0, chain - 1)
+        ) *
+        feverMultiplier *
+        simultaneousMultiplier;
+
+      game.score += points;
+      game.stageScore += points;
+
+      render();
+
+      if (game.stageScore >= getTarget()) {
+        levelUp();
+      }
+    }
+
+    async function checkFever() {
+      const hasAnyPiece = game.board.some((column) => {
+        return column.some(Boolean);
+      });
+
+      if (hasAnyPiece || game.ended) {
+        return;
+      }
+
+      game.busy = true;
+      clearTimers();
+
+      game.feverUntil = Date.now() + CONFIG.feverDuration;
+
+      el.app.classList.remove("is-fever");
+      void el.app.offsetWidth;
+      el.app.classList.add("is-fever");
+
+      el.feverOverlay.classList.add("open");
+      playFeverSound();
+
+      await wait(2100);
+
+      el.feverOverlay.classList.remove("open");
+
+      /*
+        FEVER発動後、新規オーブを「生成」する。
+        既存リングをオーブへ変える処理は一切しない。
+      */
+      game.board = createBoard();
+
+      game.busy = false;
+      render();
+
+      restartFallTimer();
+      startTimeTimer();
+
+      setStatus("FEVER ×4");
+    }
+
+    async function levelUp() {
+      if (game.busy || game.ended) {
+        return;
+      }
+
+      game.busy = true;
+      clearTimers();
 
       if (game.level >= CONFIG.maxLevel) {
         gameClear();
@@ -1689,884 +2320,56 @@
       game.stageScore = 0;
       game.time = CONFIG.startTime;
 
-      setStatus("LEVEL UP! TIME RESET");
+      render();
 
-      el.levelText.textContent =
-        `LEVEL ${game.level}`;
-
+      el.levelText.textContent = `LEVEL ${game.level}`;
       el.levelOverlay.classList.add("open");
 
-      window.setTimeout(() => {
-        el.levelOverlay.classList.remove("open");
-      }, 1850);
-
-      startBgm();
-      restartFallTimer();
-      render();
-    }
-
-    function getStack(lane) {
-      const cells = [];
-      const column = game.board[lane];
-
-      /*
-        オーブが一番下にある時だけ、
-        合計8・9以上の判定対象にする。
-        リングだけの列は得点・オーバー対象外。
-      */
-      if (
-        column[CONFIG.rows - 1]?.type !== "orb"
-      ) {
-        return {
-          hasOrb: false,
-          cells: [],
-          total: 0
-        };
-      }
-
-      for (
-        let row = CONFIG.rows - 1;
-        row >= 0;
-        row -= 1
-      ) {
-        const current = column[row];
-
-        if (!current || current.type === "star") {
-          break;
-        }
-
-        cells.unshift({
-          lane,
-          row,
-          piece: current
-        });
-      }
-
-      return {
-        hasOrb: true,
-        cells,
-        total: cells.reduce(
-          (sum, item) =>
-            sum + (item.piece.number || 0),
-          0
-        )
-      };
-    }
-
-    function collapseLane(lane) {
-      const pieces =
-        game.board[lane].filter(Boolean);
-
-      const next =
-        Array(CONFIG.rows).fill(null);
-
-      pieces.forEach((piece, index) => {
-        next[
-          CONFIG.rows - pieces.length + index
-        ] = piece;
+      playTone({
+        frequency: 392,
+        duration: 0.2,
+        volume: 0.13,
+        type: "sine"
       });
 
-      game.board[lane] = next;
-    }
+      await wait(1800);
 
-    function collapseAll() {
-      for (
-        let lane = 0;
-        lane < CONFIG.lanes;
-        lane += 1
-      ) {
-        collapseLane(lane);
-      }
-    }
+      el.levelOverlay.classList.remove("open");
 
-    function isBoardCompletelyEmpty() {
-      return game.board.every((column) =>
-        column.every((piece) => !piece)
-      );
-    }
-
-    function respawnAllOrbs() {
-      game.board.forEach((column, lane) => {
-        game.board[lane] =
-          Array(CONFIG.rows).fill(null);
-
-        game.board[lane][CONFIG.rows - 1] =
-          makePiece(
-            "orb",
-            randomNumber(),
-            lane
-          );
-      });
-    }
-
-    async function startFever() {
-      game.feverUntil =
-        Date.now() + CONFIG.feverDuration;
-
-      game.busy = true;
-
-      el.app.classList.add("is-fever");
-      el.feverOverlay.classList.add("open");
-
-      setStatus("ALL CLEAR! FEVER!");
-
-      await wait(1900);
-
-      el.feverOverlay.classList.remove("open");
-
-      if (!game || game.ended) {
-        return;
-      }
-
-      respawnAllOrbs();
+      startBgmForLevel();
 
       game.busy = false;
-
       render();
 
-      window.setTimeout(() => {
-        el.app.classList.remove("is-fever");
+      restartFallTimer();
+      startTimeTimer();
 
-        if (
-          game &&
-          !game.ended &&
-          !game.paused
-        ) {
-          setStatus("READY");
-        }
-      }, CONFIG.feverDuration);
+      setStatus(`LEVEL ${game.level} START`);
     }
 
-    function showOverNumber(total) {
-      el.overNumber.textContent = String(total);
-      el.overNumber.classList.remove("show");
-
-      void el.overNumber.offsetWidth;
-
-      el.overNumber.classList.add("show");
-
-      window.setTimeout(() => {
-        el.overNumber.classList.remove("show");
-      }, 900);
-    }
-
-    function increaseOver(total) {
+    function increaseOverGauge(total) {
       game.over += 1;
 
       showOverNumber(total);
       playOverSound();
-
       render();
 
       if (game.over >= 5) {
-        gameOver("OVER LIMIT");
-      } else {
-        setStatus("OVER");
+        window.setTimeout(() => {
+          gameOver("OVER LIMIT");
+        }, 520);
       }
     }
 
-    async function resolveClears() {
-      let chain = 0;
-
-      while (game && !game.ended) {
-        const clears = [];
-
-        for (
-          let lane = 0;
-          lane < CONFIG.lanes;
-          lane += 1
-        ) {
-          const stack = getStack(lane);
-
-          if (
-            stack.hasOrb &&
-            stack.total === 8
-          ) {
-            clears.push(stack);
-          }
-        }
-
-        if (clears.length === 0) {
-          break;
-        }
-
-        chain += 1;
-
-        clears.forEach((stack) => {
-          stack.cells.forEach(({ lane, row }) => {
-            game.board[lane][row] = null;
-          });
-        });
-
-        collapseAll();
-
-        addExperience(
-          clears.length *
-          CONFIG.clearScore *
-          chain +
-          Math.max(0, clears.length - 1) *
-          CONFIG.simultaneousBonus
-        );
-
-        playClearSound(
-          chain === 1
-            ? 1
-            : chain === 2
-              ? 1.25
-              : 1.55
-        );
-
-        render();
-
-        await wait(260);
-      }
-
-      if (
-        game &&
-        !game.ended &&
-        isBoardCompletelyEmpty()
-      ) {
-        await startFever();
-      }
-    }
-
-    async function resolveStar(lane) {
-      const count = Math.max(
-        1,
-        game.board[lane].filter(Boolean).length
-      );
-
-      game.board[lane] =
-        Array(CONFIG.rows).fill(null);
-
-      addExperience(
-        CONFIG.clearScore * count
-      );
-
-      playStarSound();
-      render();
-
-      await wait(240);
-
-      if (isBoardCompletelyEmpty()) {
-        await startFever();
-      }
-    }
-
-    function getLandingRow(lane) {
-      for (
-        let row = CONFIG.rows - 1;
-        row >= 0;
-        row -= 1
-      ) {
-        if (!game.board[lane][row]) {
-          return row;
-        }
-      }
-
-      return -1;
-    }
-
-    function getTopOccupiedRow(lane) {
-      const row =
-        game.board[lane].findIndex(Boolean);
-
-      return row < 0
-        ? CONFIG.rows
-        : row;
-    }
-
-    function canMoveToLane(lane) {
-      if (!game.active) {
-        return false;
-      }
-
-      const activeRow = game.active.row;
-      const topOccupied =
-        getTopOccupiedRow(lane);
-
-      if (activeRow >= topOccupied) {
-        return false;
-      }
-
-      if (game.board[lane][activeRow]) {
-        return false;
-      }
-
-      return true;
-    }
-
-    async function placeActiveRing() {
-      if (
-        !game ||
-        !game.active ||
-        game.busy ||
-        game.ended
-      ) {
-        return;
-      }
-
-      const active = game.active;
-      const lane = active.lane;
-
-      game.busy = true;
-
-      if (active.type === "star") {
-        game.active = null;
-
-        playClank();
-
-        await resolveStar(lane);
-
-        if (
-          !game.ended &&
-          !game.paused
-        ) {
-          game.busy = false;
-          spawnActiveRing();
-        }
-
-        return;
-      }
-
-      game.board[lane][active.row] = makePiece(
-        "ring",
-        active.number,
-        lane
-      );
-
-      game.active = null;
-
-      playClank();
-      render();
-
-      const stack = getStack(lane);
-
-      if (
-        stack.hasOrb &&
-        stack.total >= 9
-      ) {
-        game.board[lane][active.row] = null;
-
-        collapseLane(lane);
-
-        increaseOver(stack.total);
-        render();
-      } else {
-        await resolveClears();
-      }
-
-      if (
-        game &&
-        !game.ended &&
-        !game.paused
-      ) {
-        game.busy = false;
-        spawnActiveRing();
-      }
-    }
-
-    function spawnActiveRing() {
-      if (
-        !game ||
-        game.ended ||
-        game.paused ||
-        game.busy
-      ) {
-        return;
-      }
-
-      const lane = Math.floor(
-        Math.random() * CONFIG.lanes
-      );
-
-      const next = game.next[lane];
-
-      game.next[lane] = makeNextRing();
-
-      game.active = {
-        ...next,
-        lane,
-        row: 0
-      };
-
-      game.selectedLane = null;
-
-      render();
-    }
-
-    function moveActiveRing() {
-      if (
-        !isPlaying() ||
-        !game.active
-      ) {
-        return;
-      }
-
-      const active = game.active;
-      const nextRow = active.row + 1;
-
-      if (
-        nextRow >= CONFIG.rows ||
-        game.board[active.lane][nextRow]
-      ) {
-        placeActiveRing();
-        return;
-      }
-
-      active.row = nextRow;
-
-      render();
-    }
-
-    function handleLaneTap(lane) {
-      if (
-        !isPlaying() ||
-        !game.active
-      ) {
-        return;
-      }
-
-      if (game.selectedLane !== lane) {
-        if (!canMoveToLane(lane)) {
-          setStatus("TOO LOW");
-          return;
-        }
-
-        game.selectedLane = lane;
-
-        /*
-          rowは変更しない。
-          レーン変更後も現在の高さを維持。
-        */
-        game.active.lane = lane;
-
-        setStatus("TARGET LOCK");
-        render();
-
-        return;
-      }
-
-      const landingRow = getLandingRow(lane);
-
-      if (landingRow < 0) {
-        setStatus("LANE FULL");
-        return;
-      }
-
-      if (landingRow < game.active.row) {
-        setStatus("TOO LOW");
-        return;
-      }
-
-      game.active.row = landingRow;
-
-      placeActiveRing();
-    }
-
-    function getPreparation(lane, row, piece) {
-      if (
-        !piece ||
-        piece.type === "star"
-      ) {
-        return "";
-      }
-
-      const stack = getStack(lane);
-
-      if (
-        !stack.hasOrb ||
-        !stack.cells.some(
-          (cell) => cell.row === row
-        )
-      ) {
-        return "";
-      }
-
-      if (stack.total === 5) {
-        return "t5";
-      }
-
-      if (stack.total === 6) {
-        return "t6";
-      }
-
-      if (stack.total === 7) {
-        return "t7";
-      }
-
-      return "";
-    }
-
-    function createPieceElement(
-      piece,
-      lane,
-      row,
-      active = false
-    ) {
-      const node = document.createElement("div");
-
-      node.classList.add("piece");
-
-      if (piece.type === "orb") {
-        node.classList.add("orb");
-      }
-
-      if (piece.type === "ring") {
-        node.classList.add("ring");
-      }
-
-      if (piece.type === "star") {
-        node.classList.add("star");
-      }
-
-      if (
-        piece.color !== null &&
-        piece.color !== undefined
-      ) {
-        node.classList.add(`c${piece.color}`);
-      }
-
-      if (active) {
-        node.classList.add("active");
-      }
-
-      const preparation = getPreparation(
-        lane,
-        row,
-        piece
-      );
-
-      if (preparation) {
-        node.classList.add(preparation);
-      }
-
-      node.textContent =
-        piece.type === "star"
-          ? "★"
-          : String(piece.number);
-
-      return node;
-    }
-
-    function renderNext() {
-      el.next.innerHTML = "";
-
-      game.next.forEach((next, lane) => {
-        const box = document.createElement("div");
-
-        box.className = "next-box";
-
-        const label = document.createElement("b");
-
-        label.textContent =
-          `LANE ${lane + 1}`;
-
-        const piece = document.createElement("div");
-
-        piece.className = "next-piece";
-
-        if (next.type === "star") {
-          piece.classList.add("star");
-          piece.textContent = "★";
-        } else {
-          piece.textContent = String(next.number);
-        }
-
-        box.append(label, piece);
-        el.next.append(box);
-      });
-    }
-
-    function renderBoard() {
-      el.board.innerHTML = "";
-
-      let highest = CONFIG.rows;
-
-      for (
-        let lane = 0;
-        lane < CONFIG.lanes;
-        lane += 1
-      ) {
-        const first =
-          game.board[lane].findIndex(Boolean);
-
-        highest = Math.min(
-          highest,
-          first < 0 ? CONFIG.rows : first
-        );
-      }
-
-      const danger = Math.max(
-        0,
-        Math.min(
-          1,
-          (CONFIG.rows - highest - 2) /
-          (CONFIG.rows - 2)
-        )
-      );
-
-      el.app.style.setProperty(
-        "--danger",
-        String(danger)
-      );
-
-      for (
-        let laneIndex = 0;
-        laneIndex < CONFIG.lanes;
-        laneIndex += 1
-      ) {
-        const lane = document.createElement("div");
-
-        lane.className = "lane";
-
-        const first =
-          game.board[laneIndex].findIndex(Boolean);
-
-        if (first >= 0 && first <= 2) {
-          lane.classList.add("high");
-        }
-
-        for (
-          let row = 0;
-          row < CONFIG.rows;
-          row += 1
-        ) {
-          const cell = document.createElement("button");
-
-          cell.type = "button";
-          cell.className = "cell";
-          cell.dataset.lane = String(laneIndex);
-
-          if (
-            game.selectedLane === laneIndex &&
-            game.active
-          ) {
-            cell.classList.add("selected");
-          }
-
-          const piece =
-            game.board[laneIndex][row];
-
-          if (piece) {
-            cell.appendChild(
-              createPieceElement(
-                piece,
-                laneIndex,
-                row
-              )
-            );
-          }
-
-          if (
-            game.active &&
-            game.active.lane === laneIndex &&
-            game.active.row === row
-          ) {
-            cell.appendChild(
-              createPieceElement(
-                {
-                  type: game.active.type,
-                  number: game.active.number,
-                  color: null
-                },
-                laneIndex,
-                row,
-                true
-              )
-            );
-          }
-
-          lane.appendChild(cell);
-        }
-
-        el.board.appendChild(lane);
-      }
-    }
-
-    function renderGauge() {
-      el.gauge.className = "over-gauge";
-
-      if (game.over > 0) {
-        el.gauge.classList.add(
-          `over-${Math.min(game.over, 4)}`
-        );
-      }
-
-      [...el.gauge.querySelectorAll("i")]
-        .forEach((item, index) => {
-          item.classList.toggle(
-            "on",
-            index < game.over
-          );
-        });
-    }
-
-    function render() {
-      if (!game) {
-        return;
-      }
-
-      el.score.textContent =
-        game.score.toLocaleString("ja-JP");
-
-      el.level.textContent =
-        String(game.level);
-
-      el.time.textContent =
-        String(Math.max(0, game.time));
-
-      el.stageScore.textContent =
-        game.stageScore.toLocaleString("ja-JP");
-
-      el.target.textContent =
-        getTarget().toLocaleString("ja-JP");
-
-      renderGauge();
-      renderNext();
-      renderBoard();
-    }
-
-    async function countdown() {
-      const sequence = [
-        ["READY?", 800, true],
-        ["3", 680, false],
-        ["2", 680, false],
-        ["1", 680, false],
-        ["GO!", 680, false]
-      ];
-
-      el.countdown.classList.add("open");
-
-      for (const [message, duration, isReady] of sequence) {
-        el.countdownText.textContent = message;
-
-        el.countdown.classList.toggle(
-          "ready-phase",
-          isReady
-        );
-
-        el.countdownText.style.animation = "none";
-
-        void el.countdownText.offsetWidth;
-
-        el.countdownText.style.animation = "";
-
-        await wait(duration);
-
-        if (!game || game.ended) {
-          el.countdown.classList.remove("open");
-          return false;
-        }
-      }
-
-      el.countdown.classList.remove("open");
-      el.countdown.classList.remove("ready-phase");
-
-      return true;
-    }
-
-    async function beginGame() {
-      game.busy = true;
-
-      startBgm();
-
-      const ready = await countdown();
-
-      if (!ready || !game || game.ended) {
-        return;
-      }
-
-      game.busy = false;
-
-      setStatus("READY");
-
-      spawnActiveRing();
-      restartFallTimer();
-
-      timeTimer = window.setInterval(() => {
-        if (!isPlaying()) {
-          return;
-        }
-
-        game.time -= 1;
-
-        render();
-
-        if (game.time <= 0) {
-          gameOver("TIME UP");
-        }
-      }, 1000);
-    }
-
-    function startGame() {
-      unlockAudio();
-
-      clearTimers();
-      stopBgm();
-      stopEndMusic();
-      closeModals();
-
-      game = createGame();
-
-      showScreen(el.game);
-      render();
-
-      beginGame();
-    }
-
-    function pauseGame() {
-      if (
-        !game ||
-        game.ended ||
-        game.paused
-      ) {
-        return;
-      }
-
-      game.paused = true;
-
-      bgm?.pause();
-
-      setStatus("PAUSED");
-
-      el.pauseModal.classList.add("open");
-    }
-
-    function resumeGame() {
-      if (
-        !game ||
-        game.ended ||
-        !game.paused
-      ) {
-        return;
-      }
-
-      game.paused = false;
-
-      el.pauseModal.classList.remove("open");
-
-      bgm?.play()
-        .then(() => {
-          el.sound.classList.add("hidden");
-        })
-        .catch(() => {
-          el.sound.classList.remove("hidden");
-        });
-
-      setStatus("READY");
-      render();
-    }
-
-    function returnToTitle() {
-      clearTimers();
-      stopBgm();
-      stopEndMusic();
-      closeModals();
-
-      game = null;
-
-      showScreen(el.title);
+    function showOverNumber(total) {
+      el.overNumber.textContent = total;
+      el.overNumber.classList.remove("show");
+      void el.overNumber.offsetWidth;
+      el.overNumber.classList.add("show");
+
+      window.setTimeout(() => {
+        el.overNumber.classList.remove("show");
+      }, 920);
     }
 
     function gameOver(reason) {
@@ -2575,38 +2378,83 @@
       }
 
       game.ended = true;
+      game.busy = true;
 
       clearTimers();
       stopBgm();
 
       el.overReason.textContent = reason;
-
-      el.finalScore.textContent =
-        game.score.toLocaleString("ja-JP");
-
+      el.finalScore.textContent = game.score.toLocaleString();
       el.overModal.classList.add("open");
 
-      playEndMusic("GAMEOVER.mp3");
+      playEndMusic("assets/audio/bgm/GAMEOVER.mp3");
     }
 
     function gameClear() {
-      if (!game || game.ended) {
-        return;
-      }
-
       game.ended = true;
+      game.busy = true;
 
       clearTimers();
       stopBgm();
 
-      el.clearScore.textContent =
-        game.score.toLocaleString("ja-JP");
-
+      el.clearScore.textContent = game.score.toLocaleString();
       el.clearModal.classList.add("open");
 
       playEndMusic(
-        "OvercameHardships.mp3"
+        "assets/audio/bgm/OvercameHardships.mp3"
       );
+    }
+
+    function pauseGame() {
+      if (!game || game.ended || game.busy) {
+        return;
+      }
+
+      game.paused = true;
+      clearTimers();
+      bgm?.pause();
+
+      el.pauseModal.classList.add("open");
+      setStatus("PAUSED");
+    }
+
+    function resumeGame() {
+      if (!game || game.ended) {
+        return;
+      }
+
+      game.paused = false;
+      el.pauseModal.classList.remove("open");
+
+      bgm?.play().catch(() => {
+        el.sound.classList.remove("hidden");
+      });
+
+      restartFallTimer();
+      startTimeTimer();
+
+      setStatus("DROP RING");
+    }
+
+    function returnToTitle() {
+      clearTimers();
+      stopBgm();
+      stopEndMusic();
+
+      game = null;
+
+      closeModals();
+      el.countdown.classList.remove("open");
+      el.levelOverlay.classList.remove("open");
+      el.feverOverlay.classList.remove("open");
+
+      showScreen(el.title);
+    }
+
+    function showTutorial() {
+      tutorialIndex = 0;
+      renderTutorial();
+      showScreen(el.tutorial);
     }
 
     function renderTutorial() {
@@ -2616,141 +2464,101 @@
       el.tutorialText.textContent =
         TUTORIALS[tutorialIndex];
 
-      const isLast =
-        tutorialIndex ===
-        TUTORIALS.length - 1;
+      el.tutorialNext.querySelector("strong").textContent =
+        tutorialIndex === TUTORIALS.length - 1
+          ? "メニューへ戻る"
+          : "つぎへ";
 
-      el.tutorialNext.innerHTML = isLast
-        ? "<strong>完了</strong><small>FINISH</small>"
-        : "<strong>つぎへ</strong><small>NEXT</small>";
+      el.tutorialNext.querySelector("small").textContent =
+        tutorialIndex === TUTORIALS.length - 1
+          ? "MENU"
+          : "NEXT";
     }
 
-    function openTutorial() {
-      tutorialIndex = 0;
+    function bindEvents() {
+      el.start.addEventListener("click", () => {
+        unlockAudio();
+        startNewGame();
+      });
 
-      showScreen(el.tutorial);
-      renderTutorial();
-    }
+      el.tutorialButton.addEventListener("click", () => {
+        showTutorial();
+      });
 
-    document.addEventListener(
-      "dblclick",
-      (event) => {
-        event.preventDefault();
-      },
-      { passive: false }
-    );
-
-    el.start.addEventListener("click", startGame);
-
-    el.tutorialButton.addEventListener(
-      "click",
-      openTutorial
-    );
-
-    el.historyButton.addEventListener(
-      "click",
-      () => {
+      el.historyButton.addEventListener("click", () => {
         showScreen(el.history);
-      }
-    );
+      });
 
-    el.historyBack.addEventListener(
-      "click",
-      () => {
+      el.historyBack.addEventListener("click", () => {
         showScreen(el.title);
-      }
-    );
+      });
 
-    el.update.addEventListener(
-      "click",
-      () => {
-        location.replace(
-          `${location.pathname}?reload=${Date.now()}`
+      el.update.addEventListener("click", () => {
+        window.location.replace(
+          `${window.location.pathname}?reload=${Date.now()}`
         );
-      }
-    );
+      });
 
-    el.board.addEventListener(
-      "click",
-      (event) => {
-        const cell =
-          event.target.closest(".cell");
-
-        if (!cell) {
-          return;
-        }
-
-        const lane =
-          Number(cell.dataset.lane);
-
-        if (!Number.isNaN(lane)) {
-          handleLaneTap(lane);
-        }
-      }
-    );
-
-    el.abort.addEventListener("click", pauseGame);
-    el.resume.addEventListener("click", resumeGame);
-    el.pauseRetry.addEventListener("click", startGame);
-    el.pauseTitle.addEventListener("click", returnToTitle);
-
-    el.retry.addEventListener("click", startGame);
-    el.titleButton.addEventListener("click", returnToTitle);
-
-    el.clearRetry.addEventListener("click", startGame);
-    el.clearTitle.addEventListener("click", returnToTitle);
-
-    el.sound.addEventListener(
-      "click",
-      () => {
+      el.sound.addEventListener("click", () => {
         unlockAudio();
 
-        bgm?.play()
-          .then(() => {
+        if (game && !game.ended) {
+          bgm?.play().then(() => {
             el.sound.classList.add("hidden");
-          })
-          .catch(() => {});
-      }
-    );
+          }).catch(() => {});
+        }
 
-    el.tutorialNext.addEventListener(
-      "click",
-      () => {
-        const isLast =
-          tutorialIndex ===
-          TUTORIALS.length - 1;
+        playConnectSound();
+      });
 
-        if (isLast) {
-          startGame();
+      el.abort.addEventListener("click", pauseGame);
+
+      el.resume.addEventListener("click", resumeGame);
+
+      el.pauseRetry.addEventListener("click", () => {
+        startNewGame();
+      });
+
+      el.pauseTitle.addEventListener("click", returnToTitle);
+
+      el.retry.addEventListener("click", () => {
+        startNewGame();
+      });
+
+      el.titleButton.addEventListener("click", returnToTitle);
+
+      el.clearRetry.addEventListener("click", () => {
+        startNewGame();
+      });
+
+      el.clearTitle.addEventListener("click", returnToTitle);
+
+      el.tutorialNext.addEventListener("click", () => {
+        if (tutorialIndex >= TUTORIALS.length - 1) {
+          showScreen(el.title);
           return;
         }
 
         tutorialIndex += 1;
-
         renderTutorial();
-      }
-    );
+      });
 
-    el.tutorialBack.addEventListener(
-      "click",
-      () => {
+      el.tutorialBack.addEventListener("click", () => {
         showScreen(el.title);
-      }
-    );
+      });
 
-    document.addEventListener(
-      "visibilitychange",
-      () => {
-        if (
-          document.hidden &&
-          isPlaying()
-        ) {
+      document.addEventListener("dblclick", (event) => {
+        event.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && isPlaying()) {
           pauseGame();
         }
-      }
-    );
+      });
+    }
 
-    showScreen(el.title);
+    bindEvents();
   </script>
 </body>
 </html>
