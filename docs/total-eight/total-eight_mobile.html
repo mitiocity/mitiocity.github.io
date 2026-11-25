@@ -13,7 +13,6 @@
 
     :root {
       --bg: #040817;
-      --panel: #0a1835;
       --cyan: #5de4ff;
       --pink: #ff7194;
       --yellow: #ffe878;
@@ -86,6 +85,27 @@
         perspective(500px)
         rotateX(63deg)
         translateY(-12%);
+    }
+
+    .app.is-fever {
+      animation: fever-screen 0.55s ease-out both;
+      background:
+        radial-gradient(
+          circle at 50% 30%,
+          rgba(255, 232, 120, 0.36),
+          transparent 45%
+        ),
+        radial-gradient(
+          circle at 10% 90%,
+          rgba(125, 255, 156, 0.24),
+          transparent 45%
+        ),
+        linear-gradient(
+          155deg,
+          #0f5c53,
+          #071630 48%,
+          #3c1559
+        );
     }
 
     .screen {
@@ -224,7 +244,7 @@
         0 7px 18px rgba(0, 0, 0, 0.34);
     }
 
-    /* ゲーム画面 */
+    /* ゲーム */
 
     #game-screen {
       flex-direction: column;
@@ -552,7 +572,7 @@
       font-weight: 900;
     }
 
-    /* モーダル・カウントダウン */
+    /* モーダル・演出 */
 
     .modal,
     .overlay {
@@ -671,7 +691,14 @@
       animation: countdown-pop 0.55s ease-out both;
     }
 
-    .level-up {
+    .countdown.ready-phase strong {
+      font-size: clamp(2.8rem, 18vw, 5rem);
+      letter-spacing: 0.02em;
+      animation: ready-grow 0.7s ease-out both;
+    }
+
+    .level-up,
+    .fever-overlay {
       z-index: 35;
       pointer-events: none;
       text-align: center;
@@ -699,6 +726,29 @@
       font-size: 0.9rem;
       font-weight: 900;
       letter-spacing: 0.18em;
+    }
+
+    .fever-overlay strong {
+      display: block;
+      color: var(--yellow);
+      font-family: "Mochiy Pop One", sans-serif;
+      font-size: clamp(4rem, 28vw, 8rem);
+      letter-spacing: -0.08em;
+      text-shadow:
+        0 0 12px var(--yellow),
+        0 0 35px var(--green),
+        0 0 60px var(--cyan);
+      animation: fever-burst 1.9s ease-out both;
+    }
+
+    .fever-overlay small {
+      display: block;
+      margin-top: 10px;
+      color: white;
+      font-family: Orbitron, sans-serif;
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: 0.16em;
     }
 
     .over-number {
@@ -769,6 +819,23 @@
       }
     }
 
+    @keyframes ready-grow {
+      0% {
+        opacity: 0;
+        transform: scale(0.4);
+      }
+
+      65% {
+        opacity: 1;
+        transform: scale(1.28);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
     @keyframes level-burst {
       0% {
         opacity: 0;
@@ -788,6 +855,57 @@
       100% {
         opacity: 0;
         transform: scale(1.35);
+      }
+    }
+
+    @keyframes fever-burst {
+      0% {
+        opacity: 0;
+        transform: scale(0.25) rotate(-18deg);
+      }
+
+      30% {
+        opacity: 1;
+        transform: scale(1.25) rotate(12deg);
+      }
+
+      55% {
+        transform: scale(0.95) rotate(-7deg);
+      }
+
+      80% {
+        opacity: 1;
+        transform: scale(1.08) rotate(4deg);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.45) rotate(18deg);
+      }
+    }
+
+    @keyframes fever-screen {
+      0% {
+        filter: brightness(1);
+        transform: translateX(0);
+      }
+
+      20% {
+        filter: brightness(1.6) hue-rotate(45deg);
+        transform: translateX(-7px);
+      }
+
+      40% {
+        transform: translateX(7px);
+      }
+
+      60% {
+        transform: translateX(-4px);
+      }
+
+      100% {
+        filter: brightness(1);
+        transform: translateX(0);
       }
     }
 
@@ -963,10 +1081,11 @@
           <li>リングが積み上がると「ガチャン」と鳴ります。</li>
           <li>高く積み上がるほど、盤面の光と電流が強くなります。</li>
           <li>レベルアップ時に、中央へ大きなLEVEL表示が出ます。</li>
-          <li>ゲーム開始時のカウントダウンを中央に大きく表示します。</li>
-          <li>上部表示をコンパクトにして、盤面を縦に広くしました。</li>
-          <li>リングを別レーンへ移動しても、落下中の高さは戻りません。</li>
-          <li>積み上がりより低い位置から、レーンへ無理に移動できません。</li>
+          <li>READY表示を読みやすくしました。</li>
+          <li>全レーンが完全に空になった時だけFEVERが発動します。</li>
+          <li>FEVER中の経験値は4倍です。</li>
+          <li>LEVEL 1〜3のリング落下速度を少し遅くしました。</li>
+          <li>レーン移動時に、落下中リングの高さが戻らなくなりました。</li>
         </ul>
       </div>
 
@@ -1047,6 +1166,13 @@
       </div>
     </section>
 
+    <section id="fever-overlay" class="overlay fever-overlay">
+      <div>
+        <strong>FEVER!</strong>
+        <small>XP ×4</small>
+      </div>
+    </section>
+
     <div id="over-number" class="over-number"></div>
   </main>
 
@@ -1059,11 +1185,19 @@
       startTime: 300,
       maxLevel: 5,
       targets: [4500, 4500, 5500, 6500, 7500],
-      fallInterval: 1050,
+
+      fallIntervals: {
+        1: 1650,
+        2: 1500,
+        3: 1300,
+        4: 1050,
+        5: 1050
+      },
+
       clearScore: 100,
       simultaneousBonus: 80,
       feverDuration: 8000,
-      feverMultiplier: 2,
+      feverMultiplier: 4,
       starRate: 0.05,
       bgmVolume: 0.38,
       endMusicVolume: 0.48
@@ -1132,6 +1266,8 @@
 
       levelOverlay: $("#level-overlay"),
       levelText: $("#level-overlay-text"),
+
+      feverOverlay: $("#fever-overlay"),
       overNumber: $("#over-number")
     };
 
@@ -1153,6 +1289,12 @@
 
     function randomNumber() {
       return Math.floor(Math.random() * 4) + 1;
+    }
+
+    function getFallInterval() {
+      return CONFIG.fallIntervals[
+        Math.min(game.level, 5)
+      ];
     }
 
     function makePiece(type, number = null, color = null) {
@@ -1280,6 +1422,15 @@
       timeTimer = null;
     }
 
+    function restartFallTimer() {
+      window.clearInterval(fallTimer);
+
+      fallTimer = window.setInterval(
+        moveActiveRing,
+        getFallInterval()
+      );
+    }
+
     function setStatus(text) {
       el.status.textContent = text;
     }
@@ -1302,7 +1453,8 @@
       frequency,
       time,
       duration,
-      volume
+      volume,
+      type = "sine"
     ) {
       if (!audioContext) {
         return;
@@ -1314,7 +1466,7 @@
       const gain =
         audioContext.createGain();
 
-      oscillator.type = "sine";
+      oscillator.type = type;
       oscillator.frequency.value = frequency;
 
       gain.gain.setValueAtTime(0.001, time);
@@ -1343,8 +1495,13 @@
 
       const now = audioContext.currentTime;
 
-      playTone(105, now, 0.08, 0.16);
-      playTone(158, now + 0.018, 0.06, 0.09);
+      /*
+        太い低音＋短い金属高音。
+        BGM中でも聞き取りやすい「ガチャン」。
+      */
+      playTone(85, now, 0.12, 0.28, "square");
+      playTone(165, now + 0.018, 0.1, 0.2, "triangle");
+      playTone(520, now + 0.027, 0.055, 0.12, "sine");
     }
 
     function playClearSound(chain = 1) {
@@ -1544,12 +1701,28 @@
       }, 1850);
 
       startBgm();
+      restartFallTimer();
       render();
     }
 
     function getStack(lane) {
       const cells = [];
       const column = game.board[lane];
+
+      /*
+        オーブが一番下にある時だけ、
+        合計8・9以上の判定対象にする。
+        リングだけの列は得点・オーバー対象外。
+      */
+      if (
+        column[CONFIG.rows - 1]?.type !== "orb"
+      ) {
+        return {
+          hasOrb: false,
+          cells: [],
+          total: 0
+        };
+      }
 
       for (
         let row = CONFIG.rows - 1;
@@ -1570,6 +1743,7 @@
       }
 
       return {
+        hasOrb: true,
         cells,
         total: cells.reduce(
           (sum, item) =>
@@ -1605,24 +1779,23 @@
       }
     }
 
-    function hasAnyOrb() {
-      return game.board.some((column) =>
-        column.some(
-          (piece) => piece?.type === "orb"
-        )
+    function isBoardCompletelyEmpty() {
+      return game.board.every((column) =>
+        column.every((piece) => !piece)
       );
     }
 
-    function respawnEmptyLanes() {
+    function respawnAllOrbs() {
       game.board.forEach((column, lane) => {
-        if (column.every((piece) => !piece)) {
-          game.board[lane][CONFIG.rows - 1] =
-            makePiece(
-              "orb",
-              randomNumber(),
-              lane
-            );
-        }
+        game.board[lane] =
+          Array(CONFIG.rows).fill(null);
+
+        game.board[lane][CONFIG.rows - 1] =
+          makePiece(
+            "orb",
+            randomNumber(),
+            lane
+          );
       });
     }
 
@@ -1630,18 +1803,30 @@
       game.feverUntil =
         Date.now() + CONFIG.feverDuration;
 
+      game.busy = true;
+
+      el.app.classList.add("is-fever");
+      el.feverOverlay.classList.add("open");
+
       setStatus("ALL CLEAR! FEVER!");
 
-      await wait(520);
+      await wait(1900);
+
+      el.feverOverlay.classList.remove("open");
 
       if (!game || game.ended) {
         return;
       }
 
-      respawnEmptyLanes();
+      respawnAllOrbs();
+
+      game.busy = false;
+
       render();
 
       window.setTimeout(() => {
+        el.app.classList.remove("is-fever");
+
         if (
           game &&
           !game.ended &&
@@ -1693,7 +1878,10 @@
         ) {
           const stack = getStack(lane);
 
-          if (stack.total === 8) {
+          if (
+            stack.hasOrb &&
+            stack.total === 8
+          ) {
             clears.push(stack);
           }
         }
@@ -1736,9 +1924,9 @@
       if (
         game &&
         !game.ended &&
-        !hasAnyOrb()
+        isBoardCompletelyEmpty()
       ) {
-        startFever();
+        await startFever();
       }
     }
 
@@ -1760,8 +1948,8 @@
 
       await wait(240);
 
-      if (!hasAnyOrb()) {
-        startFever();
+      if (isBoardCompletelyEmpty()) {
+        await startFever();
       }
     }
 
@@ -1797,17 +1985,10 @@
       const topOccupied =
         getTopOccupiedRow(lane);
 
-      /*
-        落下中リングが、移動先の積み上がりより
-        低い位置まで落下していた場合は移動禁止。
-      */
       if (activeRow >= topOccupied) {
         return false;
       }
 
-      /*
-        同じ高さのマスが埋まっている場合も移動禁止。
-      */
       if (game.board[lane][activeRow]) {
         return false;
       }
@@ -1832,6 +2013,8 @@
 
       if (active.type === "star") {
         game.active = null;
+
+        playClank();
 
         await resolveStar(lane);
 
@@ -1859,7 +2042,10 @@
 
       const stack = getStack(lane);
 
-      if (stack.total >= 9) {
+      if (
+        stack.hasOrb &&
+        stack.total >= 9
+      ) {
         game.board[lane][active.row] = null;
 
         collapseLane(lane);
@@ -1884,7 +2070,8 @@
       if (
         !game ||
         game.ended ||
-        game.paused
+        game.paused ||
+        game.busy
       ) {
         return;
       }
@@ -1941,16 +2128,17 @@
       }
 
       if (game.selectedLane !== lane) {
-        /*
-          横移動しても row を0へ戻さない。
-          現在の落下高さを維持する。
-        */
         if (!canMoveToLane(lane)) {
           setStatus("TOO LOW");
           return;
         }
 
         game.selectedLane = lane;
+
+        /*
+          rowは変更しない。
+          レーン変更後も現在の高さを維持。
+        */
         game.active.lane = lane;
 
         setStatus("TARGET LOCK");
@@ -1966,9 +2154,6 @@
         return;
       }
 
-      /*
-        即固定時も、現在位置より上へ戻さない。
-      */
       if (landingRow < game.active.row) {
         setStatus("TOO LOW");
         return;
@@ -1990,6 +2175,7 @@
       const stack = getStack(lane);
 
       if (
+        !stack.hasOrb ||
         !stack.cells.some(
           (cell) => cell.row === row
         )
@@ -2243,17 +2429,23 @@
 
     async function countdown() {
       const sequence = [
-        ["READY?", 780],
-        ["3", 680],
-        ["2", 680],
-        ["1", 680],
-        ["GO!", 680]
+        ["READY?", 800, true],
+        ["3", 680, false],
+        ["2", 680, false],
+        ["1", 680, false],
+        ["GO!", 680, false]
       ];
 
       el.countdown.classList.add("open");
 
-      for (const [message, duration] of sequence) {
+      for (const [message, duration, isReady] of sequence) {
         el.countdownText.textContent = message;
+
+        el.countdown.classList.toggle(
+          "ready-phase",
+          isReady
+        );
+
         el.countdownText.style.animation = "none";
 
         void el.countdownText.offsetWidth;
@@ -2269,6 +2461,7 @@
       }
 
       el.countdown.classList.remove("open");
+      el.countdown.classList.remove("ready-phase");
 
       return true;
     }
@@ -2289,11 +2482,7 @@
       setStatus("READY");
 
       spawnActiveRing();
-
-      fallTimer = window.setInterval(
-        moveActiveRing,
-        CONFIG.fallInterval
-      );
+      restartFallTimer();
 
       timeTimer = window.setInterval(() => {
         if (!isPlaying()) {
